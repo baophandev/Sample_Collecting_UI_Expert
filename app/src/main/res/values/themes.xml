@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.SplashScreen" parent="Theme.SampleCollectingApplication">
+        <item name="android:windowSplashScreenBackground">@color/white</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+        <item name="android:windowSplashScreenAnimationDuration">800</item>
+    </style>
+
+    <style name="Theme.SampleCollectingApplication" parent="@style/Theme.AppCompat.Light.NoActionBar" />
+</resources>

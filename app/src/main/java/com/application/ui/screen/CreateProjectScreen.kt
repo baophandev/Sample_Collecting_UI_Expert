@@ -1,0 +1,239 @@
+package com.application.ui.screen
+
+import android.provider.OpenableColumns
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.application.R
+import com.application.ui.component.BotNavigationBar
+import com.application.ui.component.CustomButton
+import com.application.ui.component.CustomDatePicker
+import com.application.ui.component.CustomSnackBarHost
+import com.application.ui.component.CustomTextField
+import com.application.ui.component.FieldToList
+import com.application.ui.component.LoadingScreen
+import com.application.ui.component.RegexValidation
+import com.application.ui.component.TopBar
+import com.application.ui.viewmodel.CreateProjectViewModel
+
+@Composable
+fun CreateProjectScreen(
+    viewModel: CreateProjectViewModel = hiltViewModel(),
+    userEmail: String,
+    navigateToLogin: () -> Unit,
+    navigateToHome: () -> Unit
+) {
+    val context = LocalContext.current
+    val state by viewModel.state.collectAsState()
+    val snackBarHostState = remember { SnackbarHostState() }
+    val pickPictureLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { imageUri ->
+        if (imageUri != null) {
+            context.contentResolver
+                .query(imageUri, null, null, null).use { cursor ->
+                    val nameIndex = cursor?.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    cursor?.moveToFirst()
+                    nameIndex?.let {
+                        val fileName = cursor.getString(it)
+                        viewModel.updateThumbnail(Pair(fileName, imageUri))
+                    }
+                }
+        }
+    }
+
+    if (state.error != null) {
+        val error = stringResource(id = state.error!!)
+        LaunchedEffect(key1 = "showSnackBar") {
+            val result = snackBarHostState.showSnackbar(
+                message = error,
+                withDismissAction = true,
+                duration = SnackbarDuration.Short
+            )
+            if (result == SnackbarResult.Dismissed) {
+                viewModel.gotError()
+            }
+        }
+    }
+    if (state.loading) LoadingScreen(text = stringResource(id = R.string.creating_project))
+    else {
+        Scaffold(
+            modifier = Modifier.padding(horizontal = 15.dp, vertical = 5.dp),
+            snackbarHost = {
+                CustomSnackBarHost(
+                    snackBarHostState = snackBarHostState,
+                    dismissAction = {
+                        IconButton(
+                            modifier = Modifier
+                                .padding(0.dp)
+                                .size(50.dp),
+                            onClick = viewModel::gotError
+                        ) {
+                            Icon(
+                                modifier = Modifier.fillMaxSize(),
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Close"
+                            )
+                        }
+                    }
+                )
+            },
+            topBar = {
+                TopBar(title = R.string.create_project, signOutClicked = navigateToLogin)
+            },
+            bottomBar = {
+                BotNavigationBar {
+                    IconButton(
+                        modifier = Modifier.size(50.dp),
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = colorResource(id = R.color.smooth_blue)
+                        ),
+                        onClick = navigateToHome
+                    ) {
+                        Icon(
+                            modifier = Modifier.fillMaxSize(.60f),
+                            painter = painterResource(id = R.drawable.ic_home),
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                    }
+                }
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceAround
+            ) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = colorResource(id = R.color.light_gray)
+                    ),
+                    onClick = { pickPictureLauncher.launch("image/*") }
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        val thumbnailUri = state.thumbnail?.second
+                        if (thumbnailUri != null) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(context)
+                                    .data(thumbnailUri).build(),
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop,
+                                contentDescription = null
+                            )
+                        } else {
+                            Icon(
+                                modifier = Modifier
+                                    .fillMaxSize(.6f),
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Add Icon",
+                                tint = Color.White
+                            )
+                        }
+                    }
+                }
+
+                CustomTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    placeholder = { Text(text = stringResource(id = R.string.add_title)) },
+                    singleLine = true,
+                    value = state.title,
+                    onValueChange = viewModel::updateTitle
+                )
+
+                CustomTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    placeholder = { Text(text = stringResource(id = R.string.add_description)) },
+                    value = state.description,
+                    onValueChange = viewModel::updateDescription
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    CustomDatePicker(
+                        fieldName = stringResource(id = R.string.start_date),
+                        modifier = Modifier.width(160.dp)
+                    ) { viewModel.updateDate(date = it, isStartDate = true) }
+                    CustomDatePicker(
+                        fieldName = stringResource(id = R.string.end_date),
+                        modifier = Modifier.width(160.dp)
+                    ) { viewModel.updateDate(date = it, isStartDate = false) }
+                }
+
+                FieldToList(
+                    fieldDataList = state.emailMembers,
+                    textValidator = { email -> email.contains(RegexValidation.EMAIL) }
+                )
+
+                CustomButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(id = R.string.submit),
+                    textSize = 24.sp,
+                    background = colorResource(id = R.color.smooth_blue),
+                    border = BorderStroke(0.dp, Color.Transparent),
+                    action = {
+                        viewModel.submit(
+                            userEmail = userEmail,
+                            successHandler = navigateToHome
+                        )
+                    }
+                )
+            }
+        }
+    }
+}
