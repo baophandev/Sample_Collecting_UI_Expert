@@ -4,7 +4,6 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -19,13 +18,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -95,9 +95,7 @@ fun ModifyProjectScreen(
                 BotNavigationBar {
                     IconButton(
                         modifier = Modifier.size(50.dp),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = colorResource(id = R.color.smooth_blue)
-                        ),
+
                         onClick = navigateToHome
                     ) {
                         Icon(
@@ -143,17 +141,15 @@ fun ModifyProjectScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(colorResource(id = R.color.gray_color)),
+                                .background(colorResource(id = R.color.gray_100)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Image(
+                            Icon(
                                 modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .zIndex(1f)
-                                    .height(40.dp)
-                                    .width(40.dp), // Ensure add button is on top
-                                painter = painterResource(id = R.drawable.ic_add_project),
-                                contentDescription = "add button"
+                                    .fillMaxSize(.3f),
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Add Icon",
+                                tint = colorResource(id = R.color.main_green)
                             )
                             state.thumbnailPath?.second?.let {
                                 AsyncImage(
@@ -209,17 +205,18 @@ fun ModifyProjectScreen(
                             .fillMaxWidth()
                             .height(120.dp)
                             .border(
-                                width = 2.dp,
+                                width = 0.dp,
                                 Color.LightGray,
                                 shape = RoundedCornerShape(20.dp)
-                            ),
+                            )
+                            .background(colorResource(id = R.color.gray_100)),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = stringResource(id = R.string.no_members),
                             textAlign = TextAlign.Center,
                             fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Light
                         )
                     }
                 } else {
@@ -242,7 +239,7 @@ fun ModifyProjectScreen(
                     shape = RoundedCornerShape(10.dp),
                     contentPadding = PaddingValues(0.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(id = R.color.modBtn_color),
+                        containerColor = colorResource(id = R.color.main_green),
                         contentColor = colorResource(id = R.color.black)
                     ),
                     onClick = {

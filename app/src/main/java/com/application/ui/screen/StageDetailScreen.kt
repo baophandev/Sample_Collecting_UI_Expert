@@ -396,4 +396,3 @@ fun StageDetailScreen(
         }
     }
 }
-

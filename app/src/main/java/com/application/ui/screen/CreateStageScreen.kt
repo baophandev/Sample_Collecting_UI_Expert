@@ -18,7 +18,6 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -70,9 +69,7 @@ fun CreateStageScreen(
                 BotNavigationBar(modifier = Modifier.padding(vertical = 10.dp)) {
                     IconButton(
                         modifier = Modifier.size(50.dp),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = colorResource(id = R.color.smooth_blue)
-                        ),
+
                         onClick = navigateToHome
                     ) {
                         Icon(
@@ -147,8 +144,8 @@ fun CreateStageScreen(
                             colors = ExposedDropdownMenuDefaults.textFieldColors(
                                 unfocusedIndicatorColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
-                                unfocusedContainerColor = colorResource(id = R.color.light_gray),
-                                focusedContainerColor = colorResource(id = R.color.light_gray)
+                                unfocusedContainerColor = colorResource(id = R.color.gray_100),
+                                focusedContainerColor = colorResource(id = R.color.gray_100)
                             ),
                         )
                         ExposedDropdownMenu(
@@ -184,8 +181,8 @@ fun CreateStageScreen(
                 CustomButton(
                     modifier = Modifier.fillMaxWidth(),
                     text = "Submit",
-                    textSize = 24.sp,
-                    background = colorResource(id = R.color.sky_blue),
+                    textSize = 20.sp,
+                    background = colorResource(id = R.color.main_green),
                     border = BorderStroke(0.dp, Color.Transparent),
                     action = {
                         viewModel.submitStage(

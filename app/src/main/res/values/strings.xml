@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name" translatable="false">Sample Collecting Application</string>
-    <string name="login_button">Login with Google</string>
     <string name="login_success">You are signed in!</string>
     <string name="login_cancel">The login process was cancelled by user!</string>
     <string name="login_error">Login is getting error!</string>
@@ -88,4 +87,19 @@
     <string name="stage_not_exist">This stage does not exist</string>
     <string name="create_sample_cancel">Cannot create sample because this project does not exist</string>
     <string name="not_in_stage">You are not a member of this stage</string>
+
+    <string name="login_button">Đăng nhập</string>
+    <string name="register_button">Đăng ký</string>
+    <string name="enter_email">Email hoặc Số điện thoại</string>
+    <string name="enter_password">Mật khẩu</string>
+    <string name="re_enter_password">Nhập lại mật khẩu</string>
+    <string name="forgot_password">Quên mật khẩu?</string>
+    <string name="no_account">Bạn chưa có tài khoản?</string>
+    <string name="register_name">ĐĂNG KÝ</string>
+    <string name="enter_full_name">Họ và tên</string>
+    <string name="enter_birthday">Ngày sinh</string>
+    <string name="gender">Giới tính:</string>
+    <string name="male">Nam</string>
+    <string name="female">Nữ</string>default_date
+    <string name="have_account">Bạn đã có tài khoản?</string>
 </resources>

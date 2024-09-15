@@ -5,7 +5,9 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -103,7 +105,7 @@ fun HomeScreen(
         BackHandler { showLogoutDialog = true }
 
         Scaffold(
-            modifier = Modifier.padding(horizontal = 15.dp, vertical = 5.dp),
+            modifier = Modifier,
             topBar = {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -115,7 +117,7 @@ fun HomeScreen(
             bottomBar = {
                 BotNavigationBar {
                     IconButton(
-                        modifier = Modifier.size(50.dp),
+                        modifier = Modifier.size(60.dp),
                         colors = IconButtonDefaults.iconButtonColors(
                             containerColor = colorResource(id = R.color.smooth_blue)
                         ),
@@ -183,11 +185,28 @@ fun HomeScreen(
                                 color = Color.Red
                             )
                         } else if (state.projects.isEmpty()) {
-                            TitleText(
-                                text = stringResource(id = R.string.no_projects),
-                                textSize = 20.sp,
-                                color = Color.Black
-                            )
+//                            TitleText(
+//                                text = stringResource(id = R.string.no_projects),
+//                                textSize = 20.sp,
+//                                color = Color.Black
+//                            )
+                            Column (
+                                modifier = Modifier,
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ){
+                                Icon(
+                                    painter = painterResource(id = R.drawable.no_project_icon),
+                                    contentDescription = "No project",
+                                    modifier = Modifier.size(100.dp),
+                                    tint = colorResource(id = R.color.main_green)
+                                )
+                                TitleText(
+                                    text = stringResource(id = R.string.no_projects),
+                                    textSize = 20.sp,
+                                    color = colorResource(id = R.color.main_green)
+                                )
+                            }
                         }
                     }
                 }

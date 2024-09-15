@@ -20,7 +20,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -69,9 +68,7 @@ fun ModifyFormScreen(
                 BotNavigationBar {
                     IconButton(
                         modifier = Modifier.size(50.dp),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = colorResource(id = R.color.smooth_blue)
-                        ),
+
                         onClick = navigateToHome
                     ) {
                         Icon(
@@ -139,7 +136,7 @@ fun ModifyFormScreen(
                         FormField(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
-                                .background(colorResource(id = R.color.gray_color)),
+                                .background(colorResource(id = R.color.gray_100)),
                             fieldName = data,
                             onFieldNameChange = { state.fields[index] = it },
                             onDeleteClicked = { state.fields.remove(data) }
@@ -155,7 +152,7 @@ fun ModifyFormScreen(
                             .height(50.dp),
                         text = stringResource(id = R.string.save_button),
                         textSize = 16.sp,
-                        background = colorResource(id = R.color.smooth_blue),
+                        background = colorResource(id = R.color.main_green),
                         border = BorderStroke(0.dp, Color.Transparent),
                         action = {
                             viewModel.submit(form, projectId, navigateToDetail)
@@ -166,4 +163,3 @@ fun ModifyFormScreen(
         }
     }
 }
-

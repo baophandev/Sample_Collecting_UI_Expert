@@ -1,6 +1,7 @@
 package com.application.ui.screen
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +20,6 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -89,9 +89,7 @@ fun ModifyStageScreen(
                 ) {
                     IconButton(
                         modifier = Modifier.size(50.dp),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = colorResource(id = R.color.smooth_blue)
-                        ),
+
                         onClick = navigateToHome
                     ) {
                         Icon(
@@ -151,16 +149,16 @@ fun ModifyStageScreen(
                 ) {
                     TextField(
                         modifier = Modifier
-                            .menuAnchor()
+//                            .menuAnchor()
                             .fillMaxWidth(),
                         readOnly = true,
                         value = forms[state.formId] ?: "",
                         onValueChange = {},
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                         colors = ExposedDropdownMenuDefaults.textFieldColors(
-                            unfocusedIndicatorColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedContainerColor = colorResource(id = R.color.light_gray)
+                            unfocusedIndicatorColor = colorResource(id = R.color.gray_100),
+                            focusedIndicatorColor = colorResource(id = R.color.gray_100),
+                            unfocusedContainerColor = colorResource(id = R.color.gray_100)
                         ),
                     )
                     ExposedDropdownMenu(
@@ -187,17 +185,18 @@ fun ModifyStageScreen(
                                 .fillMaxWidth()
                                 .height(120.dp)
                                 .border(
-                                    width = 2.dp,
+                                    width = 0.dp,
                                     Color.LightGray,
                                     shape = RoundedCornerShape(20.dp)
-                                ),
+                                )
+                                .background(colorResource(id = R.color.gray_100)),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = stringResource(id = R.string.no_members),
                                 textAlign = TextAlign.Center,
                                 fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.Light
                             )
                         }
                     } else {

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="login_button">Đăng nhập với Google</string>
     <string name="login_success">Bạn đã đăng nhập!</string>
     <string name="login_cancel">Quá trình đăng nhập được hủy bởi người dùng!</string>
     <string name="login_error">Đăng nhập bị lỗi!</string>
@@ -88,4 +87,19 @@
     <string name="stage_not_exist">Đợt đang làm việc không còn tồn tại</string>
     <string name="create_sample_cancel">Không thể tạo mẫu bởi vì dự án đang làm việc không tồn tại</string>
     <string name="not_in_stage">Bạn không phải thành viên của đợt này</string>
+
+    <string name="login_button">Đăng nhập</string>
+    <string name="register_button">Đăng ký</string>
+    <string name="enter_email">Email hoặc Số điện thoại</string>
+    <string name="enter_password">Mật khẩu</string>
+    <string name="re_enter_password">Nhập lại mật khẩu</string>
+    <string name="forgot_password">Quên mật khẩu?</string>
+    <string name="no_account">Bạn chưa có tài khoản?</string>
+    <string name="register_name">ĐĂNG KÝ</string>
+    <string name="enter_full_name">Họ và tên</string>
+    <string name="enter_birthday">Ngày sinh</string>
+    <string name="gender">Giới tính:</string>
+    <string name="male">Nam</string>
+    <string name="female">Nữ</string>default_date
+    <string name="have_account">Bạn đã có tài khoản?</string>
 </resources>

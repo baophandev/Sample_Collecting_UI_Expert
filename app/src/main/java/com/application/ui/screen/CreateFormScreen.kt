@@ -58,15 +58,13 @@ fun CreateFormScreen(
     if (state.loading) LoadingScreen(text = stringResource(id = R.string.loading))
     else {
         Scaffold(
-            modifier = Modifier.padding(horizontal = 15.dp, vertical = 5.dp),
+            modifier = Modifier,
             topBar = { TopBar(title = R.string.create_form, signOutClicked = navigateToLogin) },
             bottomBar = {
                 BotNavigationBar {
                     IconButton(
                         modifier = Modifier.size(50.dp),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = colorResource(id = R.color.smooth_blue)
-                        ),
+
                         onClick = navigateToHome
                     ) {
                         Icon(
@@ -97,29 +95,29 @@ fun CreateFormScreen(
                 )
 
                 Row(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .padding(end = 10.dp)
+                        .fillMaxWidth()
                         .height(60.dp), // Adjust parent width as needed
                     horizontalArrangement = Arrangement.End  // Align elements to the right
                 ) {
                     IconButton(
                         modifier = Modifier.size(40.dp),
                         onClick = { state.fields.add("") },
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = colorResource(id = R.color.modBtn_color),
-                        )
+
                     ) {
                         Icon(
                             modifier = Modifier.fillMaxSize(),
                             imageVector = Icons.Default.Add,
                             contentDescription = "Add field",
-                            tint = Color.White
+                            tint = colorResource(id = R.color.main_green)
                         )
                     }
                 }
 
                 LazyColumn(
                     modifier = Modifier
-                        .padding(vertical = 20.dp)
+                        .padding(10.dp)
                         .fillMaxWidth()
                         .fillMaxHeight(.9f),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -130,7 +128,7 @@ fun CreateFormScreen(
                                 .fillMaxWidth()
                                 .height(60.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = colorResource(id = R.color.gray_color)
+                                containerColor = colorResource(id = R.color.gray_100)
                             ),
                             shape = RoundedCornerShape(10.dp),
                         ) {
@@ -157,7 +155,7 @@ fun CreateFormScreen(
                                 .height(50.dp),
                             text = stringResource(id = R.string.save_button),
                             textSize = 16.sp,
-                            background = colorResource(id = R.color.smooth_blue),
+                            background = colorResource(id = R.color.main_green),
                             border = BorderStroke(0.dp, Color.Transparent),
                             action = {
                                 formViewModel.submitForm(

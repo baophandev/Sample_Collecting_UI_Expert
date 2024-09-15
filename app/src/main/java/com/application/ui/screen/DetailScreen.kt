@@ -131,7 +131,7 @@ fun DetailScreen(
                     textSize = 14.sp,
                     background = colorResource(
                         id = if (alertType == AlertType.DELETE) R.color.red
-                        else R.color.smooth_blue
+                        else R.color.main_green
                     ),
                     border = BorderStroke(0.dp, Color.Transparent)
                 ) {
@@ -182,29 +182,29 @@ fun DetailScreen(
                         ) {
                             CustomButton(
                                 text = stringResource(id = R.string.details_button),
-                                textSize = 20.sp,
+                                textSize = 15.sp,
                                 textColor = Color.Black,
                                 background = if (switch == DetailScreenSwitchState.DETAIL)
-                                    colorResource(id = R.color.btn_container_gray) else Color.White,
-                                border = BorderStroke(2.dp, colorResource(id = R.color.border_btn)),
+                                    colorResource(id = R.color.main_green) else Color.White,
+                                border = BorderStroke(2.dp, colorResource(id = R.color.main_green)),
                                 action = { switch = DetailScreenSwitchState.DETAIL }
                             )
                             CustomButton(
                                 text = stringResource(id = R.string.stages_button),
-                                textSize = 20.sp,
+                                textSize = 15.sp,
                                 textColor = Color.Black,
                                 background = if (switch == DetailScreenSwitchState.STAGES)
-                                    colorResource(id = R.color.btn_container_gray) else Color.White,
-                                border = BorderStroke(2.dp, colorResource(id = R.color.border_btn)),
+                                    colorResource(id = R.color.main_green) else Color.White,
+                                border = BorderStroke(2.dp, colorResource(id = R.color.main_green)),
                                 action = { switch = DetailScreenSwitchState.STAGES }
                             )
                             CustomButton(
                                 text = stringResource(id = R.string.forms_button),
-                                textSize = 20.sp,
+                                textSize = 15.sp,
                                 textColor = Color.Black,
                                 background = if (switch == DetailScreenSwitchState.FORMS)
-                                    colorResource(id = R.color.btn_container_gray) else Color.White,
-                                border = BorderStroke(2.dp, colorResource(id = R.color.border_btn)),
+                                    colorResource(id = R.color.main_green) else Color.White,
+                                border = BorderStroke(2.dp, colorResource(id = R.color.main_green)),
                                 action = { switch = DetailScreenSwitchState.FORMS }
                             )
                         }

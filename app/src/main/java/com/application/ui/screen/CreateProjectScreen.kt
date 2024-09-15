@@ -20,7 +20,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -98,7 +97,7 @@ fun CreateProjectScreen(
     if (state.loading) LoadingScreen(text = stringResource(id = R.string.creating_project))
     else {
         Scaffold(
-            modifier = Modifier.padding(horizontal = 15.dp, vertical = 5.dp),
+            modifier = Modifier,
             snackbarHost = {
                 CustomSnackBarHost(
                     snackBarHostState = snackBarHostState,
@@ -125,9 +124,7 @@ fun CreateProjectScreen(
                 BotNavigationBar {
                     IconButton(
                         modifier = Modifier.size(50.dp),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = colorResource(id = R.color.smooth_blue)
-                        ),
+
                         onClick = navigateToHome
                     ) {
                         Icon(
@@ -152,7 +149,7 @@ fun CreateProjectScreen(
                         .fillMaxWidth()
                         .height(180.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = colorResource(id = R.color.light_gray)
+                        containerColor = colorResource(id = R.color.gray_100)
                     ),
                     onClick = { pickPictureLauncher.launch("image/*") }
                 ) {
@@ -173,10 +170,10 @@ fun CreateProjectScreen(
                         } else {
                             Icon(
                                 modifier = Modifier
-                                    .fillMaxSize(.6f),
+                                    .fillMaxSize(.3f),
                                 imageVector = Icons.Default.Add,
                                 contentDescription = "Add Icon",
-                                tint = Color.White
+                                tint = colorResource(id = R.color.main_green)
                             )
                         }
                     }
@@ -223,8 +220,8 @@ fun CreateProjectScreen(
                 CustomButton(
                     modifier = Modifier.fillMaxWidth(),
                     text = stringResource(id = R.string.submit),
-                    textSize = 24.sp,
-                    background = colorResource(id = R.color.smooth_blue),
+                    textSize = 20.sp,
+                    background = colorResource(id = R.color.main_green),
                     border = BorderStroke(0.dp, Color.Transparent),
                     action = {
                         viewModel.submit(
@@ -237,3 +234,4 @@ fun CreateProjectScreen(
         }
     }
 }
+

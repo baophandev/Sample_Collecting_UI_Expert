@@ -127,7 +127,7 @@ fun CreateSampleScreen(
                                     modifier = Modifier.fillMaxSize(),
                                     imageVector = Icons.Default.Add,
                                     contentDescription = "Add flex field",
-                                    tint = colorResource(id = R.color.blue_gray)
+                                    tint = colorResource(id = R.color.main_green)
                                 )
                             }
                         }
@@ -215,7 +215,7 @@ fun CreateSampleScreen(
                         .fillMaxWidth(.7f),
                     text = stringResource(id = R.string.save_button),
                     textSize = 16.sp,
-                    background = colorResource(id = R.color.smooth_blue),
+                    background = colorResource(id = R.color.main_green),
                     border = BorderStroke(0.dp, Color.Transparent),
                     action = {
                         viewModel.submitSample(
