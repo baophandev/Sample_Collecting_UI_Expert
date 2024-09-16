@@ -63,14 +63,14 @@ fun AppNavigationGraph(
 
     NavHost(
         navController = navController,
-        startDestination = Routes.LOGIN_SCREEN
+        startDestination = Routes.HOME_SCREEN
     ) {
-        composable(Routes.LOGIN_SCREEN) {
-            LoginScreen { user ->
-                viewModel.updateUser(user)
-                navController.navigate(Routes.HOME_SCREEN)
-            }
-        }
+//        composable(Routes.LOGIN_SCREEN) {
+//            LoginScreen { user ->
+//                viewModel.updateUser(user)
+//                navController.navigate(Routes.HOME_SCREEN)
+//            }
+//        }
 
         composable(Routes.HOME_SCREEN) {
             data.user?.let {
