@@ -199,7 +199,7 @@ fun ModifyProjectScreen(
                     ) { viewModel.updateDate(date = it, isStartDate = false) }
                 }
 
-                if (state.emailMembers.isEmpty()) {
+                if (state.memberIds.isEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -221,10 +221,12 @@ fun ModifyProjectScreen(
                     }
                 } else {
                     FieldToList(
-                        fieldDataList = state.emailMembers,
+                        fieldDataList = state.memberIds,
                         textValidator = { email ->
                             email.contains(RegexValidation.EMAIL)
-                        }
+                        },
+                        onAddField = {},
+                        onRemoveField = {}
                     )
                 }
                 // Luu thong tin sau chinh sua

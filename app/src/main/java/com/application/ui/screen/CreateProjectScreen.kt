@@ -44,6 +44,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
+import com.application.data.entity.Project
 import com.application.ui.component.BotNavigationBar
 import com.application.ui.component.CustomButton
 import com.application.ui.component.CustomDatePicker
@@ -58,9 +59,9 @@ import com.application.ui.viewmodel.CreateProjectViewModel
 @Composable
 fun CreateProjectScreen(
     viewModel: CreateProjectViewModel = hiltViewModel(),
-    userEmail: String,
+    userId: String,
     navigateToLogin: () -> Unit,
-    navigateToHome: () -> Unit
+    navigateToHome: (Project?) -> Unit
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
@@ -125,7 +126,7 @@ fun CreateProjectScreen(
                     IconButton(
                         modifier = Modifier.size(50.dp),
 
-                        onClick = navigateToHome
+                        onClick = { navigateToHome(null) }
                     ) {
                         Icon(
                             modifier = Modifier.fillMaxSize(.60f),
@@ -213,8 +214,10 @@ fun CreateProjectScreen(
                 }
 
                 FieldToList(
-                    fieldDataList = state.emailMembers,
-                    textValidator = { email -> email.contains(RegexValidation.EMAIL) }
+                    fieldDataList = state.memberIds,
+                    textValidator = { email -> email.contains(RegexValidation.EMAIL) },
+                    onAddField = {},
+                    onRemoveField = {}
                 )
 
                 CustomButton(
@@ -225,7 +228,7 @@ fun CreateProjectScreen(
                     border = BorderStroke(0.dp, Color.Transparent),
                     action = {
                         viewModel.submit(
-                            userEmail = userEmail,
+                            userId = userId,
                             successHandler = navigateToHome
                         )
                     }

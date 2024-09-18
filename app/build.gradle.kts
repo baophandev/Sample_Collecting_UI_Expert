@@ -78,6 +78,17 @@ dependencies {
 
     implementation(libs.coil.compose)
 
+
+    implementation(libs.gson)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.logging)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.gson)
+    implementation(libs.rxjava)
+    implementation(libs.rxandroid)
+    implementation(libs.stompprotocolandroid)
+
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
     kapt(libs.androidx.hilt.compiler)

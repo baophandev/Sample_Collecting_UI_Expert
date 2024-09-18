@@ -9,6 +9,13 @@ coreKtx = "1.13.1"
 hiltAndroid = "2.52"
 hiltCompiler = "1.2.0"
 
+gson = "2.11.0"
+ktor = "2.3.12"
+
+rxandroid = "3.0.2"
+rxjava = "2.2.21"
+stompprotocolandroid = "1.6.6"
+
 lifecycleRuntimeKtx = "2.8.5"
 material = "1.12.0"
 navigationCompose = "2.8.0"
@@ -34,6 +41,17 @@ androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "
 androidx-camera-extensions = { module = "androidx.camera:camera-extensions", version.ref = "cameraCore" }
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraCore" }
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraCore" }
+
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-serialization-gson = { module = "io.ktor:ktor-serialization-gson", version.ref = "ktor" }
+
+rxandroid = { module = "io.reactivex.rxjava3:rxandroid", version.ref = "rxandroid" }
+rxjava = { module = "io.reactivex.rxjava2:rxjava", version.ref = "rxjava" }
+stompprotocolandroid = { module = "com.github.NaikSoftware:StompProtocolAndroid", version.ref = "stompprotocolandroid" }
 
 material = { module = "com.google.android.material:material", version.ref = "material" }
 

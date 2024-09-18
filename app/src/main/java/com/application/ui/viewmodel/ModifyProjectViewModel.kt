@@ -3,9 +3,9 @@ package com.application.ui.viewmodel
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.application.android.utilities.ResourceState
 import com.application.data.entity.Project
 import com.application.ui.state.ModifyProjectUiState
+import com.application.util.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +21,11 @@ class ModifyProjectViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     fun setModifiedProject(project: Project, thumbnailUri: Uri? = null) {
-        project.data.emailMembers?.values?.let { state.value.emailMembers.addAll(it) }
+        project.data.memberIds?.values?.let { memberIds ->
+            val currentMemberIds = state.value.memberIds.toMutableList()
+            currentMemberIds.addAll(memberIds)
+            _state.update { it.copy(memberIds = currentMemberIds.toList()) }
+        }
 
         _state.update {
             it.copy(
@@ -70,17 +74,13 @@ class ModifyProjectViewModel @Inject constructor(
             if (currentState.startDate != preData.startDate) currentState.startDate else null
         val modifiedEndDate =
             if (currentState.endDate != preData.endDate) currentState.endDate else null
-        val modifiedMemberEmailList = state.value.emailMembers.toList()
+        val modifiedMemberEmailList = state.value.memberIds.toList()
 
         val collectAction: (ResourceState<Boolean>) -> Unit = { resourceState ->
             when (resourceState) {
                 is ResourceState.Success -> {
                     _state.update { it.copy(loading = false) }
                     viewModelScope.launch { successHandler() }
-                }
-
-                is ResourceState.Loading -> _state.update {
-                    it.copy(loading = true)
                 }
 
                 is ResourceState.Error -> _state.update {

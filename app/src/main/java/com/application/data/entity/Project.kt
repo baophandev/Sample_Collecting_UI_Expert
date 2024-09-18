@@ -6,7 +6,7 @@ data class Project(
 )
 
 /**
- * @param emailMembers Map.Entry(generatedId, email)
+ * @param memberIds Map.Entry(generatedId, email)
  * @param forms Map.Entry(formId, Form)
  * @param stages Map.Entry(stageId, Stage)
  */
@@ -17,7 +17,7 @@ data class ProjectData(
     var endDate: Long? = null,
     var description: String? = null,
     var emailOwner: String? = null,
-    var emailMembers: Map<String, String>? = null,
+    var memberIds: Map<String, String>? = null,
     var forms: Map<String, Form>? = null,
     var stages: Map<String, Stage>? = null
 )

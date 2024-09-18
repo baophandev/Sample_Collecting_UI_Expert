@@ -18,6 +18,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -134,7 +135,7 @@ fun CreateStageScreen(
                     ) {
                         TextField(
                             modifier = Modifier
-                                .menuAnchor()
+                                .menuAnchor(MenuAnchorType.PrimaryEditable)
                                 .fillMaxSize(),
                             readOnly = true,
                             value = forms[state.formId] ?: "",
@@ -174,7 +175,9 @@ fun CreateStageScreen(
                             email.contains(RegexValidation.EMAIL) &&
                                     projectEmailMembers.contains(email)
                         },
-                        listHeight = 180.dp
+                        listHeight = 180.dp,
+                        onAddField = {},
+                        onRemoveField = {}
                     )
                 }
 

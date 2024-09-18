@@ -3,7 +3,7 @@ package com.application.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.R
-import com.application.android.utilities.ResourceState
+import com.application.util.ResourceState
 import com.application.data.entity.Form
 import com.application.ui.state.FormUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,7 +37,6 @@ class FormViewModel @Inject constructor(
                     it.copy(loading = false, error = resourceState.error)
                 }
 
-                is ResourceState.Loading -> _state.update { it.copy(loading = true) }
                 is ResourceState.Success -> {
                     _state.update { it.copy(loading = false) }
                     viewModelScope.launch { successHandler() }

@@ -22,7 +22,6 @@ import com.application.ui.screen.CreateSampleScreen
 import com.application.ui.screen.CreateStageScreen
 import com.application.ui.screen.DetailScreen
 import com.application.ui.screen.HomeScreen
-import com.application.ui.screen.LoginScreen
 import com.application.ui.screen.ModifyFormScreen
 import com.application.ui.screen.ModifyProjectScreen
 import com.application.ui.screen.ModifyStageScreen
@@ -94,9 +93,13 @@ fun AppNavigationGraph(
         composable(Routes.CREATE_PROJECT_SCREEN) {
             data.user?.let { user ->
                 CreateProjectScreen(
-                    userEmail = user.email,
+                    userId = user.uid,
                     navigateToLogin = navigateToLogin,
-                    navigateToHome = navigateToHome
+                    navigateToHome = { project ->
+                        if (project != null) {
+                            navigateToHome()
+                        } else navigateToHome()
+                    }
                 )
             }
         }
@@ -162,7 +165,7 @@ fun AppNavigationGraph(
                 project.data.forms?.let { forms ->
                     CreateStageScreen(
                         projectId = project.projectId,
-                        projectEmailMembers = project.data.emailMembers?.map { it.value },
+                        projectEmailMembers = project.data.memberIds?.map { it.value },
                         forms = forms.map { Pair(it.key, it.value.name!!) }.toMap(),
                         navigateToLogin = navigateToLogin,
                         navigateToHome = navigateToHome,
@@ -296,7 +299,7 @@ fun AppNavigationGraph(
                     project.data.stages?.get(stageId)?.let { stage ->
                         ModifyStageScreen(
                             projectId = project.projectId,
-                            projectEmailMembers = project.data.emailMembers?.map { it.value },
+                            projectEmailMembers = project.data.memberIds?.map { it.value },
                             stage = Pair(stageId, stage),
                             forms = project.data.forms!!.map { Pair(it.key, it.value.name!!) }
                                 .toMap(),

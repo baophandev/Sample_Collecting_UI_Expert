@@ -138,7 +138,7 @@ fun DetailScreen(
                     when (alertType) {
                         AlertType.DELETE -> viewModel.deleteProject(
                             projectId = project.projectId,
-                            emailMembers = project.data.emailMembers?.values?.toList(),
+                            emailMembers = project.data.memberIds?.values?.toList(),
                             successHandler = navigateToHome
                         )
 

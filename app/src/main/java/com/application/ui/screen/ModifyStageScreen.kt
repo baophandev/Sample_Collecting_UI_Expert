@@ -179,7 +179,7 @@ fun ModifyStageScreen(
                 }
 
                 projectEmailMembers?.let {
-                    if (state.emailMembers.isEmpty()) {
+                    if (state.memberIds.isEmpty()) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -201,12 +201,14 @@ fun ModifyStageScreen(
                         }
                     } else {
                         FieldToList(
-                            fieldDataList = state.emailMembers,
+                            fieldDataList = state.memberIds,
                             textValidator = { email ->
                                 email.contains(RegexValidation.EMAIL) &&
                                         projectEmailMembers.contains(email)
                             },
-                            listHeight = 180.dp
+                            listHeight = 180.dp,
+                            onAddField = {},
+                            onRemoveField = {}
                         )
                     }
                 }

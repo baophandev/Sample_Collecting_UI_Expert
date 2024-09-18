@@ -18,7 +18,7 @@ data class HomeUiState(
                     stages = mapOf(),
                     endDate = System.currentTimeMillis(),
                     startDate = System.currentTimeMillis(),
-                    emailMembers = mapOf(),
+                    memberIds = mapOf(),
                     emailOwner = "email@mail.com",
                     description = "Test project"
                 )

@@ -2,7 +2,7 @@ package com.application.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.application.android.utilities.ResourceState
+import com.application.util.ResourceState
 import com.application.data.entity.Stage
 import com.application.ui.state.ModifyStageUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +20,11 @@ class ModifyStageViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     fun setStage(stage: Stage) {
-        stage.emailMembers?.map { it.value }?.let(state.value.emailMembers::addAll)
+        stage.emailMembers?.map { it.value }?.let { memberIds ->
+            val currentMemberIds = state.value.memberIds.toMutableList()
+            currentMemberIds.addAll(memberIds)
+            _state.update { it.copy(memberIds = currentMemberIds.toList()) }
+        }
 
         _state.update {
             it.copy(
@@ -59,8 +63,6 @@ class ModifyStageViewModel @Inject constructor(
             when (resourceState) {
                 is ResourceState.Success -> viewModelScope.launch { successHandler() }
 
-                is ResourceState.Loading -> _state.update { it.copy(loading = true) }
-
                 is ResourceState.Error -> _state.update {
                     it.copy(loading = false, error = resourceState.error)
                 }
@@ -80,7 +82,7 @@ class ModifyStageViewModel @Inject constructor(
         val newEndDate =
             if (curState.endDate != preStage.second.endDate) curState.endDate else null
 
-        val newEmailMember = curState.emailMembers.toList()
+        val newEmailMember = curState.memberIds.toList()
         val newFormId = if (curState.formId != preStage.second.formId) curState.formId else null
 
         viewModelScope.launch(Dispatchers.IO) {

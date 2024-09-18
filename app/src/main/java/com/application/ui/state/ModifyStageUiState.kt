@@ -1,8 +1,6 @@
 package com.application.ui.state
 
 import androidx.annotation.StringRes
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
 
 data class ModifyStageUiState(
     val init: Boolean = false,
@@ -13,6 +11,6 @@ data class ModifyStageUiState(
     val description: String = "",
     val startDate: Long? = null,
     val endDate: Long? = null,
-    val emailMembers: SnapshotStateList<String> = mutableStateListOf(),
+    val memberIds: List<String> = listOf(),
     val formId: String = "",
 )

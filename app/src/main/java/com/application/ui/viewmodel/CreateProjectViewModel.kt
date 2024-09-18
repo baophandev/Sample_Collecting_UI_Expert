@@ -4,13 +4,16 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.R
-import com.application.android.utilities.ResourceState
+import com.application.data.entity.Project
 import com.application.data.entity.ProjectData
+import com.application.data.repository.ProjectRepository
 import com.application.ui.state.CreateProjectUiState
+import com.application.util.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -18,6 +21,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateProjectViewModel @Inject constructor(
+    private val repository: ProjectRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CreateProjectUiState())
@@ -47,8 +51,10 @@ class CreateProjectViewModel @Inject constructor(
         _state.update { it.copy(error = null) }
     }
 
-    fun submit(userEmail: String, successHandler: () -> Unit) {
+    fun submit(userId: String, successHandler: (Project) -> Unit) {
         if (!validateFields()) return
+
+        _state.update { it.copy(loading = true) }
 
         val currentState = state.value
         val thumbnail = currentState.thumbnail
@@ -58,25 +64,37 @@ class CreateProjectViewModel @Inject constructor(
             description = currentState.description,
             startDate = currentState.startDate?.time,
             endDate = currentState.endDate?.time,
-            emailOwner = userEmail
+            emailOwner = userId
         )
-        val collectAction: (ResourceState<Boolean>) -> Unit = { resourceState ->
+        val collectAction: (ResourceState<String>) -> Unit = { resourceState ->
             when (resourceState) {
                 is ResourceState.Error -> _state.update {
                     it.copy(loading = false, error = resourceState.error)
                 }
 
-                is ResourceState.Loading -> _state.update { it.copy(loading = true) }
                 is ResourceState.Success -> {
                     _state.update { it.copy(loading = false) }
-                    viewModelScope.launch { successHandler() }
+                    viewModelScope.launch {
+                        successHandler(
+                            Project(
+                                projectId = resourceState.data,
+                                data = projectData
+                            )
+                        )
+                    }
                 }
-
-                else -> {}
             }
         }
 
         viewModelScope.launch(Dispatchers.IO) {
+            repository.createProject(
+                name = currentState.title,
+                description = currentState.description,
+                startDate = currentState.startDate,
+                endDate = currentState.endDate,
+                memberIds = currentState.memberIds,
+                ownerId = userId,
+            ).collectLatest(collectAction)
         }
     }
 

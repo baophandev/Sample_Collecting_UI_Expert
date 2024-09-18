@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
 import javax.inject.Inject
 
 data class NavigationDataHolder(
@@ -27,7 +26,7 @@ data class NavigationDataHolder(
             stages = mapOf(),
             endDate = System.currentTimeMillis(),
             startDate = System.currentTimeMillis(),
-            emailMembers = mapOf(),
+            memberIds = mapOf(),
             emailOwner = "email@mail.com",
             description = "Test project"
         )

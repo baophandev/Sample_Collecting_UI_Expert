@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
@@ -24,7 +24,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,12 +38,14 @@ import com.application.R
 
 @Composable
 fun FieldToList(
-    fieldDataList: SnapshotStateList<String>,
+    fieldDataList: List<String>,
     modifier: Modifier = Modifier,
     duplicateData: Boolean = false,
     textFieldHeight: Dp = 60.dp,
     listHeight: Dp = 100.dp,
     textValidator: ((String) -> Boolean)? = null,
+    onAddField: (String) -> Unit,
+    onRemoveField: (Int) -> Unit,
 ) {
     val context = LocalContext.current
     val textNotValid = stringResource(id = R.string.text_not_valid)
@@ -66,7 +67,7 @@ fun FieldToList(
                         (duplicateData || !fieldDataList.contains(fieldData)) &&
                         (textValidator == null || textValidator(fieldData))
                     ) {
-                        fieldDataList.add(fieldData)
+                        onAddField(fieldData)
                         fieldData = ""
                     } else Toast.makeText(context, textNotValid, Toast.LENGTH_SHORT).show()
                 }
@@ -90,18 +91,18 @@ fun FieldToList(
             horizontalAlignment = Alignment.CenterHorizontally,
             contentPadding = PaddingValues(horizontal = 10.dp)
         ) {
-            items(fieldDataList) {
+            itemsIndexed(fieldDataList) { idx, data ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = it,
+                        text = data,
                         fontWeight = FontWeight.W400,
                         fontSize = 15.sp
                     )
-                    IconButton(onClick = { fieldDataList.remove(it) }) {
+                    IconButton(onClick = { onRemoveField(idx) }) {
                         Icon(
                             modifier = Modifier.size(35.dp),
                             imageVector = Icons.Default.Clear,

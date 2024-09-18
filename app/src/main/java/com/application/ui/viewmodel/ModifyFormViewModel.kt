@@ -2,7 +2,7 @@ package com.application.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.application.android.utilities.ResourceState
+import com.application.util.ResourceState
 import com.application.data.entity.Form
 import com.application.ui.state.ModifyFormUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,10 +35,6 @@ class ModifyFormViewModel @Inject constructor(
         val collectAction: (ResourceState<Boolean>) -> Unit = { resourceState ->
             when (resourceState) {
                 is ResourceState.Success -> viewModelScope.launch { successHandler() }
-
-                is ResourceState.Loading -> _state.update {
-                    it.copy(loading = true)
-                }
 
                 is ResourceState.Error -> _state.update {
                     it.copy(loading = false, error = resourceState.error)
