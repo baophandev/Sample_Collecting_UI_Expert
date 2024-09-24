@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.R
 import com.application.data.entity.Project
-import com.application.data.entity.ProjectData
+import com.application.data.entity.User
 import com.application.data.repository.ProjectRepository
 import com.application.ui.state.CreateProjectUiState
 import com.application.util.ResourceState
@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Date
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,12 +27,12 @@ class CreateProjectViewModel @Inject constructor(
     private val _state = MutableStateFlow(CreateProjectUiState())
     val state = _state.asStateFlow()
 
-    fun updateThumbnail(thumbnail: Pair<String, Uri>) {
+    fun updateThumbnail(thumbnail: Uri) {
         _state.update { it.copy(thumbnail = thumbnail) }
     }
 
     fun updateTitle(title: String) {
-        _state.update { it.copy(title = title) }
+        _state.update { it.copy(name = title) }
     }
 
     fun updateDescription(description: String) {
@@ -41,9 +41,9 @@ class CreateProjectViewModel @Inject constructor(
 
     fun updateDate(date: Long, isStartDate: Boolean) {
         if (isStartDate) {
-            _state.update { it.copy(startDate = Date(date)) }
+            _state.update { it.copy(startDate = LocalDate.ofEpochDay(date)) }
         } else {
-            _state.update { it.copy(endDate = Date(date)) }
+            _state.update { it.copy(endDate = LocalDate.ofEpochDay(date)) }
         }
     }
 
@@ -58,14 +58,6 @@ class CreateProjectViewModel @Inject constructor(
 
         val currentState = state.value
         val thumbnail = currentState.thumbnail
-        val projectData = ProjectData(
-            thumbnailPath = thumbnail?.first,
-            title = currentState.title,
-            description = currentState.description,
-            startDate = currentState.startDate?.time,
-            endDate = currentState.endDate?.time,
-            emailOwner = userId
-        )
         val collectAction: (ResourceState<String>) -> Unit = { resourceState ->
             when (resourceState) {
                 is ResourceState.Error -> _state.update {
@@ -77,8 +69,13 @@ class CreateProjectViewModel @Inject constructor(
                     viewModelScope.launch {
                         successHandler(
                             Project(
-                                projectId = resourceState.data,
-                                data = projectData
+                                id = resourceState.data,
+                                thumbnailUri = thumbnail,
+                                name = currentState.name,
+                                description = currentState.description,
+                                startDate = currentState.startDate?.toEpochDay(),
+                                endDate = currentState.endDate?.toEpochDay(),
+                                owner = User(id = userId, username = "test", name = "test")
                             )
                         )
                     }
@@ -88,7 +85,7 @@ class CreateProjectViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             repository.createProject(
-                name = currentState.title,
+                name = currentState.name,
                 description = currentState.description,
                 startDate = currentState.startDate,
                 endDate = currentState.endDate,
@@ -100,7 +97,7 @@ class CreateProjectViewModel @Inject constructor(
 
     private fun validateFields(): Boolean {
         val currentState = state.value
-        return if (currentState.title.isBlank()
+        return if (currentState.name.isBlank()
             || currentState.startDate == null
             || currentState.endDate == null
         ) {

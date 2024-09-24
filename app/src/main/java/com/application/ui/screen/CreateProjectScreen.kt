@@ -1,6 +1,5 @@
 package com.application.ui.screen
 
-import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -70,15 +69,16 @@ fun CreateProjectScreen(
         ActivityResultContracts.GetContent()
     ) { imageUri ->
         if (imageUri != null) {
-            context.contentResolver
-                .query(imageUri, null, null, null).use { cursor ->
-                    val nameIndex = cursor?.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                    cursor?.moveToFirst()
-                    nameIndex?.let {
-                        val fileName = cursor.getString(it)
-                        viewModel.updateThumbnail(Pair(fileName, imageUri))
-                    }
-                }
+            viewModel.updateThumbnail(imageUri)
+//            context.contentResolver
+//                .query(imageUri, null, null, null).use { cursor ->
+//                    val nameIndex = cursor?.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+//                    cursor?.moveToFirst()
+//                    nameIndex?.let {
+//                        val fileName = cursor.getString(it)
+//                        viewModel.updateThumbnail(imageUri)
+//                    }
+//                }
         }
     }
 
@@ -159,7 +159,7 @@ fun CreateProjectScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        val thumbnailUri = state.thumbnail?.second
+                        val thumbnailUri = state.thumbnail
                         if (thumbnailUri != null) {
                             AsyncImage(
                                 model = ImageRequest.Builder(context)
@@ -186,7 +186,7 @@ fun CreateProjectScreen(
                         .height(60.dp),
                     placeholder = { Text(text = stringResource(id = R.string.add_title)) },
                     singleLine = true,
-                    value = state.title,
+                    value = state.name,
                     onValueChange = viewModel::updateTitle
                 )
 

@@ -21,24 +21,24 @@ class ModifyProjectViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     fun setModifiedProject(project: Project, thumbnailUri: Uri? = null) {
-        project.data.memberIds?.values?.let { memberIds ->
-            val currentMemberIds = state.value.memberIds.toMutableList()
-            currentMemberIds.addAll(memberIds)
-            _state.update { it.copy(memberIds = currentMemberIds.toList()) }
-        }
-
-        _state.update {
-            it.copy(
-                init = false,
-                title = project.data.title ?: "",
-                description = project.data.description ?: "",
-                startDate = project.data.startDate,
-                endDate = project.data.endDate,
-                thumbnailPath = if (thumbnailUri != null) {
-                    Pair(project.data.thumbnailPath!!, thumbnailUri)
-                } else null
-            )
-        }
+//        project.data.memberIds?.values?.let { memberIds ->
+//            val currentMemberIds = state.value.memberIds.toMutableList()
+//            currentMemberIds.addAll(memberIds)
+//            _state.update { it.copy(memberIds = currentMemberIds.toList()) }
+//        }
+//
+//        _state.update {
+//            it.copy(
+//                init = false,
+//                title = project.data.title ?: "",
+//                description = project.data.description ?: "",
+//                startDate = project.data.startDate,
+//                endDate = project.data.endDate,
+//                thumbnailPath = if (thumbnailUri != null) {
+//                    Pair(project.data.thumbnailPath!!, thumbnailUri)
+//                } else null
+//            )
+//        }
     }
 
     fun updateThumbnail(thumbnail: Pair<String, Uri>) {
@@ -62,12 +62,12 @@ class ModifyProjectViewModel @Inject constructor(
         if (!validate()) return
 
         val currentState = state.value
-        val preData = preProject.data
-        val modifiedThumbnail =
-            if (currentState.thumbnailPath != null && currentState.thumbnailPath.first != preProject.data.thumbnailPath)
-                currentState.thumbnailPath else null
+        val preData = preProject
+//        val modifiedThumbnail =
+//            if (currentState.thumbnailPath != null && currentState.thumbnailPath.first != preProject.data.thumbnailPath)
+//                currentState.thumbnailPath else null
 
-        val modifiedTitle = if (currentState.title != preData.title) currentState.title else null
+        val modifiedTitle = if (currentState.title != preData.name) currentState.title else null
         val modifiedDescription =
             if (currentState.description != preData.description) currentState.description else null
         val modifiedStartDate =

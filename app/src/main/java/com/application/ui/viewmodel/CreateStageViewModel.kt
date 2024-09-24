@@ -47,6 +47,7 @@ class CreateStageViewModel @Inject constructor(
 
         val currentState = state.value
         val stage = Stage(
+            id = "",
             title = currentState.title,
             description = currentState.description,
             startDate = currentState.startDate!!.time,

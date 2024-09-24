@@ -30,7 +30,7 @@ import com.application.R
 @Composable
 fun FieldProject(
     modifier: Modifier = Modifier,
-    title: String? = null,
+    name: String? = null,
     description: String? = null,
     owner: String? = null,
     thumbnailUri: Uri? = null
@@ -81,7 +81,7 @@ fun FieldProject(
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
             Text(
-                text = title ?: "Title",
+                text = name ?: "Title",
                 fontSize = 24.sp,
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.W500
