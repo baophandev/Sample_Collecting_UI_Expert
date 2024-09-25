@@ -53,7 +53,7 @@ class ModifyProjectViewModel @Inject constructor(
         _state.update { it.copy(description = description) }
     }
 
-    fun updateDate(date: Long, isStartDate: Boolean) {
+    fun updateDate(date: String, isStartDate: Boolean) {
         if (isStartDate) _state.update { it.copy(startDate = date) }
         else _state.update { it.copy(endDate = date) }
     }
@@ -84,10 +84,9 @@ class ModifyProjectViewModel @Inject constructor(
                 }
 
                 is ResourceState.Error -> _state.update {
-                    it.copy(loading = false, error = resourceState.error)
+                    it.copy(loading = false, error = resourceState.resId)
                 }
 
-                else -> {}
             }
         }
 

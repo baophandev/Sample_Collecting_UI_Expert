@@ -7,8 +7,9 @@ data class Stage(
     val id: String,
     var title: String? = null,
     var description: String? = null,
-    var startDate: Long? = null,
-    var endDate: Long? = null,
+    var startDate: String? = null,
+    var endDate: String? = null,
     var emailMembers: Map<String, String>? = null,
-    var formId: String? = null
+    var formId: String? = null,
+    var projectId: String,
 )

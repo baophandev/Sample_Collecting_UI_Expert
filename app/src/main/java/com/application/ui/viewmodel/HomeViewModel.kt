@@ -3,8 +3,6 @@ package com.application.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.constant.UiStatus
-import com.application.data.entity.Project
-import com.application.data.entity.User
 import com.application.data.repository.ProjectRepository
 import com.application.ui.state.HomeUiState
 import com.application.util.ResourceState
@@ -25,26 +23,24 @@ class HomeViewModel @Inject constructor(
     private val _state = MutableStateFlow(HomeUiState())
     val state = _state.asStateFlow()
 
-    init {
-        val mockData = listOf(
-            Project(
-                id = "test-project-id",
-                thumbnailUri = null,
-                name = "Project Test",
-                description = "Test project",
-                owner = User(
-                    id = "",
-                    username = "",
-                    name = ""
-                ),
-                endDate = System.currentTimeMillis(),
-                startDate = System.currentTimeMillis(),
-                forms = listOf(),
-                stages = listOf()
-            )
-        )
-        _state.update { it.copy(projects = mockData) }
-    }
+//    init {
+//        val mockData = listOf(
+//            Project(
+//                id = "test-project-id",
+//                thumbnailUri = null,
+//                name = "Project Test",
+//                description = "Test project",
+//                owner = User(
+//                    id = "",
+//                    username = "",
+//                    name = ""
+//                ),
+//                endDate = System.currentTimeMillis(),
+//                startDate = System.currentTimeMillis(),
+//            )
+//        )
+//        _state.update { it.copy(projects = mockData) }
+//    }
 
     fun getProjects(userId: String, successHandler: (() -> Unit)? = null) {
         _state.update { it.copy(status = UiStatus.LOADING) }
@@ -64,7 +60,7 @@ class HomeViewModel @Inject constructor(
                     }
 
                     is ResourceState.Error -> {
-                        val error = resourceState.error
+                        val error = resourceState.resId
                         _state.update { it.copy(status = UiStatus.ERROR, error = error) }
                     }
                 }
@@ -72,7 +68,4 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    companion object {
-        const val TAG = "HomeViewModel"
-    }
 }

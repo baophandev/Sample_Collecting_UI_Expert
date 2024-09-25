@@ -187,16 +187,16 @@ fun ModifyProjectScreen(
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    CustomDatePicker(
-                        fieldName = stringResource(id = R.string.start_date),
-                        initValue = state.startDate,
-                        modifier = Modifier.width(160.dp)
-                    ) { viewModel.updateDate(date = it, isStartDate = true) }
-                    CustomDatePicker(
-                        fieldName = stringResource(id = R.string.end_date),
-                        initValue = state.endDate,
-                        modifier = Modifier.width(160.dp)
-                    ) { viewModel.updateDate(date = it, isStartDate = false) }
+//                    CustomDatePicker(
+//                        fieldName = stringResource(id = R.string.start_date),
+//                        initValue = state.startDate,
+//                        modifier = Modifier.width(160.dp)
+//                    ) { viewModel.updateDate(date = it, isStartDate = true) }
+//                    CustomDatePicker(
+//                        fieldName = stringResource(id = R.string.end_date),
+//                        initValue = state.endDate,
+//                        modifier = Modifier.width(160.dp)
+//                    ) { viewModel.updateDate(date = it, isStartDate = false) }
                 }
 
                 if (state.memberIds.isEmpty()) {

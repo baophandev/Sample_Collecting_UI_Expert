@@ -148,7 +148,7 @@ fun CustomDatePicker(
     initValue: Long? = null,
     pickerTitle: String = "Select date",
     isError: Boolean = false,
-    onDateChange: (Long) -> Unit
+    onDateChange: (String) -> Unit
 ) {
     val dateFormatter =
         DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC)
@@ -220,7 +220,7 @@ fun CustomDatePicker(
                     ) {
                         state.selectedDateMillis?.let {
                             selectedDate = dateFormatter.format(Instant.ofEpochMilli(it))
-                            onDateChange(it)
+                            onDateChange(selectedDate)
                             showDatePicker = false
                         }
                     }
@@ -497,9 +497,9 @@ fun calculateOffset(tapOffset: Offset, size: IntSize): Offset {
 
 @Composable
 fun StageContainer(
+    modifier: Modifier = Modifier,
     title: String,
     description: String? = null,
-    modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier

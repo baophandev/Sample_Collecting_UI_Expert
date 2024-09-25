@@ -1,12 +1,15 @@
 package com.application.data.entity.request
 
-import java.time.LocalDate
-
+/**
+ * @param startDate Format pattern yyyy-mm-dd
+ * @param endDate Format pattern yyyy-mm-dd
+ */
 data class CreateProjectRequest(
+    val thumbnailId: String? = null,
     val name: String,
-    val description: String?,
-    val startDate: LocalDate?,
-    val endDate: LocalDate?,
+    val description: String? = null,
+    val startDate: String? = null,
+    val endDate: String? = null,
     val ownerId: String,
-    val memberIds: List<String>?
+    val memberIds: List<String>? = null
 )

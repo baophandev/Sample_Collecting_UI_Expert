@@ -1,14 +1,12 @@
 package com.application.data.entity.response
 
-import java.time.LocalDate
-
 data class ProjectResponse (
     val id: String,
-    val thumbnailId: String,
+    val thumbnailId: String? = null,
     val name: String,
-    val description: String,
-    val startDate: LocalDate,
-    val endDate: LocalDate,
+    val description: String? = null,
+    val startDate: String? = null,
+    val endDate: String? = null,
     val ownerId: String,
-    val memberIds: List<String>?
+    val memberIds: List<String>? = null
 )

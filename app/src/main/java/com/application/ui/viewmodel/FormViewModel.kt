@@ -34,7 +34,7 @@ class FormViewModel @Inject constructor(
         val collectAction: (ResourceState<Pair<String, Form>>) -> Unit = { resourceState ->
             when (resourceState) {
                 is ResourceState.Error -> _state.update {
-                    it.copy(loading = false, error = resourceState.error)
+                    it.copy(loading = false, error = resourceState.resId)
                 }
 
                 is ResourceState.Success -> {

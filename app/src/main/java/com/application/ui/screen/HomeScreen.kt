@@ -22,6 +22,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,7 +42,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.application.R
 import com.application.constant.UiStatus
 import com.application.data.entity.Project
-import com.application.data.entity.User
 import com.application.ui.component.BotNavigationBar
 import com.application.ui.component.CustomButton
 import com.application.ui.component.CustomCircularProgressIndicator
@@ -54,13 +54,14 @@ import com.application.ui.viewmodel.HomeViewModel
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    user: User,
+    userId: String,
     navigateToLogin: () -> Unit,
     navigateToCreateProject: () -> Unit,
     navigateToDetailProject: (Project) -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
+    val refreshState = rememberPullToRefreshState()
 
     val context = LocalContext.current
     val signOut = stringResource(id = R.string.signed_out)
@@ -131,6 +132,7 @@ fun HomeScreen(
         }
     ) { padding ->
         PullToRefreshBox(
+            state = refreshState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
@@ -140,13 +142,13 @@ fun HomeScreen(
                 isRefreshing = true
 
                 viewModel.getProjects(
-                    userId = user.username,
+                    userId = userId,
                     successHandler = { isRefreshing = false }
                 )
             }
         ) {
             when (state.status) {
-                UiStatus.INIT -> viewModel.getProjects(userId = user.username)
+                UiStatus.INIT -> viewModel.getProjects(userId = userId)
                 UiStatus.LOADING -> CustomCircularProgressIndicator(
                     text = stringResource(id = R.string.load_projects)
                 )
@@ -154,7 +156,7 @@ fun HomeScreen(
                 UiStatus.SUCCESS -> {
                     if (state.projects.isEmpty()) {
                         Column(
-                            modifier = Modifier,
+                            modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
@@ -170,11 +172,7 @@ fun HomeScreen(
                                 color = colorResource(id = R.color.main_green)
                             )
                         }
-                    } else LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(padding)
-                    ) {
+                    } else LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(state.projects) { project ->
                             FieldProject(
                                 modifier = Modifier.clickable {
@@ -182,7 +180,7 @@ fun HomeScreen(
                                         project
                                     )
                                 },
-                                thumbnailUri = project.thumbnailUri,
+                                thumbnail = project.thumbnail,
                                 name = project.name,
                                 description = project.description,
                                 owner = project.owner.name

@@ -33,7 +33,7 @@ fun FieldProject(
     name: String? = null,
     description: String? = null,
     owner: String? = null,
-    thumbnailUri: Uri? = null
+    thumbnail: Uri? = null
 ) {
     val context = LocalContext.current
 
@@ -56,10 +56,10 @@ fun FieldProject(
                 .align(Alignment.CenterHorizontally),
             shape = RoundedCornerShape(30.dp)
         ) {
-            if (thumbnailUri != null) {
+            if (thumbnail != null) {
                 AsyncImage(
                     model = ImageRequest.Builder(context)
-                        .data(thumbnailUri)
+                        .data(thumbnail)
                         .build(),
                     modifier = Modifier.fillMaxSize(),
                     contentDescription = "Thumbnail",

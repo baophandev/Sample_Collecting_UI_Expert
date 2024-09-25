@@ -3,14 +3,12 @@ package com.application.data.entity
 import android.net.Uri
 
 data class Project(
-    var id: String,
-    var thumbnailUri: Uri? = null,
+    val id: String,
+    var thumbnail: Uri? = null,
     var name: String? = null,
     var description: String? = null,
-    var startDate: Long? = null,
-    var endDate: Long? = null,
-    var owner: User,
+    var startDate: String? = null,
+    var endDate: String? = null,
+    val owner: User,
     var memberUsernames: List<String>? = null,
-    var forms: List<Form>? = null,
-    var stages: List<Stage>? = null
 )

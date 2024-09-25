@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,11 +38,11 @@ class CreateProjectViewModel @Inject constructor(
         _state.update { it.copy(description = description) }
     }
 
-    fun updateDate(date: Long, isStartDate: Boolean) {
+    fun updateDate(date: String, isStartDate: Boolean) {
         if (isStartDate) {
-            _state.update { it.copy(startDate = LocalDate.ofEpochDay(date)) }
+            _state.update { it.copy(startDate = date) }
         } else {
-            _state.update { it.copy(endDate = LocalDate.ofEpochDay(date)) }
+            _state.update { it.copy(endDate = date) }
         }
     }
 
@@ -61,7 +60,7 @@ class CreateProjectViewModel @Inject constructor(
         val collectAction: (ResourceState<String>) -> Unit = { resourceState ->
             when (resourceState) {
                 is ResourceState.Error -> _state.update {
-                    it.copy(loading = false, error = resourceState.error)
+                    it.copy(loading = false, error = resourceState.resId)
                 }
 
                 is ResourceState.Success -> {
@@ -70,11 +69,11 @@ class CreateProjectViewModel @Inject constructor(
                         successHandler(
                             Project(
                                 id = resourceState.data,
-                                thumbnailUri = thumbnail,
+                                thumbnail = thumbnail,
                                 name = currentState.name,
                                 description = currentState.description,
-                                startDate = currentState.startDate?.toEpochDay(),
-                                endDate = currentState.endDate?.toEpochDay(),
+                                startDate = currentState.startDate,
+                                endDate = currentState.endDate,
                                 owner = User(id = userId, username = "test", name = "test")
                             )
                         )

@@ -65,17 +65,17 @@ fun AppNavigationGraph(
 //        }
 
         composable(Routes.HOME_SCREEN) {
-            data.user?.let {
+            data.userId?.let {
                 val navigateToCreateProject: () -> Unit =
                     { navController.navigate(Routes.CREATE_PROJECT_SCREEN) }
                 val navigateToDetailProject: (Project) -> Unit = { data ->
-                    viewModel.updateThumbnailUri(data.thumbnailUri)
+                    viewModel.updateThumbnailUri(data.thumbnail)
                     viewModel.updateProject(data)
                     navController.navigate(Routes.DETAIL_SCREEN)
                 }
 
                 HomeScreen(
-                    user = it,
+                    userId = it,
                     navigateToLogin = navigateToLogin,
                     navigateToCreateProject = navigateToCreateProject,
                     navigateToDetailProject = navigateToDetailProject,
@@ -84,9 +84,9 @@ fun AppNavigationGraph(
         }
 
         composable(Routes.CREATE_PROJECT_SCREEN) {
-            data.user?.let { user ->
+            data.userId?.let {
                 CreateProjectScreen(
-                    userId = user.id,
+                    userId = it,
                     navigateToLogin = navigateToLogin,
                     navigateToHome = { project ->
                         if (project != null) {
