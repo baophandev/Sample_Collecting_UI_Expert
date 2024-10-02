@@ -37,7 +37,7 @@ class ModifyFormViewModel @Inject constructor(
                 is ResourceState.Success -> viewModelScope.launch { successHandler() }
 
                 is ResourceState.Error -> _state.update {
-                    it.copy(loading = false, error = resourceState.error)
+                    it.copy(loading = false, error = resourceState.resId)
                 }
 
                 else -> {}

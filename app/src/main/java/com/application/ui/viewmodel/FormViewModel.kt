@@ -30,11 +30,11 @@ class FormViewModel @Inject constructor(
         val currentState = state.value
         currentState.fields.removeIf(String::isBlank)
         currentState.fields.forEach(String::trim)
-        val form = Form(name = currentState.title)
+        val form = Form(id = "", name = currentState.title)
         val collectAction: (ResourceState<Pair<String, Form>>) -> Unit = { resourceState ->
             when (resourceState) {
                 is ResourceState.Error -> _state.update {
-                    it.copy(loading = false, error = resourceState.error)
+                    it.copy(loading = false, error = resourceState.resId)
                 }
 
                 is ResourceState.Success -> {

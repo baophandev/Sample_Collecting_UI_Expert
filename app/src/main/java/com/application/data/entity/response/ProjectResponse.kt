@@ -1,10 +1,7 @@
-package com.application.data.entity.request
+package com.application.data.entity.response
 
-/**
- * @param startDate Format pattern yyyy-mm-dd
- * @param endDate Format pattern yyyy-mm-dd
- */
-data class CreateProjectRequest(
+data class ProjectResponse (
+    val id: String,
     val thumbnailId: String? = null,
     val name: String,
     val description: String? = null,

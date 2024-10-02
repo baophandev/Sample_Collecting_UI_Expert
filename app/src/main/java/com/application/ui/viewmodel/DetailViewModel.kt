@@ -9,7 +9,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,28 +22,28 @@ class DetailViewModel @Inject constructor(
 
     // lay project va cap nhat vao state
     fun setProject(thumbnailUri: Uri? = null, project: Project) {
-        project.data.stages?.map { stage ->
-            Pair(stage.key, Pair(stage.value.title!!, stage.value.description))
-        }?.let { stages ->
-            state.value.stages.clear()
-            state.value.stages.addAll(stages)
-        }
-        project.data.forms?.map { form ->
-            Pair(form.key, form.value.name!!)
-        }?.let { forms ->
-            state.value.forms.clear()
-            state.value.forms.addAll(forms)
-        }
-
-        val thumbnail = thumbnailUri?.let { Pair(project.data.thumbnailPath!!, it) }
-        _state.update {
-            it.copy(
-                init = false,
-                thumbnail = thumbnail,
-                title = project.data.title,
-                description = project.data.description,
-            )
-        }
+//        project.stages?.map { stage ->
+//            Pair(stage.key, Pair(stage.value.title!!, stage.value.description))
+//        }?.let { stages ->
+//            state.value.stages.clear()
+//            state.value.stages.addAll(stages)
+//        }
+//        project.data.forms?.map { form ->
+//            Pair(form.key, form.value.name!!)
+//        }?.let { forms ->
+//            state.value.forms.clear()
+//            state.value.forms.addAll(forms)
+//        }
+//
+//        val thumbnail = thumbnailUri?.let { Pair(project.data.thumbnailPath!!, it) }
+//        _state.update {
+//            it.copy(
+//                init = false,
+//                thumbnail = thumbnail,
+//                title = project.data.title,
+//                description = project.data.description,
+//            )
+//        }
     }
 
     fun deleteProject(

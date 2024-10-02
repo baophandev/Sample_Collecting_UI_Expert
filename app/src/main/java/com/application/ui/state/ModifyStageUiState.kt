@@ -9,8 +9,8 @@ data class ModifyStageUiState(
 
     val title: String = "",
     val description: String = "",
-    val startDate: Long? = null,
-    val endDate: Long? = null,
+    val startDate: String? = null,
+    val endDate: String? = null,
     val memberIds: List<String> = listOf(),
     val formId: String = "",
 )

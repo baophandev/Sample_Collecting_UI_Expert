@@ -1,4 +1,4 @@
-package com.application.data.datasource
+package com.application.data.datasource.impl
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -14,6 +14,7 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.gson.gson
+import io.ktor.util.appendIfNameAbsent
 
 abstract class AbstractClient {
 
@@ -38,6 +39,7 @@ abstract class AbstractClient {
             }
             install(DefaultRequest) {
                 url(baseUrl)
+                headers.appendIfNameAbsent(HttpHeaders.ContentType, "application/json")
             }
             install(HttpRequestRetry) {
                 retryOnServerErrors(maxRetries = 3)

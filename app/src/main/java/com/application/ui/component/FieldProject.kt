@@ -30,10 +30,10 @@ import com.application.R
 @Composable
 fun FieldProject(
     modifier: Modifier = Modifier,
-    title: String? = null,
+    name: String? = null,
     description: String? = null,
     owner: String? = null,
-    thumbnailUri: Uri? = null
+    thumbnail: Uri? = null
 ) {
     val context = LocalContext.current
 
@@ -56,10 +56,10 @@ fun FieldProject(
                 .align(Alignment.CenterHorizontally),
             shape = RoundedCornerShape(30.dp)
         ) {
-            if (thumbnailUri != null) {
+            if (thumbnail != null) {
                 AsyncImage(
                     model = ImageRequest.Builder(context)
-                        .data(thumbnailUri)
+                        .data(thumbnail)
                         .build(),
                     modifier = Modifier.fillMaxSize(),
                     contentDescription = "Thumbnail",
@@ -81,7 +81,7 @@ fun FieldProject(
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
             Text(
-                text = title ?: "Title",
+                text = name ?: "Title",
                 fontSize = 24.sp,
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.W500

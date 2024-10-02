@@ -130,16 +130,16 @@ fun ModifyStageScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    CustomDatePicker(
-                        fieldName = stringResource(id = R.string.start_date),
-                        modifier = Modifier.width(160.dp),
-                        initValue = stage.second.startDate,
-                    ) { viewModel.updateDate(date = it, isStartDate = true) }
-                    CustomDatePicker(
-                        fieldName = stringResource(id = R.string.end_date),
-                        modifier = Modifier.width(160.dp),
-                        initValue = stage.second.endDate,
-                    ) { viewModel.updateDate(date = it, isStartDate = false) }
+//                    CustomDatePicker(
+//                        fieldName = stringResource(id = R.string.start_date),
+//                        modifier = Modifier.width(160.dp),
+//                        initValue = stage.second.startDate,
+//                    ) { viewModel.updateDate(date = it, isStartDate = true) }
+//                    CustomDatePicker(
+//                        fieldName = stringResource(id = R.string.end_date),
+//                        modifier = Modifier.width(160.dp),
+//                        initValue = stage.second.endDate,
+//                    ) { viewModel.updateDate(date = it, isStartDate = false) }
                 }
 
                 ExposedDropdownMenuBox(
