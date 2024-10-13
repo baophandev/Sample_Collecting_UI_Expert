@@ -1,6 +1,7 @@
 package com.application.ui.component
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -86,7 +88,8 @@ fun FieldToList(
                     width = 2.dp,
                     color = Color.LightGray,
                     shape = RoundedCornerShape(20.dp)
-                ),
+                )
+                .background(color = MaterialTheme.colorScheme.secondary),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally,
             contentPadding = PaddingValues(horizontal = 10.dp)

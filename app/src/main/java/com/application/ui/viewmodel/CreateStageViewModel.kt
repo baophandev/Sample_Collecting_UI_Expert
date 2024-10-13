@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -48,12 +47,12 @@ class CreateStageViewModel @Inject constructor(
         val currentState = state.value
         val stage = Stage(
             id = "",
-            title = currentState.title,
+            name = currentState.title,
             description = currentState.description,
             startDate = currentState.startDate,
             endDate = currentState.endDate,
             formId = currentState.formId,
-            projectId = ""
+            projectOwnerId = ""
         )
         val collectAction: (ResourceState<Boolean>) -> Unit = { resourceState ->
             when (resourceState) {

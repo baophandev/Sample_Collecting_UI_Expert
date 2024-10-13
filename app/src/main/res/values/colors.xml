@@ -18,5 +18,6 @@
     <color name="btn_container_gray">#C9D4E4</color>
     <color name="primary_green">#32DB89</color>
     <color name="main_green">#007E2F</color>
+    <color name="container_green">#1A8843</color>
     <color name="gray_100">#F1F1F1</color>
 </resources>

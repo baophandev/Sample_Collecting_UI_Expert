@@ -70,7 +70,7 @@ fun ModifyStageScreen(
 
     if (state.init) {
         viewModel.setStage(stage.second)
-        if (stage.second.title.isNullOrBlank()) {
+        if (stage.second.name.isNullOrBlank()) {
             viewModel.updateTitle(stringResource(id = R.string.stage_title))
         }
         if (stage.second.description.isNullOrBlank()) {

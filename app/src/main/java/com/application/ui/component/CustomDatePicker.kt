@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -106,7 +107,7 @@ fun CustomDatePicker(
                 ) {
                     DatePicker(
                         state = datePickerState,
-                        showModeToggle = false
+                        showModeToggle = false,
                     )
                 }
             }

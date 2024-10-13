@@ -20,16 +20,16 @@ class ModifyStageViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     fun setStage(stage: Stage) {
-        stage.emailMembers?.map { it.value }?.let { memberIds ->
-            val currentMemberIds = state.value.memberIds.toMutableList()
-            currentMemberIds.addAll(memberIds)
-            _state.update { it.copy(memberIds = currentMemberIds.toList()) }
-        }
+//        stage.emailMembers?.map { it.value }?.let { memberIds ->
+//            val currentMemberIds = state.value.memberIds.toMutableList()
+//            currentMemberIds.addAll(memberIds)
+//            _state.update { it.copy(memberIds = currentMemberIds.toList()) }
+//        }
 
         _state.update {
             it.copy(
                 init = false,
-                title = stage.title ?: "",
+                title = stage.name ?: "",
                 description = stage.description ?: "",
                 startDate = stage.startDate,
                 endDate = stage.endDate,
@@ -72,7 +72,7 @@ class ModifyStageViewModel @Inject constructor(
         }
 
         val curState = state.value
-        val newTitle = if (curState.title != preStage.second.title) curState.title else null
+        val newTitle = if (curState.title != preStage.second.name) curState.title else null
         val newDesc =
             if (curState.description != preStage.second.description) curState.description else null
 

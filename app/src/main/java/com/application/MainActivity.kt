@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         setContent {
-            SampleCollectingApplicationTheme {
+            SampleCollectingApplicationTheme(dynamicColor = false) {
                 Surface {
                     AppEntryPoint()
                 }

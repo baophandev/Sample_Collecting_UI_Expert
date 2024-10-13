@@ -168,7 +168,7 @@ fun RegisterScreen(modifier: Modifier = Modifier) {
                     modifier = Modifier.fillMaxWidth(.9f),
                     text = stringResource(id = R.string.register_button),
                     fontSize = 18.sp,
-                )
+                ) { TODO("Register clicked") }
 
                 HorizontalDivider(
                     color = Color(178, 183, 179, 255),

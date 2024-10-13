@@ -19,6 +19,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -43,7 +44,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
-import com.application.data.entity.Project
 import com.application.ui.component.BotNavigationBar
 import com.application.ui.component.CustomButton
 import com.application.ui.component.CustomDatePicker
@@ -60,7 +60,7 @@ fun CreateProjectScreen(
     viewModel: CreateProjectViewModel = hiltViewModel(),
     userId: String,
     navigateToLogin: () -> Unit,
-    navigateToHome: (Project?) -> Unit
+    navigateToHome: (String?) -> Unit
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
@@ -132,7 +132,7 @@ fun CreateProjectScreen(
                             modifier = Modifier.fillMaxSize(.60f),
                             painter = painterResource(id = R.drawable.ic_home),
                             contentDescription = null,
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.secondary
                         )
                     }
                 }
@@ -150,7 +150,7 @@ fun CreateProjectScreen(
                         .fillMaxWidth()
                         .height(180.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = colorResource(id = R.color.gray_100)
+                        containerColor = Color.LightGray
                     ),
                     onClick = { pickPictureLauncher.launch("image/*") }
                 ) {

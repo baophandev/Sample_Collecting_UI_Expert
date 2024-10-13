@@ -1,6 +1,7 @@
 package com.application.ui.navigation
 
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,8 +18,13 @@ import com.application.data.entity.Project
 import com.application.ui.screen.CaptureScreen
 import com.application.ui.screen.CreateFormScreen
 import com.application.ui.screen.CreateProjectScreen
+import com.application.ui.screen.DetailScreen
 import com.application.ui.screen.HomeScreen
+import com.application.ui.screen.LoginScreen
 import com.application.ui.screen.ModifyProjectScreen
+import com.application.ui.screen.StageDetailScreen
+
+internal const val AppNavigationTag = "AppNavigation"
 
 @Composable
 fun AppNavigationGraph(
@@ -55,22 +61,26 @@ fun AppNavigationGraph(
 
     NavHost(
         navController = navController,
-        startDestination = Routes.HOME_SCREEN
+        startDestination = Routes.LOGIN_SCREEN
     ) {
-//        composable(Routes.LOGIN_SCREEN) {
-//            LoginScreen { user ->
-//                viewModel.updateUser(user)
-//                navController.navigate(Routes.HOME_SCREEN)
-//            }
-//        }
+        composable(Routes.LOGIN_SCREEN) { backStackEntry ->
+            LoginScreen { userId ->
+                backStackEntry.savedStateHandle[Routes.USER_ID_STACK_KEY] = userId
+                navController.navigate(Routes.HOME_SCREEN)
+            }
+        }
 
-        composable(Routes.HOME_SCREEN) {
-            data.userId?.let {
-                val navigateToCreateProject: () -> Unit =
-                    { navController.navigate(Routes.CREATE_PROJECT_SCREEN) }
-                val navigateToDetailProject: (Project) -> Unit = { data ->
-                    viewModel.updateThumbnailUri(data.thumbnail)
-                    viewModel.updateProject(data)
+        composable(Routes.HOME_SCREEN) { backStackEntry ->
+            val userId = navController
+                .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.USER_ID_STACK_KEY)
+            userId?.let {
+                backStackEntry.savedStateHandle[Routes.USER_ID_STACK_KEY] = userId
+
+                val navigateToCreateProject: () -> Unit = {
+                    navController.navigate(Routes.CREATE_PROJECT_SCREEN)
+                }
+                val navigateToDetailProject: (String) -> Unit = { projectId ->
+                    backStackEntry.savedStateHandle[Routes.PROJECT_ID_STACK_KEY] = projectId
                     navController.navigate(Routes.DETAIL_SCREEN)
                 }
 
@@ -84,52 +94,83 @@ fun AppNavigationGraph(
         }
 
         composable(Routes.CREATE_PROJECT_SCREEN) {
-            data.userId?.let {
+            val userId = navController
+                .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.USER_ID_STACK_KEY)
+            userId?.let {
                 CreateProjectScreen(
                     userId = it,
                     navigateToLogin = navigateToLogin,
-                    navigateToHome = { project ->
-                        if (project != null) {
-                            navigateToHome()
-                        } else navigateToHome()
+                    navigateToHome = {
+                        navigateToHome()
                     }
                 )
             }
         }
 
-        composable(Routes.DETAIL_SCREEN) {
-//            val project = data.project
-//            if (project != null) {
-//                val navigateToModify: () -> Unit =
-//                    { navController.navigate(Routes.MODIFY_PROJECT_SCREEN) }
-//                val navigateToStage: (String) -> Unit = { stageId ->
-//                    viewModel.updateStageId(stageId)
-//                    navController.navigate(Routes.STAGE_DETAIL_SCREEN)
-//                }
-//                val navigateToAddStage: () -> Unit =
-//                    { navController.navigate(Routes.ADD_STAGE_SCREEN) }
-//                val navigateToAddForm: () -> Unit =
-//                    { navController.navigate(Routes.ADD_FORM_SCREEN) }
-//                val navigateToModifyForm: (String) -> Unit =
-//                    { formId -> navController.navigate(Routes.MODIFY_FORM_SCREEN + "/$formId") }
-//                val updateProjectData: (Project) -> Unit =
-//                    { viewModel.updateProject(data.project?.copy(data = it)) }
-//
-//                DetailScreen(
-//                    userEmail = data.user!!.username,
-//                    project = project,
-//                    thumbnailUri = data.thumbnailUri,
-//                    navigateToHome = navigateToHome,
-//                    navigateToModify = navigateToModify,
-//                    navigateToStage = navigateToStage,
-//                    navigateToAddStage = navigateToAddStage,
-//                    navigateToAddForm = navigateToAddForm,
-//                    navigateToModifyForm = navigateToModifyForm,
-//                    updateProjectData = updateProjectData
-//                )
-//            } else {
+        composable(route = Routes.DETAIL_SCREEN) { backStackEntry ->
+            val userId = navController
+                .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.USER_ID_STACK_KEY)
+            val projectId = navController
+                .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.PROJECT_ID_STACK_KEY)
+
+            if (projectId != null && userId != null) {
+                val navigateToModify: () -> Unit =
+                    { navController.navigate(Routes.MODIFY_PROJECT_SCREEN) }
+                val navigateToStageDetail: (String) -> Unit = { stageId ->
+                    backStackEntry.savedStateHandle[Routes.STAGE_ID_STACK_KEY] = stageId
+                    navController.navigate(Routes.STAGE_DETAIL_SCREEN)
+                }
+                val navigateToAddStage: () -> Unit =
+                    { navController.navigate(Routes.ADD_STAGE_SCREEN) }
+                val navigateToAddForm: () -> Unit =
+                    { navController.navigate(Routes.ADD_FORM_SCREEN) }
+                val navigateToModifyForm: (String) -> Unit =
+                    { formId -> navController.navigate(Routes.MODIFY_FORM_SCREEN + "/$formId") }
+                val updateProjectData: (Project) -> Unit =
+                    { }
+
+                DetailScreen(
+                    projectId = projectId,
+                    userId = userId,
+                    navigateToHome = navigateToHome,
+                    navigateToModify = navigateToModify,
+                    navigateToStageDetail = navigateToStageDetail,
+                    navigateToAddStage = navigateToAddStage,
+                    navigateToAddForm = navigateToAddForm,
+                    navigateToModifyForm = navigateToModifyForm,
+                    updateProjectData = updateProjectData
+                )
+            }
+//            else {
 //                LaunchedEffect(key1 = null) {
 //                    Toast.makeText(context, projectNotExist, Toast.LENGTH_SHORT).show()
+//                    navigateToHome(
+//                }
+//            }
+        }
+
+        composable(Routes.STAGE_DETAIL_SCREEN) {
+            val stageId = navController
+                .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.STAGE_ID_STACK_KEY)
+
+            if (stageId != null) {
+                val navigateToModifyStage: (String) -> Unit =
+                    { stageId -> navController.navigate(Routes.MODIFY_STAGE_SCREEN + "/$stageId") }
+                val navigateToCapture: () -> Unit =
+                    { navController.navigate(Routes.CAPTURE_SCREEN) }
+
+                StageDetailScreen(
+                    isProjectOwner = true,
+                    stageId = stageId,
+                    thumbnailUri = data.thumbnailUri,
+                    navigateToModifyStage = navigateToModifyStage,
+                    navigateToCapture = navigateToCapture,
+                    navigateToDetail = navigateToDetail
+                )
+            }
+//            else {
+//                LaunchedEffect(key1 = null) {
+//                    Toast.makeText(context, stageNotExist, Toast.LENGTH_SHORT).show()
 //                    navigateToHome()
 //                }
 //            }
@@ -165,38 +206,8 @@ fun AppNavigationGraph(
 //                        navigateToDetail = navigateToDetail
 //                    )
 //                }
-            } else {
-                LaunchedEffect(key1 = null) {
-                    Toast.makeText(context, projectNotExist, Toast.LENGTH_SHORT).show()
-                    navigateToHome()
-                }
             }
-        }
-
-        composable(Routes.STAGE_DETAIL_SCREEN) {
-//            val navigateToModifyStage: (String) -> Unit =
-//                { stageId -> navController.navigate(Routes.MODIFY_STAGE_SCREEN + "/$stageId") }
-//            val navigateToCapture: () -> Unit =
-//                { navController.navigate(Routes.CAPTURE_SCREEN) }
-//
-//            val project = data.project
-//            val currentStage = project?.data?.stages?.get(data.stageId)
-//            if (currentStage != null) {
-//                StageDetailScreen(
-//                    isProjectOwner = data.isProjectOwner!!,
-//                    projectId = project.id,
-//                    thumbnailUri = data.thumbnailUri,
-//                    stage = Pair(data.stageId!!, currentStage),
-//                    navigateToModifyStage = navigateToModifyStage,
-//                    navigateToCapture = navigateToCapture,
-//                    navigateToDetail = navigateToDetail
-//                )
-//            } else if (project != null) {
-//                LaunchedEffect(key1 = null) {
-//                    Toast.makeText(context, stageNotExist, Toast.LENGTH_SHORT).show()
-//                    navigateToDetail()
-//                }
-//            } else {
+//            else {
 //                LaunchedEffect(key1 = null) {
 //                    Toast.makeText(context, projectNotExist, Toast.LENGTH_SHORT).show()
 //                    navigateToHome()
@@ -277,12 +288,13 @@ fun AppNavigationGraph(
                     navigateToHome = navigateToHome,
                     navigateToDetail = navigateToDetail
                 )
-            } else {
-                LaunchedEffect(key1 = null) {
-                    Toast.makeText(context, projectNotExist, Toast.LENGTH_SHORT).show()
-                    navigateToHome()
-                }
             }
+//            else {
+//                LaunchedEffect(key1 = null) {
+//                    Toast.makeText(context, projectNotExist, Toast.LENGTH_SHORT).show()
+//                    navigateToHome()
+//                }
+//            }
         }
 
         composable(Routes.MODIFY_STAGE_SCREEN + "/{stageId}") { stackEntry ->
@@ -330,7 +342,8 @@ fun AppNavigationGraph(
 //                        )
 //                    }
 //                }
-//            } else {
+//            }
+            //            else {
 //                LaunchedEffect(key1 = null) {
 //                    Toast.makeText(context, projectNotExist, Toast.LENGTH_SHORT).show()
 //                    navigateToHome()

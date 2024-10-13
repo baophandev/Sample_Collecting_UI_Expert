@@ -4,9 +4,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,7 +16,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -41,7 +39,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.application.R
 import com.application.constant.UiStatus
-import com.application.data.entity.Project
 import com.application.ui.component.BotNavigationBar
 import com.application.ui.component.CustomButton
 import com.application.ui.component.CustomCircularProgressIndicator
@@ -57,7 +54,7 @@ fun HomeScreen(
     userId: String,
     navigateToLogin: () -> Unit,
     navigateToCreateProject: () -> Unit,
-    navigateToDetailProject: (Project) -> Unit
+    navigateToDetailProject: (String) -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
@@ -115,17 +112,14 @@ fun HomeScreen(
         bottomBar = {
             BotNavigationBar {
                 IconButton(
-                    modifier = Modifier.size(60.dp),
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = colorResource(id = R.color.smooth_blue)
-                    ),
+                    modifier = Modifier.size(50.dp),
                     onClick = navigateToCreateProject
                 ) {
                     Icon(
-                        modifier = Modifier.fillMaxSize(.60f),
+                        modifier = Modifier.fillMaxSize(.75f),
                         painter = painterResource(id = R.drawable.ic_add_project),
                         contentDescription = "Add Project",
-                        tint = Color.White
+                        tint = MaterialTheme.colorScheme.secondary
                     )
                 }
             }
@@ -154,31 +148,28 @@ fun HomeScreen(
                 )
 
                 UiStatus.SUCCESS -> {
-                    if (state.projects.isEmpty()) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.no_project_icon),
-                                contentDescription = "No project",
-                                modifier = Modifier.size(100.dp),
-                                tint = colorResource(id = R.color.main_green)
-                            )
-                            TitleText(
-                                text = stringResource(id = R.string.no_projects),
-                                textSize = 20.sp,
-                                color = colorResource(id = R.color.main_green)
-                            )
-                        }
-                    } else LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(state.projects) { project ->
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (state.projects.isEmpty())
+                            item {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.no_project_icon),
+                                    contentDescription = "No project",
+                                    modifier = Modifier.size(100.dp),
+                                    tint = colorResource(id = R.color.main_green)
+                                )
+                                TitleText(
+                                    text = stringResource(id = R.string.no_projects),
+                                    textSize = 20.sp,
+                                    color = colorResource(id = R.color.main_green)
+                                )
+                            }
+                        else items(state.projects) { project ->
                             FieldProject(
                                 modifier = Modifier.clickable {
-                                    navigateToDetailProject(
-                                        project
-                                    )
+                                    navigateToDetailProject(project.id)
                                 },
                                 thumbnail = project.thumbnail,
                                 name = project.name,

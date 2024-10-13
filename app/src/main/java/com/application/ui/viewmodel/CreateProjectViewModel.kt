@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.R
 import com.application.data.entity.Project
-import com.application.data.entity.User
 import com.application.data.repository.ProjectRepository
 import com.application.ui.state.CreateProjectUiState
 import com.application.util.ResourceState
@@ -50,7 +49,7 @@ class CreateProjectViewModel @Inject constructor(
         _state.update { it.copy(error = null) }
     }
 
-    fun submit(userId: String, successHandler: (Project) -> Unit) {
+    fun submit(userId: String, successHandler: (String) -> Unit) {
         if (!validateFields()) return
 
         _state.update { it.copy(loading = true) }
@@ -66,17 +65,7 @@ class CreateProjectViewModel @Inject constructor(
                 is ResourceState.Success -> {
                     _state.update { it.copy(loading = false) }
                     viewModelScope.launch {
-                        successHandler(
-                            Project(
-                                id = resourceState.data,
-                                thumbnail = thumbnail,
-                                name = currentState.name,
-                                description = currentState.description,
-                                startDate = currentState.startDate,
-                                endDate = currentState.endDate,
-                                owner = User(id = userId, username = "test", name = "test")
-                            )
-                        )
+                        successHandler(resourceState.data)
                     }
                 }
             }
@@ -84,6 +73,7 @@ class CreateProjectViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             repository.createProject(
+                thumbnail = thumbnail,
                 name = currentState.name,
                 description = currentState.description,
                 startDate = currentState.startDate,

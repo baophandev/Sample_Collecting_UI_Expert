@@ -53,6 +53,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -129,8 +130,8 @@ fun CustomTextField(
         placeholder = placeholder,
         value = value,
         colors = TextFieldDefaults.colors(
-            unfocusedContainerColor = colorResource(id = R.color.light_gray),
-            focusedContainerColor = colorResource(id = R.color.light_gray),
+            unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
+            focusedContainerColor = MaterialTheme.colorScheme.secondary,
             unfocusedTextColor = Color.Black,
             focusedTextColor = Color.Black,
             unfocusedIndicatorColor = Color.Transparent,
@@ -172,7 +173,8 @@ fun CustomDatePicker(
 
         Card(
             colors = CardDefaults.cardColors(
-                containerColor = colorResource(id = R.color.light_gray)
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = Color.Black
             ),
             border = if (isError) BorderStroke(
                 width = 2.dp,
@@ -284,7 +286,7 @@ fun CustomButton(
     icon: Int? = null,
     background: Color = Color.Blue,
     border: BorderStroke? = null,
-    action: () -> Unit
+    action: () -> Unit,
 ) {
     Button(
         modifier = modifier,
@@ -505,22 +507,31 @@ fun StageContainer(
         modifier = modifier
             .shadow(
                 elevation = 8.dp,
-                shape = RoundedCornerShape(30.dp),
+                shape = RoundedCornerShape(15.dp),
                 spotColor = Color.Black,
                 ambientColor = Color.Black
             )
             .wrapContentSize()
             .fillMaxWidth(),
-        shape = RoundedCornerShape(30.dp),
+        shape = RoundedCornerShape(15.dp),
         colors = CardDefaults.cardColors(
-            containerColor = colorResource(id = R.color.gray_color)
+            containerColor = colorResource(id = R.color.container_green)
         ),
     ) {
         Column(
-            modifier = Modifier.padding(20.dp)
+            modifier = Modifier.padding(15.dp),
         ) {
-            Text(text = title)
-            description?.let { Text(text = it) }
+            Text(
+                modifier = Modifier.padding(bottom = 10.dp),
+                text = title,
+                fontSize = 20.sp,
+                color = MaterialTheme.colorScheme.secondary
+            )
+            description?.let { Text(
+                text = it,
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.secondary
+            ) }
         }
     }
 }
@@ -537,17 +548,19 @@ fun FormContainer(
         modifier = modifier
             .shadow(
                 elevation = 8.dp,
-                shape = RoundedCornerShape(30.dp),
+                shape = RoundedCornerShape(15.dp),
                 spotColor = Color.Black,
                 ambientColor = Color.Black
             )
-            .background(colorResource(id = R.color.gray_color))
+            .background(MaterialTheme.colorScheme.primary)
             .clip(RoundedCornerShape(10.dp)),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
             text = name,
+            color = MaterialTheme.colorScheme.secondary,
+            fontSize = 16.sp,
             modifier = Modifier
                 .padding(start = 15.dp)
                 .wrapContentWidth()
@@ -560,7 +573,8 @@ fun FormContainer(
                 Icon(
                     modifier = Modifier.size(24.dp),
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit field"
+                    contentDescription = "Edit field",
+                    tint = MaterialTheme.colorScheme.secondary
                 )
             }
             onDeleteClicked?.let {

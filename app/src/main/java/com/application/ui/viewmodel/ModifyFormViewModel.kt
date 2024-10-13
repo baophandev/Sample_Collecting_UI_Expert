@@ -19,13 +19,13 @@ class ModifyFormViewModel @Inject constructor(
     private val _state = MutableStateFlow(ModifyFormUiState(init = true))
     val state = _state.asStateFlow()
 
-    fun setModifiedForm(form: Form) {
-        form.fields?.map { it.value }?.let {
-            state.value.fields.clear()
-            state.value.fields.addAll(it)
-        }
-        _state.update { it.copy(name = form.name!!, init = false) }
-    }
+//    fun setModifiedForm(form: Form) {
+//        form.fields?.map { it.value }?.let {
+//            state.value.fields.clear()
+//            state.value.fields.addAll(it)
+//        }
+//        _state.update { it.copy(name = form.name!!, init = false) }
+//    }
 
     fun updateTitle(title: String) {
         _state.update { it.copy(name = title) }
@@ -45,7 +45,7 @@ class ModifyFormViewModel @Inject constructor(
         }
 
         val currentState = state.value
-        val newName = if (currentState.name != preForm.second.name) currentState.name else null
+        //val newName = if (currentState.name != preForm.second.name) currentState.name else null
         val newFields = currentState.fields.toList()
 
         viewModelScope.launch(Dispatchers.IO) {

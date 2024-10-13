@@ -5,6 +5,7 @@ package com.application.data.entity
  */
 data class Form(
     val id: String,
-    var name: String? = null,
-    var fields: Map<String, String>? = null
+    var title: String,
+    var description: String? = null,
+    val projectOwnerId:String
 )

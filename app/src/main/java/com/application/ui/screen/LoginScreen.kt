@@ -35,7 +35,10 @@ import com.application.ui.component.PasswordField
 import com.application.ui.component.TextButton
 
 @Composable
-fun LoginScreen(modifier: Modifier = Modifier) {
+fun LoginScreen(
+    modifier: Modifier = Modifier,
+    navigateToHome: (String) -> Unit,
+) {
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -106,7 +109,10 @@ fun LoginScreen(modifier: Modifier = Modifier) {
                     modifier = Modifier.fillMaxWidth(.9f),
                     text = stringResource(id = R.string.login_button),
                     fontSize = 18.sp,
-                )
+                ) {
+                    val userId = "user"
+                    navigateToHome(userId)
+                }
                 HorizontalDivider(
                     color = Color(178, 183, 179, 255),
                     thickness = 1.dp,
@@ -131,5 +137,5 @@ fun LoginScreen(modifier: Modifier = Modifier) {
 @Preview(heightDp = 800, widthDp = 400, showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen()
+    LoginScreen {}
 }

@@ -47,6 +47,7 @@ class UserRepository(
 
     companion object {
         const val TAG = "UserRepository"
+        val DEFAULT_USER = User(id = "unknown", username = "unknown", name = "Unknown User")
     }
 
 }
