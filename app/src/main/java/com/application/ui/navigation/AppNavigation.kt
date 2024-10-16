@@ -2,9 +2,7 @@ package com.application.ui.navigation
 
 import android.net.Uri
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
@@ -114,6 +112,7 @@ fun AppNavigationGraph(
                 .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.PROJECT_ID_STACK_KEY)
 
             if (projectId != null && userId != null) {
+
                 val navigateToModify: () -> Unit =
                     { navController.navigate(Routes.MODIFY_PROJECT_SCREEN) }
                 val navigateToStageDetail: (String) -> Unit = { stageId ->
@@ -122,8 +121,10 @@ fun AppNavigationGraph(
                 }
                 val navigateToAddStage: () -> Unit =
                     { navController.navigate(Routes.ADD_STAGE_SCREEN) }
-                val navigateToAddForm: () -> Unit =
-                    { navController.navigate(Routes.ADD_FORM_SCREEN) }
+                val navigateToAddForm: () -> Unit = {
+                    backStackEntry.savedStateHandle[Routes.PROJECT_ID_STACK_KEY] = projectId
+                    navController.navigate(Routes.ADD_FORM_SCREEN)
+                }
                 val navigateToModifyForm: (String) -> Unit =
                     { formId -> navController.navigate(Routes.MODIFY_FORM_SCREEN + "/$formId") }
                 val updateProjectData: (Project) -> Unit =
@@ -177,20 +178,24 @@ fun AppNavigationGraph(
         }
 
         composable(Routes.ADD_FORM_SCREEN) {
-            val project = data.project
-            if (project != null) {
+            val projectId = navController
+                .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.PROJECT_ID_STACK_KEY)
+            if (projectId != null) {
                 CreateFormScreen(
-                    projectId = project.id,
+                    projectId = projectId,
                     navigateToLogin = navigateToLogin,
                     navigateToHome = navigateToHome,
-                    navigateToDetail = navigateToDetail
+                    navigateToDetail = {
+                        navigateToDetail()
+                    }
                 )
-            } else {
-                LaunchedEffect(key1 = null) {
-                    Toast.makeText(context, projectNotExist, Toast.LENGTH_SHORT).show()
-                    navigateToHome()
-                }
             }
+//            else {
+//                LaunchedEffect(key1 = null) {
+//                    Toast.makeText(context, projectNotExist, Toast.LENGTH_SHORT).show()
+//                    navigateToHome()
+//                }
+//            }
         }
 
         composable(Routes.ADD_STAGE_SCREEN) {

@@ -1,8 +1,6 @@
 package com.application.data.entity
 
-/**
- * @param emailMembers Map.Entry(generatedId, email)
- */
+
 data class Stage(
     val id: String,
     val name: String? = null,

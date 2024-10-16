@@ -23,7 +23,7 @@ class UserRepository(
         return flowOf(
             ResourceState.Success(
                 User(
-                    id = "unknown",
+                    id = "user",
                     username = "unknown",
                     name = "Unknown User"
                 )

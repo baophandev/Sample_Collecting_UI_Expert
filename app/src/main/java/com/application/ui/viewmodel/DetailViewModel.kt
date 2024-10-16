@@ -104,6 +104,8 @@ class DetailViewModel @Inject constructor(
     }
 
 
+
+
     companion object {
         const val TAG = "DetailViewModel"
     }

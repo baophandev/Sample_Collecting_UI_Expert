@@ -1,6 +1,10 @@
 package com.application.ui.component
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
@@ -15,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.application.R
 
@@ -30,31 +35,37 @@ fun FormField(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        TextField(
-            modifier = Modifier.wrapContentWidth(),
-            placeholder = {
-                Text(text = stringResource(id = R.string.field_name))
-            },
-            value = fieldName,
-            onValueChange = onFieldNameChange,
-            colors = TextFieldDefaults.colors(
-                unfocusedContainerColor = Color.Transparent,
-                focusedContainerColor = Color.Transparent,
-                unfocusedTextColor = Color.Black,
-                unfocusedIndicatorColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                focusedTextColor = Color.Black,
-            ),
-            singleLine = true,
-            isError = isError,
-        )
-        IconButton(onClick = onDeleteClicked) {
-            Icon(
-                modifier = Modifier.size(24.dp),
-                imageVector = Icons.Default.Delete,
-                contentDescription = "Delete",
-                tint = Color(0xFFE53935)
+        Box{
+            TextField(
+                modifier = Modifier.fillMaxWidth(.9f),
+                placeholder = {
+                    Text(text = stringResource(id = R.string.field_name))
+                },
+                value = fieldName,
+                onValueChange = onFieldNameChange,
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedTextColor = Color.Black,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                ),
+                singleLine = true,
+                isError = isError,
             )
         }
+        Box{
+            IconButton(onClick = onDeleteClicked) {
+                Icon(
+                    modifier = Modifier
+                        .fillMaxSize(.7f),
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = Color(0xFFE53935)
+                )
+            }
+        }
+
     }
 }

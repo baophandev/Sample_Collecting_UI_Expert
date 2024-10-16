@@ -317,7 +317,30 @@ class ProjectRepository(
             emit(ResourceState.Error(message = "Cannot create a new form"))
         }
     }
+    /**
+     * Get a form of a project by formId.
+     *
+     * ```
+     */
+    fun getForm(formId: String): Flow<ResourceState<Form>> {
+        if (cachedForms.containsKey(formId))
+            return flowOf(ResourceState.Success(cachedForms[formId]!!))
 
+        return flow<ResourceState<Form>> {
+            val response = projectService.getForm(formId)
+            val form = Form(
+                id = response.id,
+                title = response.title,
+                description = response.description,
+                projectOwnerId = response.projectOwnerId,
+            )
+            emit(ResourceState.Success(form))
+        }.catch { exception ->
+            Log.e(TAG, exception.message ?: "Unknown exception")
+            Log.e(TAG, exception.stackTraceToString())
+            emit(ResourceState.Error(message = "Cannot get a form"))
+        }
+    }
 
     companion object {
         const val TAG = "ProjectRepository"

@@ -1,7 +1,7 @@
 package com.application.ui.screen
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +20,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
@@ -59,7 +61,7 @@ import com.application.ui.viewmodel.DetailViewModel
 internal enum class DetailScreenSwitchState { DETAIL, STAGES, FORMS }
 internal enum class AlertType { CREATE_NEW_PROJECT, DELETE, ADD_FORM, NONE }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun DetailScreen(
     viewModel: DetailViewModel = hiltViewModel(),
@@ -251,11 +253,34 @@ fun DetailScreen(
 
                                     DetailScreenSwitchState.STAGES -> {
                                         state.stages?.let {
+
                                             LazyColumn(
                                                 modifier = Modifier
-                                                    .padding(vertical = 10.dp, horizontal = 25.dp)
+                                                    .padding(vertical = 10.dp, horizontal = 10.dp)
                                                     .fillMaxWidth(),
                                             ) {
+                                                stickyHeader {
+                                                    Row(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        horizontalArrangement = Arrangement.End
+                                                    ) {
+                                                        IconButton(
+                                                            onClick = {
+                                                                viewModel.getForms(
+                                                                    projectId = projectId,
+                                                                    successHandler = null
+                                                                )
+                                                            }) {
+                                                            Icon(
+                                                                modifier = Modifier
+                                                                    .fillMaxSize(.5f),
+                                                                painter = painterResource(id = R.drawable.return_arrow),
+                                                                contentDescription = "load new forms",
+                                                                tint = MaterialTheme.colorScheme.primary
+                                                            )
+                                                        }
+                                                    }
+                                                }
                                                 items(state.stages) { stage ->
                                                     StageContainer(
                                                         title = stage.name!!,
@@ -276,6 +301,28 @@ fun DetailScreen(
                                             modifier = Modifier.fillMaxWidth(),
                                             contentPadding = PaddingValues(10.dp)
                                         ) {
+                                            stickyHeader {
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.End
+                                                ) {
+                                                    IconButton(
+                                                        onClick = {
+                                                            viewModel.getForms(
+                                                                projectId = projectId,
+                                                                successHandler = null
+                                                            )
+                                                        }) {
+                                                        Icon(
+                                                            modifier = Modifier
+                                                                .fillMaxSize(.5f),
+                                                            painter = painterResource(id = R.drawable.return_arrow),
+                                                            contentDescription = "load new forms",
+                                                            tint = MaterialTheme.colorScheme.primary
+                                                        )
+                                                    }
+                                                }
+                                            }
                                             //check stage have any form?
                                             items(state.forms) { form ->
 //                                                val existStageUsage = state.forms?.any {

@@ -57,7 +57,7 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
 
     //Stage
     override suspend fun createStage(body: CreateStageRequest): String {
-        return client.post("stage"){
+        return client.post("stage") {
             setBody(body)
         }.body()
     }
@@ -68,8 +68,8 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         pageSize: Int
     ): List<StageResponse> {
         return client.get(urlString = "stage/$projectId/project") {
-            url{
-                parameters{
+            url {
+                parameters {
                     append("pageNumber", "$pageNumber")
                     append("pageSize", "$pageSize")
                 }
@@ -84,7 +84,7 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
 
     //Form
     override suspend fun createForm(body: CreateFormRequest): String {
-        return client.post("form"){
+        return client.post("form") {
             setBody(body)
         }.body()
     }
@@ -94,9 +94,9 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         pageNumber: Int,
         pageSize: Int
     ): List<FormResponse> {
-        return client.get(urlString = "form/$projectId/project"){
-            url{
-                parameters{
+        return client.get(urlString = "form/$projectId/project") {
+            url {
+                parameters {
                     append("pageNumber", "$pageNumber")
                     append("pageSize", "$pageSize")
                 }
