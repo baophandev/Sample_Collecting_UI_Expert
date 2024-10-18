@@ -1,7 +1,6 @@
 package com.application.ui.navigation
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -16,6 +15,7 @@ import com.application.data.entity.Project
 import com.application.ui.screen.CaptureScreen
 import com.application.ui.screen.CreateFormScreen
 import com.application.ui.screen.CreateProjectScreen
+import com.application.ui.screen.CreateStageScreen
 import com.application.ui.screen.DetailScreen
 import com.application.ui.screen.HomeScreen
 import com.application.ui.screen.LoginScreen
@@ -119,8 +119,10 @@ fun AppNavigationGraph(
                     backStackEntry.savedStateHandle[Routes.STAGE_ID_STACK_KEY] = stageId
                     navController.navigate(Routes.STAGE_DETAIL_SCREEN)
                 }
-                val navigateToAddStage: () -> Unit =
-                    { navController.navigate(Routes.ADD_STAGE_SCREEN) }
+                val navigateToAddStage: () -> Unit = {
+                    backStackEntry.savedStateHandle[Routes.PROJECT_ID_STACK_KEY] = projectId
+                    navController.navigate(Routes.ADD_STAGE_SCREEN)
+                }
                 val navigateToAddForm: () -> Unit = {
                     backStackEntry.savedStateHandle[Routes.PROJECT_ID_STACK_KEY] = projectId
                     navController.navigate(Routes.ADD_FORM_SCREEN)
@@ -199,18 +201,15 @@ fun AppNavigationGraph(
         }
 
         composable(Routes.ADD_STAGE_SCREEN) {
-            val project = data.project
-            if (project != null) {
-//                project.data.forms?.let { forms ->
-//                    CreateStageScreen(
-//                        projectId = project.id,
-//                        projectEmailMembers = project.data.memberIds?.map { it.value },
-//                        forms = forms.map { Pair(it.key, it.value.name!!) }.toMap(),
-//                        navigateToLogin = navigateToLogin,
-//                        navigateToHome = navigateToHome,
-//                        navigateToDetail = navigateToDetail
-//                    )
-//                }
+            val projectId = navController
+                .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.PROJECT_ID_STACK_KEY)
+            if (projectId != null) {
+                CreateStageScreen(
+                    projectId = projectId,
+                    navigateToLogin = navigateToLogin,
+                    navigateToHome = navigateToHome,
+                    navigateToDetail = navigateToDetail
+                )
             }
 //            else {
 //                LaunchedEffect(key1 = null) {

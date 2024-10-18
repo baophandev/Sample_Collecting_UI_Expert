@@ -433,7 +433,7 @@ fun StageTab(
                 LoadingScreen(text = stringResource(id = R.string.loading))
             }
 
-            UiStatus.SUCCESS -> items(stages) { stage ->
+            UiStatus.SUCCESS -> items(items = stages, key = { it.id }) { stage ->
                 StageContainer(
                     title = stage.name!!,
                     description = stage.description,

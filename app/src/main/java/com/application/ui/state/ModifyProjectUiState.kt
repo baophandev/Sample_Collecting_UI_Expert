@@ -7,6 +7,7 @@ data class ModifyProjectUiState(
     val init: Boolean = false,
     val loading: Boolean = false,
     @StringRes val error: Int? = null,
+
     val thumbnailPath: Pair<String, Uri>? = null,
     val title: String = "",
     val description: String = "",

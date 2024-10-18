@@ -42,7 +42,6 @@ class CreateFormViewModel @Inject constructor(
         currentState.fields.removeIf(String::isBlank)
         currentState.fields.forEach(String::trim)
 
-        //val form = Form(id = "", title = currentState.title, description = "", projectOwnerId = "")
         val collectAction: (ResourceState<String>) -> Unit = { resourceState ->
             when (resourceState) {
                 is ResourceState.Error -> _state.update { it.copy(status = UiStatus.ERROR) }
