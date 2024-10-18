@@ -51,6 +51,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
 import com.application.constant.UiStatus
+import com.application.data.entity.Form
 import com.application.data.entity.Project
 import com.application.data.entity.Stage
 import com.application.ui.component.CustomButton
@@ -96,16 +97,14 @@ fun DetailScreen(
         UiStatus.INIT -> {
             viewModel.loadProject(projectId)
             viewModel.getForms(
-                projectId = projectId,
-                successHandler = null
+                projectId = projectId, successHandler = null
             )
             viewModel.getStages(
-                projectId = projectId,
-                successHandler = null
+                projectId = projectId, successHandler = null
             )
         }
 
-        UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.deleting))
+        UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
         UiStatus.SUCCESS -> {
             if (alertType != AlertType.NONE) {
                 val messages = when (alertType) {
@@ -122,58 +121,50 @@ fun DetailScreen(
                     )
 
                     AlertType.ADD_FORM -> arrayOf(
-                        R.string.add_form,
-                        R.string.not_exist_form,
-                        R.string.add_form
+                        R.string.add_form, R.string.not_exist_form, R.string.add_form
                     )
 
                     else -> emptyArray()
                 }
-                AlertDialog(
-                    title = {
-                        Text(text = stringResource(id = messages[0]))
-                    },
-                    text = {
-                        Text(text = stringResource(id = messages[1]))
-                    },
-                    onDismissRequest = { alertType = AlertType.NONE },
-                    confirmButton = {
-                        CustomButton(
-                            text = stringResource(id = messages[2]),
-                            textSize = 14.sp,
-                            background = colorResource(
-                                id = if (alertType == AlertType.DELETE) R.color.red
-                                else R.color.main_green
-                            ),
-                            border = BorderStroke(0.dp, Color.Transparent)
-                        ) {
-                            when (alertType) {
-                                AlertType.DELETE -> viewModel.deleteProject(
-                                    projectId = state.project!!.id,
-                                    emailMembers = state.project!!.memberUsernames,
-                                    successHandler = navigateToHome
-                                )
+                AlertDialog(title = {
+                    Text(text = stringResource(id = messages[0]))
+                }, text = {
+                    Text(text = stringResource(id = messages[1]))
+                }, onDismissRequest = { alertType = AlertType.NONE }, confirmButton = {
+                    CustomButton(
+                        text = stringResource(id = messages[2]),
+                        textSize = 14.sp,
+                        background = colorResource(
+                            id = if (alertType == AlertType.DELETE) R.color.red
+                            else R.color.main_green
+                        ),
+                        border = BorderStroke(0.dp, Color.Transparent)
+                    ) {
+                        when (alertType) {
+                            AlertType.DELETE -> viewModel.deleteProject(
+                                projectId = state.project!!.id,
+                                emailMembers = state.project!!.memberUsernames,
+                                successHandler = navigateToHome
+                            )
 
-                                AlertType.ADD_FORM -> navigateToAddForm()
+                            AlertType.ADD_FORM -> navigateToAddForm()
 
-                                else -> navigateToHome()
-                            }
-
-                            alertType = AlertType.NONE
+                            else -> navigateToHome()
                         }
-                    },
-                    dismissButton = {
-                        CustomButton(
-                            text = stringResource(id = R.string.cancel),
-                            textSize = 14.sp,
-                            textColor = Color.Black,
-                            background = Color.White,
-                            border = BorderStroke(0.dp, Color.Transparent)
-                        ) {
-                            alertType = AlertType.NONE
-                        }
+
+                        alertType = AlertType.NONE
                     }
-                )
+                }, dismissButton = {
+                    CustomButton(
+                        text = stringResource(id = R.string.cancel),
+                        textSize = 14.sp,
+                        textColor = Color.Black,
+                        background = Color.White,
+                        border = BorderStroke(0.dp, Color.Transparent)
+                    ) {
+                        alertType = AlertType.NONE
+                    }
+                })
             }
             Box {
                 BottomSheetScaffold(
@@ -195,8 +186,7 @@ fun DetailScreen(
                                     background = if (switch == DetailScreenSwitchState.DETAIL)
                                         MaterialTheme.colorScheme.primary else Color.White,
                                     border = BorderStroke(
-                                        2.dp,
-                                        colorResource(id = R.color.main_green)
+                                        2.dp, colorResource(id = R.color.main_green)
                                     ),
                                     action = { switch = DetailScreenSwitchState.DETAIL }
                                 )
@@ -221,16 +211,14 @@ fun DetailScreen(
                                     background = if (switch == DetailScreenSwitchState.FORMS)
                                         MaterialTheme.colorScheme.primary else Color.White,
                                     border = BorderStroke(
-                                        2.dp,
-                                        colorResource(id = R.color.main_green)
+                                        2.dp, colorResource(id = R.color.main_green)
                                     ),
                                     action = { switch = DetailScreenSwitchState.FORMS }
                                 )
                             }
 
                             Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
+                                modifier = Modifier.fillMaxSize()
                             ) {
                                 when (switch) {
                                     DetailScreenSwitchState.DETAIL ->
@@ -238,9 +226,9 @@ fun DetailScreen(
 
                                     DetailScreenSwitchState.STAGES ->
                                         StageTab(
-                                            stages = state.stages,
                                             status = state.stageStatus,
                                             error = state.stageError?.let { stringResource(id = it) },
+                                            stages = state.stages,
                                             onRefreshClick = {
                                                 viewModel.getStages(
                                                     projectId = projectId,
@@ -250,82 +238,28 @@ fun DetailScreen(
                                             onStageClick = navigateToStageDetail
                                         )
 
-                                    DetailScreenSwitchState.FORMS -> {
-                                        LazyColumn(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            contentPadding = PaddingValues(10.dp)
-                                        ) {
-                                            stickyHeader {
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    horizontalArrangement = Arrangement.End
-                                                ) {
-                                                    IconButton(
-                                                        onClick = {
-                                                            viewModel.getForms(
-                                                                projectId = projectId,
-                                                                successHandler = null
-                                                            )
-                                                        }) {
-                                                        Icon(
-                                                            modifier = Modifier
-                                                                .fillMaxSize(.5f),
-                                                            painter = painterResource(id = R.drawable.return_arrow),
-                                                            contentDescription = "load new forms",
-                                                            tint = MaterialTheme.colorScheme.primary
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                            //check stage have any form?
-                                            items(state.forms) { form ->
-//                                                val existStageUsage = state.forms?.any {
-//                                                    it.id == form.id
-//                                                }
-                                                Spacer(modifier = Modifier.size(10.dp))
-
-                                                FormContainer(
-                                                    name = form.title,
-                                                    modifier = Modifier
-                                                        .padding(horizontal = 10.dp)
-                                                        .fillMaxWidth(),
-                                                    onModifyClicked = {
-                                                        if (userId == state.project?.owner?.id) {
-                                                            navigateToModifyForm(form.id)
-                                                        } else {
-                                                            alertType = AlertType.CREATE_NEW_PROJECT
-                                                        }
-                                                    },
-//                                                    onDeleteClicked = if (existStageUsage != null && existStageUsage) null
-//                                                    else {
-//                                                        {
-//                                                            if (userId == state.project?.owner?.id) {
-////                                                                state.forms.remove(form)
-////                                                                viewModel.deleteForm(
-////                                                                    projectId = project.id,
-////                                                                    formId = form.id
-////                                                                )
-//                                                            } else {
-//                                                                alertType =
-//                                                                    AlertType.CREATE_NEW_PROJECT
-//                                                            }
-//                                                        }
-//                                                    }
+                                    DetailScreenSwitchState.FORMS ->
+                                        FormTab(
+                                            status = state.formStatus,
+                                            error = state.formError?.let { stringResource(id = it) },
+                                            forms = state.forms,
+                                            onRefreshClick = {
+                                                viewModel.getForms(
+                                                    projectId = projectId,
+                                                    successHandler = null
                                                 )
-                                            }
-                                        }
-                                    }
+                                            },
+                                            onFormClick = navigateToModifyForm
+                                        )
                                 }
                             }
 
                         }
-                    }
-                ) {
+                    }) {
                     Box(modifier = Modifier.fillMaxSize()) {
                         if (state.project?.thumbnail != null) {
                             AsyncImage(
-                                model = ImageRequest.Builder(context)
-                                    .data(state.project?.thumbnail)
+                                model = ImageRequest.Builder(context).data(state.project?.thumbnail)
                                     .build(),
                                 modifier = Modifier
                                     .height(300.dp)
@@ -338,8 +272,7 @@ fun DetailScreen(
                                 modifier = Modifier
                                     .height(300.dp)
                                     .fillMaxWidth(),
-                                painter =
-                                painterResource(id = R.drawable.sample_default),
+                                painter = painterResource(id = R.drawable.sample_default),
                                 contentDescription = "Default Thumbnail",
                                 contentScale = ContentScale.Crop
                             )
@@ -376,9 +309,7 @@ fun DetailScreen(
                             Spacer(modifier = Modifier.size(40.dp))
                             state.project?.name?.let {
                                 Text(
-                                    text = it,
-                                    fontSize = 30.sp,
-                                    color = Color.White
+                                    text = it, fontSize = 30.sp, color = Color.White
                                 )
                             }
                         }
@@ -407,8 +338,7 @@ fun DetailScreen(
                         }
 
                         DetailScreenSwitchState.STAGES -> {
-                            CustomButton(
-                                modifier = Modifier.fillMaxWidth(.7f),
+                            CustomButton(modifier = Modifier.fillMaxWidth(.7f),
                                 text = stringResource(id = R.string.add_stage),
                                 textSize = 16.sp,
                                 background = MaterialTheme.colorScheme.primary,
@@ -427,8 +357,7 @@ fun DetailScreen(
                         }
 
                         DetailScreenSwitchState.FORMS -> {
-                            CustomButton(
-                                modifier = Modifier.fillMaxWidth(.7f),
+                            CustomButton(modifier = Modifier.fillMaxWidth(.7f),
                                 text = stringResource(id = R.string.add_form),
                                 textSize = 16.sp,
                                 background = MaterialTheme.colorScheme.primary,
@@ -439,8 +368,7 @@ fun DetailScreen(
                                     } else {
                                         alertType = AlertType.CREATE_NEW_PROJECT
                                     }
-                                }
-                            )
+                                })
                         }
                     }
                 }
@@ -453,12 +381,10 @@ fun DetailScreen(
 
 @Composable
 fun DetailTab(
-    modifier: Modifier = Modifier,
-    projectDescription: String? = null
+    modifier: Modifier = Modifier, projectDescription: String? = null
 ) {
     Text(
-        modifier = modifier
-            .padding(horizontal = 30.dp, vertical = 15.dp),
+        modifier = modifier.padding(horizontal = 30.dp, vertical = 15.dp),
         text = stringResource(id = R.string.detail),
         fontSize = 20.sp,
         color = MaterialTheme.colorScheme.primary,
@@ -490,13 +416,11 @@ fun StageTab(
     ) {
         stickyHeader {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
             ) {
                 IconButton(onClick = onRefreshClick) {
                     Icon(
-                        modifier = Modifier
-                            .fillMaxSize(.5f),
+                        modifier = Modifier.fillMaxSize(.5f),
                         painter = painterResource(id = R.drawable.return_arrow),
                         contentDescription = "load new forms",
                         tint = MaterialTheme.colorScheme.primary
@@ -506,7 +430,7 @@ fun StageTab(
         }
         when (status) {
             UiStatus.LOADING -> item {
-                LoadingScreen(text = stringResource(id = R.string.deleting))
+                LoadingScreen(text = stringResource(id = R.string.loading))
             }
 
             UiStatus.SUCCESS -> items(stages) { stage ->
@@ -526,4 +450,84 @@ fun StageTab(
             else -> {}
         }
     }
+}
+
+
+@Composable
+@OptIn(ExperimentalFoundationApi::class)
+fun FormTab(
+    modifier: Modifier = Modifier,
+    status: UiStatus,
+    error: String? = null,
+    forms: List<Form>,
+    onRefreshClick: () -> Unit,
+    onFormClick: (String) -> Unit,
+) {
+    LazyColumn(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(10.dp)
+    ) {
+        stickyHeader {
+            Row(
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(onClick = onRefreshClick) {
+                    Icon(
+                        modifier = Modifier.fillMaxSize(.5f),
+                        painter = painterResource(id = R.drawable.return_arrow),
+                        contentDescription = "load new forms",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+        when (status) {
+            UiStatus.LOADING -> item {
+                LoadingScreen(text = stringResource(id = R.string.loading))
+            }
+
+            UiStatus.SUCCESS -> items(forms) { form ->
+//                    val existStageUsage = state.forms?.any {
+//                        it.id == form.id
+//                    }
+                Spacer(modifier = Modifier.size(10.dp))
+                FormContainer(
+                    name = form.title,
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp)
+                        .fillMaxWidth(),
+                    onModifyClicked = {
+                        onFormClick(form.id)
+//                            if (userId == state.project?.owner?.id) {
+//                                navigateToModifyForm(form.id)
+//                            } else {
+//                                alertType = AlertType.CREATE_NEW_PROJECT
+//                            }
+//                        },
+//                        onDeleteClicked = if (existStageUsage != null && existStageUsage) null
+//                        else {
+//                            {
+//                                if (userId == state.project?.owner?.id) {
+//                                    state.forms.remove(form)
+//                                    viewModel.deleteForm(
+//                                        projectId = project.id,
+//                                        formId = form.id
+//                                    )
+//                                } else {
+//                                    alertType = AlertType.CREATE_NEW_PROJECT
+//                                }
+//                            }
+                    }
+                )
+            }
+
+            UiStatus.ERROR -> item {
+                Text(text = error ?: "Lỗi load stages rùi, sửa đi")
+            }
+
+            else -> {}
+        }
+
+    }
+
 }

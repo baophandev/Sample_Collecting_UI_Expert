@@ -79,7 +79,7 @@ class DetailViewModel @Inject constructor(
     }
 
     fun getForms(projectId: String, successHandler: (() -> Unit)? = null){
-        _state.update { it.copy(status = UiStatus.LOADING) }
+        _state.update { it.copy(formStatus = UiStatus.LOADING) }
 
         viewModelScope.launch (Dispatchers.IO) {
             repository.getAllForm(projectId).collectLatest { resourceState ->
@@ -88,7 +88,7 @@ class DetailViewModel @Inject constructor(
                         val forms = resourceState.data
                         _state.update { current ->
                             current.copy(
-                                status = UiStatus.SUCCESS,
+                                formStatus = UiStatus.SUCCESS,
                                 forms = forms
                             )
                         }

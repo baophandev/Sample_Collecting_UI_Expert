@@ -336,7 +336,7 @@ fun CustomCircularProgressIndicator(
         horizontalArrangement = Arrangement.Center
     ) {
         CircularProgressIndicator(
-            color = MaterialTheme.colorScheme.secondary,
+            color = MaterialTheme.colorScheme.primary,
             trackColor = MaterialTheme.colorScheme.surfaceVariant
         )
         if (text != null) {
@@ -345,7 +345,7 @@ fun CustomCircularProgressIndicator(
                 text = text,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.W500,
-                color = MaterialTheme.colorScheme.secondary
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -356,7 +356,7 @@ fun LoadingScreen(modifier: Modifier = Modifier, text: String) {
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(255, 255, 255, 154)),
+            .background(Color(250, 246, 246, 154)),
         contentAlignment = Alignment.Center
     ) {
         CustomCircularProgressIndicator(text = text)
@@ -515,7 +515,7 @@ fun StageContainer(
             .fillMaxWidth(),
         shape = RoundedCornerShape(15.dp),
         colors = CardDefaults.cardColors(
-            containerColor = colorResource(id = R.color.container_green)
+            containerColor = colorResource(id = R.color.white)
         ),
     ) {
         Column(
@@ -525,12 +525,12 @@ fun StageContainer(
                 modifier = Modifier.padding(bottom = 10.dp),
                 text = title,
                 fontSize = 20.sp,
-                color = MaterialTheme.colorScheme.secondary
+                color = colorResource(id = R.color.black)
             )
             description?.let { Text(
                 text = it,
                 fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.secondary
+                color = colorResource(id = R.color.black)
             ) }
         }
     }
@@ -552,14 +552,14 @@ fun FormContainer(
                 spotColor = Color.Black,
                 ambientColor = Color.Black
             )
-            .background(MaterialTheme.colorScheme.primary)
+            .background(color = colorResource(id = R.color.white))
             .clip(RoundedCornerShape(10.dp)),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
             text = name,
-            color = MaterialTheme.colorScheme.secondary,
+            color = colorResource(id = R.color.black),
             fontSize = 16.sp,
             modifier = Modifier
                 .padding(start = 15.dp)
@@ -574,7 +574,7 @@ fun FormContainer(
                     modifier = Modifier.size(24.dp),
                     imageVector = Icons.Default.Edit,
                     contentDescription = "Edit field",
-                    tint = MaterialTheme.colorScheme.secondary
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
             onDeleteClicked?.let {

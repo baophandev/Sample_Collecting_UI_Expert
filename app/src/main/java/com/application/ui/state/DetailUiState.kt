@@ -12,5 +12,7 @@ data class DetailUiState(
     val stages: List<Stage> = listOf(),
     val stageStatus: UiStatus = UiStatus.INIT,
     val stageError: Int? = null,
-    val forms: List<Form> = listOf()
+    val forms: List<Form> = listOf(),
+    val formStatus: UiStatus = UiStatus.INIT,
+    val formError: Int? = null,
 )
