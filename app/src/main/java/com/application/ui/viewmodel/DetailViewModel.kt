@@ -1,5 +1,6 @@
 package com.application.ui.viewmodel
 
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.constant.UiStatus
@@ -52,7 +53,7 @@ class DetailViewModel @Inject constructor(
     }
 
     fun getStages(projectId: String, successHandler: (() -> Unit)?= null){
-        _state.update { it.copy(status = UiStatus.LOADING) }
+        _state.update { it.copy(stageStatus = UiStatus.LOADING) }
         viewModelScope.launch(Dispatchers.IO){
             repository.getAllStage(projectId).collectLatest { resourceState ->
                 when(resourceState) {
@@ -60,7 +61,7 @@ class DetailViewModel @Inject constructor(
                         val stages = resourceState.data
                         _state.update { current ->
                             current.copy(
-                                status = UiStatus.SUCCESS,
+                                stageStatus = UiStatus.SUCCESS,
                                 stages = stages
                             )
                         }
@@ -69,7 +70,8 @@ class DetailViewModel @Inject constructor(
 
                     is ResourceState.Error -> {
                         val error = resourceState.resId
-                        _state.update { it.copy(status = UiStatus.ERROR, error = error.toString()) }
+                        _state.update { currentState ->
+                            currentState.copy(stageStatus = UiStatus.ERROR, error = error) }
                     }
                 }
             }
@@ -95,7 +97,7 @@ class DetailViewModel @Inject constructor(
 
                     is ResourceState.Error -> {
                         val error = resourceState.resId
-                        _state.update { it.copy(status = UiStatus.ERROR, error = error.toString()) }
+                        _state.update { it.copy(status = UiStatus.ERROR, error = error) }
                     }
                 }
 

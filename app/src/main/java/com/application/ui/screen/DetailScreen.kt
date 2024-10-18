@@ -52,6 +52,7 @@ import coil.request.ImageRequest
 import com.application.R
 import com.application.constant.UiStatus
 import com.application.data.entity.Project
+import com.application.data.entity.Stage
 import com.application.ui.component.CustomButton
 import com.application.ui.component.FormContainer
 import com.application.ui.component.LoadingScreen
@@ -232,69 +233,22 @@ fun DetailScreen(
                                     .fillMaxSize()
                             ) {
                                 when (switch) {
-                                    DetailScreenSwitchState.DETAIL -> {
-                                        Text(
-                                            modifier = Modifier
-                                                .padding(horizontal = 30.dp, vertical = 15.dp),
-                                            text = stringResource(id = R.string.detail),
-                                            fontSize = 20.sp,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            fontWeight = FontWeight.W700
-                                        )
-                                        Text(
-                                            modifier = Modifier.padding(horizontal = 30.dp),
-                                            overflow = TextOverflow.Ellipsis,
-                                            text = state.project?.description
-                                                ?: stringResource(id = R.string.default_project_description),
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.W400
-                                        )
-                                    }
+                                    DetailScreenSwitchState.DETAIL ->
+                                        DetailTab(projectDescription = state.project?.description)
 
-                                    DetailScreenSwitchState.STAGES -> {
-                                        state.stages?.let {
-
-                                            LazyColumn(
-                                                modifier = Modifier
-                                                    .padding(vertical = 10.dp, horizontal = 10.dp)
-                                                    .fillMaxWidth(),
-                                            ) {
-                                                stickyHeader {
-                                                    Row(
-                                                        modifier = Modifier.fillMaxWidth(),
-                                                        horizontalArrangement = Arrangement.End
-                                                    ) {
-                                                        IconButton(
-                                                            onClick = {
-                                                                viewModel.getForms(
-                                                                    projectId = projectId,
-                                                                    successHandler = null
-                                                                )
-                                                            }) {
-                                                            Icon(
-                                                                modifier = Modifier
-                                                                    .fillMaxSize(.5f),
-                                                                painter = painterResource(id = R.drawable.return_arrow),
-                                                                contentDescription = "load new forms",
-                                                                tint = MaterialTheme.colorScheme.primary
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                                items(state.stages) { stage ->
-                                                    StageContainer(
-                                                        title = stage.name!!,
-                                                        description = stage.description,
-                                                        modifier = Modifier
-                                                            .padding(vertical = 10.dp)
-                                                            .clickable {
-                                                                navigateToStageDetail(stage.id)
-                                                            }
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
+                                    DetailScreenSwitchState.STAGES ->
+                                        StageTab(
+                                            stages = state.stages,
+                                            status = state.stageStatus,
+                                            error = state.stageError?.let { stringResource(id = it) },
+                                            onRefreshClick = {
+                                                viewModel.getStages(
+                                                    projectId = projectId,
+                                                    successHandler = null
+                                                )
+                                            },
+                                            onStageClick = navigateToStageDetail
+                                        )
 
                                     DetailScreenSwitchState.FORMS -> {
                                         LazyColumn(
@@ -331,7 +285,7 @@ fun DetailScreen(
                                                 Spacer(modifier = Modifier.size(10.dp))
 
                                                 FormContainer(
-                                                    name = form.title ?: "Unknown",
+                                                    name = form.title,
                                                     modifier = Modifier
                                                         .padding(horizontal = 10.dp)
                                                         .fillMaxWidth(),
@@ -461,7 +415,7 @@ fun DetailScreen(
                                 border = BorderStroke(0.dp, Color.Transparent),
                                 action = {
                                     if (state.project?.owner?.id == userId) {
-                                        if (state.forms.isNullOrEmpty()) {
+                                        if (state.forms.isEmpty()) {
                                             alertType = AlertType.ADD_FORM
                                         } else navigateToAddStage()
                                     } else {
@@ -493,7 +447,83 @@ fun DetailScreen(
             }
         }
 
-        UiStatus.ERROR -> {}
+        UiStatus.ERROR -> navigateToHome() // Bị lỗi thì về Home
     }
+}
 
+@Composable
+fun DetailTab(
+    modifier: Modifier = Modifier,
+    projectDescription: String? = null
+) {
+    Text(
+        modifier = modifier
+            .padding(horizontal = 30.dp, vertical = 15.dp),
+        text = stringResource(id = R.string.detail),
+        fontSize = 20.sp,
+        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.W700
+    )
+    Text(
+        modifier = Modifier.padding(horizontal = 30.dp),
+        overflow = TextOverflow.Ellipsis,
+        text = projectDescription ?: stringResource(id = R.string.default_project_description),
+        fontSize = 16.sp,
+        fontWeight = FontWeight.W400
+    )
+}
+
+@Composable
+@OptIn(ExperimentalFoundationApi::class)
+fun StageTab(
+    modifier: Modifier = Modifier,
+    status: UiStatus,
+    error: String? = null,
+    stages: List<Stage>,
+    onRefreshClick: () -> Unit,
+    onStageClick: (String) -> Unit,
+) {
+    LazyColumn(
+        modifier = modifier
+            .padding(all = 10.dp)
+            .fillMaxWidth(),
+    ) {
+        stickyHeader {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(onClick = onRefreshClick) {
+                    Icon(
+                        modifier = Modifier
+                            .fillMaxSize(.5f),
+                        painter = painterResource(id = R.drawable.return_arrow),
+                        contentDescription = "load new forms",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+        when (status) {
+            UiStatus.LOADING -> item {
+                LoadingScreen(text = stringResource(id = R.string.deleting))
+            }
+
+            UiStatus.SUCCESS -> items(stages) { stage ->
+                StageContainer(
+                    title = stage.name!!,
+                    description = stage.description,
+                    modifier = Modifier
+                        .padding(vertical = 10.dp)
+                        .clickable { onStageClick(stage.id) }
+                )
+            }
+
+            UiStatus.ERROR -> item {
+                Text(text = error ?: "Lỗi load stages rùi, sửa đi")
+            }
+
+            else -> {}
+        }
+    }
 }
