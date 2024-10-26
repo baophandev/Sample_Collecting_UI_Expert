@@ -29,6 +29,7 @@ import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
@@ -147,20 +148,22 @@ fun StageDetailScreen(
                         ) {
                             CustomButton(
                                 text = stringResource(id = R.string.detail),
-                                textSize = 20.sp,
-                                textColor = Color.Black,
+                                textSize = 16.sp,
+                                textColor = if (switch == StageSwitchState.DETAIL)
+                                    Color.White else Color.Black,
                                 background = if (switch == StageSwitchState.DETAIL)
-                                    colorResource(id = R.color.btn_container_gray) else Color.White,
-                                border = BorderStroke(2.dp, colorResource(id = R.color.border_btn)),
+                                    MaterialTheme.colorScheme.primary else Color.White,
+                                border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                                 action = { switch = StageSwitchState.DETAIL }
                             )
                             CustomButton(
                                 text = stringResource(id = R.string.photos),
-                                textSize = 20.sp,
-                                textColor = Color.Black,
+                                textSize = 16.sp,
+                                textColor = if (switch == StageSwitchState.PHOTOS)
+                                    Color.White else Color.Black,
                                 background = if (switch == StageSwitchState.PHOTOS)
-                                    colorResource(id = R.color.btn_container_gray) else Color.White,
-                                border = BorderStroke(2.dp, colorResource(id = R.color.border_btn)),
+                                    MaterialTheme.colorScheme.primary else Color.White,
+                                border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                                 action = { switch = StageSwitchState.PHOTOS }
                             )
                         }
@@ -176,7 +179,8 @@ fun StageDetailScreen(
                                 ) {
                                     Text(
                                         text = stringResource(id = R.string.detail),
-                                        fontSize = 18.sp,
+                                        fontSize = 20.sp,
+                                        color = MaterialTheme.colorScheme.primary,
                                         fontWeight = FontWeight.W700
                                     )
                                     Text(
@@ -306,7 +310,7 @@ fun StageDetailScreen(
                                     modifier = Modifier.fillMaxWidth(.7f),
                                     text = stringResource(id = R.string.modify),
                                     textSize = 16.sp,
-                                    background = colorResource(id = R.color.smooth_blue),
+                                    background = MaterialTheme.colorScheme.primary,
                                     border = BorderStroke(0.dp, Color.Transparent),
                                     action = {
                                         navigateToModifyStage(stageId)
@@ -321,7 +325,7 @@ fun StageDetailScreen(
                                     modifier = Modifier.fillMaxWidth(.7f),
                                     text = stringResource(id = R.string.add_photo),
                                     textSize = 16.sp,
-                                    background = colorResource(id = R.color.smooth_blue),
+                                    background = MaterialTheme.colorScheme.primary,
                                     border = BorderStroke(0.dp, Color.Transparent),
                                     action = navigateToCapture
                                 )

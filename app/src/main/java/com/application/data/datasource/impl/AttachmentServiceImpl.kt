@@ -14,4 +14,8 @@ class AttachmentServiceImpl : IAttachmentService, AbstractClient() {
         TODO("Not yet implemented")
     }
 
+    override suspend fun deleteAttachment(attachmentId: String): Boolean {
+        TODO("Not yet implemented")
+    }
+
 }

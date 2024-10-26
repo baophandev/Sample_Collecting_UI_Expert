@@ -7,5 +7,6 @@ interface IAttachmentService {
 
     suspend fun getAttachment(attachmentId: String): AttachmentResponse
     suspend fun uploadAttachment(uri: Uri): String
+    suspend fun deleteAttachment(attachmentId: String): Boolean
 
 }

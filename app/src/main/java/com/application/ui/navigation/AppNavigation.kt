@@ -2,16 +2,17 @@ package com.application.ui.navigation
 
 import android.net.Uri
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.application.R
-import com.application.data.entity.Project
 import com.application.ui.screen.CaptureScreen
 import com.application.ui.screen.CreateFormScreen
 import com.application.ui.screen.CreateProjectScreen
@@ -20,36 +21,38 @@ import com.application.ui.screen.DetailScreen
 import com.application.ui.screen.HomeScreen
 import com.application.ui.screen.LoginScreen
 import com.application.ui.screen.ModifyProjectScreen
-import com.application.ui.screen.StageDetailScreen
+import com.application.ui.state.NavigationState
 
-internal const val AppNavigationTag = "AppNavigation"
+fun NavHostController.navigateSingleTop(route: String) {
+    this.navigate(route) { launchSingleTop = true }
+}
 
 @Composable
 fun AppNavigationGraph(
-    viewModel: NavigationViewModel = hiltViewModel()
 ) {
+    var state by remember { mutableStateOf(NavigationState()) }
     val navController = rememberNavController()
-    val data by viewModel.data.collectAsState()
+//    val data by viewModel.data.collectAsState()
     val context = LocalContext.current
 
     val projectNotExist = stringResource(id = R.string.project_not_exist)
     val stageNotExist = stringResource(id = R.string.stage_not_exist)
 
-    val navigateToLogin: () -> Unit = {
+    val popBackToLogin: () -> Unit = {
         navController.popBackStack(
             Routes.LOGIN_SCREEN,
             inclusive = false,
             saveState = false
         )
     }
-    val navigateToHome: () -> Unit = {
+    val popBackToHome: () -> Unit = {
         navController.popBackStack(
             Routes.HOME_SCREEN,
             inclusive = false,
             saveState = false
         )
     }
-    val navigateToDetail: () -> Unit = {
+    val popBackToDetail: () -> Unit = {
         navController.popBackStack(
             route = Routes.DETAIL_SCREEN,
             inclusive = false,
@@ -64,7 +67,7 @@ fun AppNavigationGraph(
         composable(Routes.LOGIN_SCREEN) { backStackEntry ->
             LoginScreen { userId ->
                 backStackEntry.savedStateHandle[Routes.USER_ID_STACK_KEY] = userId
-                navController.navigate(Routes.HOME_SCREEN)
+                navController.navigateSingleTop(Routes.HOME_SCREEN)
             }
         }
 
@@ -84,7 +87,7 @@ fun AppNavigationGraph(
 
                 HomeScreen(
                     userId = it,
-                    navigateToLogin = navigateToLogin,
+                    navigateToLogin = popBackToLogin,
                     navigateToCreateProject = navigateToCreateProject,
                     navigateToDetailProject = navigateToDetailProject,
                 )
@@ -97,9 +100,9 @@ fun AppNavigationGraph(
             userId?.let {
                 CreateProjectScreen(
                     userId = it,
-                    navigateToLogin = navigateToLogin,
+                    navigateToLogin = popBackToLogin,
                     navigateToHome = {
-                        navigateToHome()
+                        popBackToHome()
                     }
                 )
             }
@@ -112,36 +115,36 @@ fun AppNavigationGraph(
                 .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.PROJECT_ID_STACK_KEY)
 
             if (projectId != null && userId != null) {
+                backStackEntry.savedStateHandle[Routes.PROJECT_ID_STACK_KEY] = projectId
 
-                val navigateToModify: () -> Unit =
-                    { navController.navigate(Routes.MODIFY_PROJECT_SCREEN) }
+                val navigateToModify: () -> Unit = {
+                    navController.navigate(Routes.MODIFY_PROJECT_SCREEN)
+                }
                 val navigateToStageDetail: (String) -> Unit = { stageId ->
                     backStackEntry.savedStateHandle[Routes.STAGE_ID_STACK_KEY] = stageId
                     navController.navigate(Routes.STAGE_DETAIL_SCREEN)
                 }
                 val navigateToAddStage: () -> Unit = {
-                    backStackEntry.savedStateHandle[Routes.PROJECT_ID_STACK_KEY] = projectId
                     navController.navigate(Routes.ADD_STAGE_SCREEN)
                 }
                 val navigateToAddForm: () -> Unit = {
-                    backStackEntry.savedStateHandle[Routes.PROJECT_ID_STACK_KEY] = projectId
                     navController.navigate(Routes.ADD_FORM_SCREEN)
                 }
-                val navigateToModifyForm: (String) -> Unit =
-                    { formId -> navController.navigate(Routes.MODIFY_FORM_SCREEN + "/$formId") }
-                val updateProjectData: (Project) -> Unit =
-                    { }
+                val navigateToModifyForm: (String) -> Unit = { formId ->
+                    navController.navigate(Routes.MODIFY_FORM_SCREEN + "/$formId")
+                }
 
                 DetailScreen(
                     projectId = projectId,
                     userId = userId,
-                    navigateToHome = navigateToHome,
+                    needToReload = state.needToReload,
+                    onReloadSuccessfully = { state = state.copy(needToReload = false) },
+                    navigateToHome = popBackToHome,
                     navigateToModify = navigateToModify,
                     navigateToStageDetail = navigateToStageDetail,
                     navigateToAddStage = navigateToAddStage,
                     navigateToAddForm = navigateToAddForm,
                     navigateToModifyForm = navigateToModifyForm,
-                    updateProjectData = updateProjectData
                 )
             }
 //            else {
@@ -162,14 +165,14 @@ fun AppNavigationGraph(
                 val navigateToCapture: () -> Unit =
                     { navController.navigate(Routes.CAPTURE_SCREEN) }
 
-                StageDetailScreen(
-                    isProjectOwner = true,
-                    stageId = stageId,
-                    thumbnailUri = data.thumbnailUri,
-                    navigateToModifyStage = navigateToModifyStage,
-                    navigateToCapture = navigateToCapture,
-                    navigateToDetail = navigateToDetail
-                )
+//                StageDetailScreen(
+//                    isProjectOwner = true,
+//                    stageId = stageId,
+//                    thumbnailUri = data.thumbnailUri,
+//                    navigateToModifyStage = navigateToModifyStage,
+//                    navigateToCapture = navigateToCapture,
+//                    navigateToDetail = popBackToDetail
+//                )
             }
 //            else {
 //                LaunchedEffect(key1 = null) {
@@ -185,10 +188,10 @@ fun AppNavigationGraph(
             if (projectId != null) {
                 CreateFormScreen(
                     projectId = projectId,
-                    navigateToLogin = navigateToLogin,
-                    navigateToHome = navigateToHome,
+                    navigateToLogin = popBackToLogin,
+                    navigateToHome = popBackToHome,
                     navigateToDetail = {
-                        navigateToDetail()
+                        popBackToDetail()
                     }
                 )
             }
@@ -206,9 +209,9 @@ fun AppNavigationGraph(
             if (projectId != null) {
                 CreateStageScreen(
                     projectId = projectId,
-                    navigateToLogin = navigateToLogin,
-                    navigateToHome = navigateToHome,
-                    navigateToDetail = navigateToDetail
+                    navigateToLogin = popBackToLogin,
+                    navigateToHome = popBackToHome,
+                    navigateToDetail = popBackToDetail
                 )
             }
 //            else {
@@ -220,7 +223,7 @@ fun AppNavigationGraph(
         }
 
         composable(Routes.CAPTURE_SCREEN) {
-            val navigateToStage: () -> Unit = {
+            val popBackToStage: () -> Unit = {
                 navController.popBackStack(
                     route = Routes.STAGE_DETAIL_SCREEN,
                     inclusive = false,
@@ -228,13 +231,13 @@ fun AppNavigationGraph(
                 )
             }
             val navigateToCreateSample: (Pair<String, Uri>) -> Unit = { sample ->
-                viewModel.updateSample(sample)
+//                viewModel.updateSample(sample)
                 navController.navigate(Routes.CREATE_SAMPLE_SCREEN)
             }
 
             CaptureScreen(
                 savedStateHandle = it.savedStateHandle,
-                navigateToStage = navigateToStage,
+                popBackToStage = popBackToStage,
                 navigateToCreateSample = navigateToCreateSample
             )
         }
@@ -283,14 +286,18 @@ fun AppNavigationGraph(
         }
 
         composable(Routes.MODIFY_PROJECT_SCREEN) {
-            val project = data.project
-            if (project != null) {
+            val projectId = navController
+                .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.PROJECT_ID_STACK_KEY)
+            if (projectId != null) {
                 ModifyProjectScreen(
-                    project = project,
-                    thumbnailUri = data.thumbnailUri,
-                    navigateToLogin = navigateToLogin,
-                    navigateToHome = navigateToHome,
-                    navigateToDetail = navigateToDetail
+                    projectId = projectId,
+                    popBackToLogin = popBackToLogin,
+                    popBackToHome = popBackToHome,
+                    postUpdatedHandler = { isUpdated ->
+                        if (isUpdated)
+                            state = state.copy(needToReload = true)
+                        popBackToDetail()
+                    }
                 )
             }
 //            else {

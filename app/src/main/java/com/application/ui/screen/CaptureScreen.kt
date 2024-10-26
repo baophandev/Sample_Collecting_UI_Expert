@@ -75,7 +75,7 @@ import java.util.Locale
 fun CaptureScreen(
     viewModel: CaptureViewModel = hiltViewModel(),
     savedStateHandle: SavedStateHandle,
-    navigateToStage: () -> Unit,
+    popBackToStage: () -> Unit,
     navigateToCreateSample: (Pair<String, Uri>) -> Unit
 ) {
     val context = LocalContext.current
@@ -154,7 +154,7 @@ fun CaptureScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(
                         modifier = Modifier.size(50.dp),
-                        onClick = navigateToStage
+                        onClick = popBackToStage
                     ) {
                         Icon(
                             modifier = Modifier.fillMaxSize(),

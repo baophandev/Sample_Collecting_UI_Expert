@@ -1,7 +1,5 @@
 package com.application.ui.screen
 
-import android.net.Uri
-import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -48,7 +46,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
-import com.application.data.entity.Project
+import com.application.constant.UiStatus
 import com.application.ui.component.BotNavigationBar
 import com.application.ui.component.CustomDatePicker
 import com.application.ui.component.CustomTextField
@@ -61,11 +59,10 @@ import com.application.ui.viewmodel.ModifyProjectViewModel
 @Composable
 fun ModifyProjectScreen(
     viewModel: ModifyProjectViewModel = hiltViewModel(),
-    project: Project,
-    thumbnailUri: Uri? = null,
-    navigateToLogin: () -> Unit,
-    navigateToHome: () -> Unit,
-    navigateToDetail: () -> Unit,
+    projectId: String,
+    popBackToLogin: () -> Unit,
+    popBackToHome: () -> Unit,
+    postUpdatedHandler: (Boolean) -> Unit,
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
@@ -73,30 +70,19 @@ fun ModifyProjectScreen(
     val pickPictureLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { imageUri ->
-        if (imageUri != null) {
-            context.contentResolver
-                .query(imageUri, null, null, null).use { cursor ->
-                    val nameIndex = cursor?.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                    cursor?.moveToFirst()
-                    nameIndex?.let {
-                        val fileName = cursor.getString(it)
-                        viewModel.updateThumbnail(Pair(fileName, imageUri))
-                    }
-                }
-        }
+        if (imageUri != null) viewModel.updateThumbnail(imageUri)
     }
-    if (state.init) viewModel.setModifiedProject(project, thumbnailUri)
-    else if (state.loading) LoadingScreen(text = stringResource(id = R.string.loading))
-    else {
-        Scaffold(
-            modifier = Modifier.padding(horizontal = 15.dp, vertical = 5.dp),
-            topBar = { TopBar(title = R.string.modify_project, signOutClicked = navigateToLogin) },
+    when(state.status){
+        UiStatus.INIT -> viewModel.loadProject(projectId)
+        UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
+        UiStatus.SUCCESS -> Scaffold(
+            modifier = Modifier,
+            topBar = { TopBar(title = R.string.modify_project, signOutClicked = popBackToLogin) },
             bottomBar = {
                 BotNavigationBar {
                     IconButton(
                         modifier = Modifier.size(50.dp),
-
-                        onClick = navigateToHome
+                        onClick = popBackToHome
                     ) {
                         Icon(
                             modifier = Modifier.fillMaxSize(.60f),
@@ -151,7 +137,7 @@ fun ModifyProjectScreen(
                                 contentDescription = "Add Icon",
                                 tint = colorResource(id = R.color.main_green)
                             )
-                            state.thumbnailPath?.second?.let {
+                            state.project?.thumbnail?.let {
                                 AsyncImage(
                                     model = ImageRequest.Builder(context).data(it).build(),
                                     modifier = Modifier
@@ -170,15 +156,15 @@ fun ModifyProjectScreen(
                         .height(60.dp),
                     placeholder = { Text(text = stringResource(id = R.string.add_title)) },
                     singleLine = true,
-                    value = state.title,
-                    onValueChange = viewModel::updateTitle
+                    value = state.project?.name ?: "Khong co ten du an",
+                    onValueChange = viewModel::updateProjectName
                 )
                 CustomTextField(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(100.dp),
                     placeholder = { Text(text = stringResource(id = R.string.sample_description_default)) },
-                    value = state.description,
+                    value = state.project?.description ?: "Khong co mo ta",
                     onValueChange = viewModel::updateDescription
                 )
 
@@ -187,19 +173,19 @@ fun ModifyProjectScreen(
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-//                    CustomDatePicker(
-//                        fieldName = stringResource(id = R.string.start_date),
-//                        initValue = state.startDate,
-//                        modifier = Modifier.width(160.dp)
-//                    ) { viewModel.updateDate(date = it, isStartDate = true) }
-//                    CustomDatePicker(
-//                        fieldName = stringResource(id = R.string.end_date),
-//                        initValue = state.endDate,
-//                        modifier = Modifier.width(160.dp)
-//                    ) { viewModel.updateDate(date = it, isStartDate = false) }
+                    CustomDatePicker(
+                        fieldName = stringResource(id = R.string.start_date),
+                        initValue = state.project?.startDate,
+                        modifier = Modifier.width(160.dp)
+                    ) { viewModel.updateDate(date = it, isStartDate = true) }
+                    CustomDatePicker(
+                        fieldName = stringResource(id = R.string.end_date),
+                        initValue = state.project?.endDate,
+                        modifier = Modifier.width(160.dp)
+                    ) { viewModel.updateDate(date = it, isStartDate = false) }
                 }
 
-                if (state.memberIds.isEmpty()) {
+                if (state.memberUsernames.isEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -221,7 +207,7 @@ fun ModifyProjectScreen(
                     }
                 } else {
                     FieldToList(
-                        fieldDataList = state.memberIds,
+                        fieldDataList = state.memberUsernames,
                         textValidator = { email ->
                             email.contains(RegexValidation.EMAIL)
                         },
@@ -234,6 +220,7 @@ fun ModifyProjectScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(40.dp),
+                    enabled = state.isUpdated,
                     elevation = ButtonDefaults.buttonElevation(
                         defaultElevation = 6.dp,
                         pressedElevation = 8.dp
@@ -245,12 +232,15 @@ fun ModifyProjectScreen(
                         contentColor = colorResource(id = R.color.black)
                     ),
                     onClick = {
-                        viewModel.submit(preProject = project, successHandler = navigateToDetail)
+                        viewModel.submit(successHandler = postUpdatedHandler)
                     }
                 ) {
                     Text(color = Color.White, text = stringResource(id = R.string.save_button))
                 }
             }
         }
+
+
+        UiStatus.ERROR -> TODO()
     }
 }

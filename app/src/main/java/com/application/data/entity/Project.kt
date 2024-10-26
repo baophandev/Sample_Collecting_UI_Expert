@@ -4,11 +4,11 @@ import android.net.Uri
 
 data class Project(
     val id: String,
-    var thumbnail: Uri? = null,
-    var name: String? = null,
-    var description: String? = null,
-    var startDate: String? = null,
-    var endDate: String? = null,
+    val thumbnail: Uri? = null,
+    val name: String,
+    val description: String? = null,
+    val startDate: String? = null,
+    val endDate: String? = null,
     val owner: User,
-    var memberUsernames: List<String>? = null,
+    val memberUsernames: List<String>? = null,
 )

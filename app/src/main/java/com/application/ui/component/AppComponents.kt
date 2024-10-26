@@ -53,7 +53,6 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -146,16 +145,14 @@ fun CustomTextField(
 fun CustomDatePicker(
     modifier: Modifier = Modifier,
     fieldName: String = "Date",
-    initValue: Long? = null,
+    initValue: String? = null,
     pickerTitle: String = "Select date",
     isError: Boolean = false,
     onDateChange: (String) -> Unit
 ) {
     val dateFormatter =
         DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC)
-    val defaultDateText = if (initValue != null)
-        dateFormatter.format(Instant.ofEpochMilli(initValue))
-    else stringResource(id = R.string.default_date)
+    val defaultDateText = initValue ?: stringResource(id = R.string.default_date)
 
     val state = rememberDatePickerState()
     var showDatePicker by remember { mutableStateOf(false) }
@@ -527,11 +524,13 @@ fun StageContainer(
                 fontSize = 20.sp,
                 color = colorResource(id = R.color.black)
             )
-            description?.let { Text(
-                text = it,
-                fontSize = 16.sp,
-                color = colorResource(id = R.color.black)
-            ) }
+            description?.let {
+                Text(
+                    text = it,
+                    fontSize = 16.sp,
+                    color = colorResource(id = R.color.black)
+                )
+            }
         }
     }
 }

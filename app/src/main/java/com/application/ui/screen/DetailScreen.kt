@@ -52,7 +52,6 @@ import coil.request.ImageRequest
 import com.application.R
 import com.application.constant.UiStatus
 import com.application.data.entity.Form
-import com.application.data.entity.Project
 import com.application.data.entity.Stage
 import com.application.ui.component.CustomButton
 import com.application.ui.component.FormContainer
@@ -63,10 +62,12 @@ import com.application.ui.viewmodel.DetailViewModel
 internal enum class DetailScreenSwitchState { DETAIL, STAGES, FORMS }
 internal enum class AlertType { CREATE_NEW_PROJECT, DELETE, ADD_FORM, NONE }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
     viewModel: DetailViewModel = hiltViewModel(),
+    needToReload: Boolean,
+    onReloadSuccessfully: (Boolean) -> Unit,
     projectId: String,
     userId: String,
     navigateToHome: () -> Unit,
@@ -75,7 +76,6 @@ fun DetailScreen(
     navigateToAddStage: () -> Unit,
     navigateToAddForm: () -> Unit,
     navigateToModifyForm: (String) -> Unit,
-    updateProjectData: (Project) -> Unit,
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
@@ -92,6 +92,13 @@ fun DetailScreen(
     var alertType by remember { mutableStateOf(AlertType.NONE) }
 
     val notInStage = stringResource(id = R.string.not_in_stage)
+
+    if (needToReload)
+        viewModel.loadProject(
+            projectId = projectId,
+            skipCached = true,
+            onComplete = onReloadSuccessfully
+        )
 
     when (state.status) {
         UiStatus.INIT -> {
@@ -133,7 +140,7 @@ fun DetailScreen(
                 }, onDismissRequest = { alertType = AlertType.NONE }, confirmButton = {
                     CustomButton(
                         text = stringResource(id = messages[2]),
-                        textSize = 14.sp,
+                        textSize = 16.sp,
                         background = colorResource(
                             id = if (alertType == AlertType.DELETE) R.color.red
                             else R.color.main_green
@@ -180,7 +187,7 @@ fun DetailScreen(
                             ) {
                                 CustomButton(
                                     text = stringResource(id = R.string.details_button),
-                                    textSize = 15.sp,
+                                    textSize = 16.sp,
                                     textColor = if (switch == DetailScreenSwitchState.DETAIL)
                                         Color.White else Color.Black,
                                     background = if (switch == DetailScreenSwitchState.DETAIL)
@@ -192,7 +199,7 @@ fun DetailScreen(
                                 )
                                 CustomButton(
                                     text = stringResource(id = R.string.stages_button),
-                                    textSize = 15.sp,
+                                    textSize = 16.sp,
                                     textColor = if (switch == DetailScreenSwitchState.STAGES)
                                         Color.White else Color.Black,
                                     background = if (switch == DetailScreenSwitchState.STAGES)
@@ -205,7 +212,7 @@ fun DetailScreen(
                                 )
                                 CustomButton(
                                     text = stringResource(id = R.string.forms_button),
-                                    textSize = 15.sp,
+                                    textSize = 16.sp,
                                     textColor = if (switch == DetailScreenSwitchState.FORMS)
                                         Color.White else Color.Black,
                                     background = if (switch == DetailScreenSwitchState.FORMS)
@@ -331,9 +338,9 @@ fun DetailScreen(
                                 background = MaterialTheme.colorScheme.primary,
                                 border = BorderStroke(0.dp, Color.Transparent)
                             ) {
-//                            if (project.data.emailOwner == userEmail) {
-//                                navigateToModify()
-//                            } else alertType = AlertType.CREATE_NEW_PROJECT
+                                if (state.project?.owner?.id == userId) {
+                                    navigateToModify()
+                                } else alertType = AlertType.CREATE_NEW_PROJECT
                             }
                         }
 

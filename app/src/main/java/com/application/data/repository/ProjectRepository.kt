@@ -11,6 +11,7 @@ import com.application.data.entity.Stage
 import com.application.data.entity.request.CreateFormRequest
 import com.application.data.entity.request.CreateProjectRequest
 import com.application.data.entity.request.CreateStageRequest
+import com.application.data.entity.request.UpdateProjectRequest
 import com.application.util.ResourceState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -125,8 +126,8 @@ class ProjectRepository(
         }
     }
 
-    fun getProject(projectId: String): Flow<ResourceState<Project>> {
-        if (cachedProjects.containsKey(projectId))
+    fun getProject(projectId: String, skipCached: Boolean = false): Flow<ResourceState<Project>> {
+        if (!skipCached && cachedProjects.containsKey(projectId))
             return flowOf(ResourceState.Success(cachedProjects[projectId]!!))
 
         return flow<ResourceState<Project>> {
@@ -155,6 +156,38 @@ class ProjectRepository(
         }
     }
 
+    fun updateProject(
+        projectId: String,
+        thumbnail: Uri? = null,
+        name: String? = null,
+        description: String? = null,
+        startDate: String? = null,
+        endDate: String? = null,
+    ): Flow<ResourceState<Boolean>> {
+        var updateRequest = UpdateProjectRequest(
+            name = name,
+            description = description,
+            startDate = startDate,
+            endDate = endDate
+        )
+        return flow<ResourceState<Boolean>> {
+            thumbnail?.let {
+                val attachmentState = attachmentRepository.storeAttachment(it).last()
+                if (attachmentState is ResourceState.Success)
+                    updateRequest = updateRequest.copy(thumbnailId = attachmentState.data)
+                else throw Exception("Storing attachment got an exception.")
+            }
+
+            val updateResult = projectService.updateProject(projectId, updateRequest)
+            // get updated project from server
+            if (updateResult) getProject(projectId, true)
+
+            emit(ResourceState.Success(updateResult))
+        }.catch { exception ->
+            Log.e(TAG, exception?.message, exception)
+            emit(ResourceState.Error(message = "Cannot update projects"))
+        }
+    }
 
     //STAGE
     /**
@@ -232,7 +265,7 @@ class ProjectRepository(
      * Get a stage by stageId .
      * @param .
      */
-    fun getStage(stageId: String):Flow<ResourceState<Stage>>{
+    fun getStage(stageId: String): Flow<ResourceState<Stage>> {
         if (cachedStages.containsKey(stageId))
             return flowOf(ResourceState.Success(cachedStages[stageId]!!))
 
@@ -317,6 +350,7 @@ class ProjectRepository(
             emit(ResourceState.Error(message = "Cannot create a new form"))
         }
     }
+
     /**
      * Get a form of a project by formId.
      *

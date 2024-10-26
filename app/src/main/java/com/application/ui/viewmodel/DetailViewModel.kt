@@ -1,6 +1,5 @@
 package com.application.ui.viewmodel
 
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.constant.UiStatus
@@ -25,14 +24,23 @@ class DetailViewModel @Inject constructor(
     private val _state = MutableStateFlow(DetailUiState())
     val state = _state.asStateFlow()
 
-    fun loadProject(projectId: String) {
+    fun loadProject(
+        projectId: String,
+        skipCached: Boolean = false,
+        onComplete: ((Boolean) -> Unit)? = null
+    ) {
+        _state.update { it.copy(status = UiStatus.LOADING) }
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getProject(projectId).collectLatest { resourceState ->
+            repository.getProject(projectId, skipCached).collectLatest { resourceState ->
                 when (resourceState) {
                     is ResourceState.Error -> _state.update { it.copy(status = UiStatus.ERROR) }
                     is ResourceState.Success -> _state.update {
                         it.copy(project = resourceState.data, status = UiStatus.SUCCESS)
                     }
+                }
+
+                onComplete?.let {
+                    viewModelScope.launch { onComplete(resourceState is ResourceState.Success) }
                 }
             }
         }
@@ -52,11 +60,11 @@ class DetailViewModel @Inject constructor(
         }
     }
 
-    fun getStages(projectId: String, successHandler: (() -> Unit)?= null){
+    fun getStages(projectId: String, successHandler: (() -> Unit)? = null) {
         _state.update { it.copy(stageStatus = UiStatus.LOADING) }
-        viewModelScope.launch(Dispatchers.IO){
+        viewModelScope.launch(Dispatchers.IO) {
             repository.getAllStage(projectId).collectLatest { resourceState ->
-                when(resourceState) {
+                when (resourceState) {
                     is ResourceState.Success -> {
                         val stages = resourceState.data
                         _state.update { current ->
@@ -71,19 +79,20 @@ class DetailViewModel @Inject constructor(
                     is ResourceState.Error -> {
                         val error = resourceState.resId
                         _state.update { currentState ->
-                            currentState.copy(stageStatus = UiStatus.ERROR, error = error) }
+                            currentState.copy(stageStatus = UiStatus.ERROR, error = error)
+                        }
                     }
                 }
             }
         }
     }
 
-    fun getForms(projectId: String, successHandler: (() -> Unit)? = null){
+    fun getForms(projectId: String, successHandler: (() -> Unit)? = null) {
         _state.update { it.copy(formStatus = UiStatus.LOADING) }
 
-        viewModelScope.launch (Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO) {
             repository.getAllForm(projectId).collectLatest { resourceState ->
-                when(resourceState) {
+                when (resourceState) {
                     is ResourceState.Success -> {
                         val forms = resourceState.data
                         _state.update { current ->
@@ -104,8 +113,6 @@ class DetailViewModel @Inject constructor(
             }
         }
     }
-
-
 
 
     companion object {
