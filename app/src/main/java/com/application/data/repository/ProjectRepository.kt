@@ -57,25 +57,15 @@ class ProjectRepository(
                     body = body.copy(thumbnailId = attachmentState.data)
                 else throw Exception("Storing attachment got an exception.")
             }
-            val ownerState = userRepository.getUser(ownerId).last()
-            val owner = if (ownerState is ResourceState.Success)
-                ownerState.data else UserRepository.DEFAULT_USER.copy()
             val projectId = projectService.createProject(body)
-            val newProject = Project(
-                id = projectId,
-                thumbnail = thumbnail,
-                name = name,
-                description = description,
-                startDate = startDate,
-                endDate = endDate,
-                owner = owner
-            )
-            cachedProjects[projectId] = newProject
+
+            val newProject = getProject(projectId).last()
+            if (newProject is ResourceState.Success)
+                cachedProjects[projectId] = newProject.data
 
             emit(ResourceState.Success(projectId))
         }.catch { exception ->
-            Log.e(TAG, exception.message ?: "Unknown exception")
-            Log.e(TAG, exception.stackTraceToString())
+            Log.e(TAG, exception.message, exception)
             emit(ResourceState.Error(message = "Cannot create a new project"))
         }
     }
@@ -120,8 +110,7 @@ class ProjectRepository(
             cachedProjects.putAll(projects.map { Pair(it.id, it) })
             emit(ResourceState.Success(projects))
         }.catch {
-            Log.e(TAG, it.message ?: "Unknown exception")
-            Log.e(TAG, it.stackTraceToString())
+            Log.e(TAG, it.message, it)
             emit(ResourceState.Error(message = "Cannot get projects"))
         }
     }
@@ -182,9 +171,9 @@ class ProjectRepository(
             // get updated project from server
             if (updateResult) getProject(projectId, true)
 
-            emit(ResourceState.Success(updateResult))
+            emit(ResourceState.Success(true))
         }.catch { exception ->
-            Log.e(TAG, exception?.message, exception)
+            Log.e(TAG, exception.message, exception)
             emit(ResourceState.Error(message = "Cannot update projects"))
         }
     }
@@ -202,7 +191,7 @@ class ProjectRepository(
         formId: String,
         projectOwnerId: String,
     ): Flow<ResourceState<String>> {
-        var body = CreateStageRequest(
+        val body = CreateStageRequest(
             name = name,
             description = description,
             startDate = startDate,
@@ -300,7 +289,7 @@ class ProjectRepository(
         description: String? = null,
         projectOwnerId: String
     ): Flow<ResourceState<String>> {
-        var body = CreateFormRequest(
+        val body = CreateFormRequest(
             title = title,
             description = description,
             projectOwnerId = projectOwnerId
@@ -379,7 +368,6 @@ class ProjectRepository(
     companion object {
         const val TAG = "ProjectRepository"
     }
-
 
     //Field
     /**

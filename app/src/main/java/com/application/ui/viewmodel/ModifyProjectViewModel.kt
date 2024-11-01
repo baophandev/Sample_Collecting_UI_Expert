@@ -1,7 +1,6 @@
 package com.application.ui.viewmodel
 
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.constant.UiStatus
@@ -84,8 +83,8 @@ class ModifyProjectViewModel @Inject constructor(
     }
 
     fun submit(successHandler: (Boolean) -> Unit) {
+        if (validate() || state.value.project == null || !state.value.isUpdated) return
         val currentProject = state.value.project!!
-        if (validate() || state.value.project == null) return
 
         viewModelScope.launch(Dispatchers.IO) {
             repository.updateProject(

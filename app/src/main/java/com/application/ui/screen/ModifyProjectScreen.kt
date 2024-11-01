@@ -69,10 +69,8 @@ fun ModifyProjectScreen(
 
     val pickPictureLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
-    ) { imageUri ->
-        if (imageUri != null) viewModel.updateThumbnail(imageUri)
-    }
-    when(state.status){
+    ) { imageUri -> imageUri?.let(viewModel::updateThumbnail) }
+    when (state.status) {
         UiStatus.INIT -> viewModel.loadProject(projectId)
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
         UiStatus.SUCCESS -> Scaffold(
@@ -137,16 +135,16 @@ fun ModifyProjectScreen(
                                 contentDescription = "Add Icon",
                                 tint = colorResource(id = R.color.main_green)
                             )
-                            state.project?.thumbnail?.let {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(context).data(it).build(),
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .zIndex(0f), // Place background image below
-                                    contentScale = ContentScale.Crop,
-                                    contentDescription = "Thumbnail",
-                                )
-                            }
+                            AsyncImage(
+                                model = ImageRequest.Builder(context)
+                                    .data(state.project?.thumbnail)
+                                    .build(),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .zIndex(0f), // Place background image below
+                                contentScale = ContentScale.Crop,
+                                contentDescription = "Thumbnail",
+                            )
                         }
                     }
                 }
@@ -241,6 +239,6 @@ fun ModifyProjectScreen(
         }
 
 
-        UiStatus.ERROR -> TODO()
+        UiStatus.ERROR -> {}
     }
 }

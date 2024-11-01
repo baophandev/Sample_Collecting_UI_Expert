@@ -34,7 +34,7 @@ abstract class AbstractClient {
             expectSuccess = true
             install(Logging) {
                 logger = Logger.DEFAULT
-                level = LogLevel.HEADERS
+                level = LogLevel.ALL
                 sanitizeHeader { header -> header == HttpHeaders.Authorization }
             }
             install(DefaultRequest) {

@@ -78,7 +78,7 @@ dependencies {
 
     implementation(libs.coil.compose)
 
-
+    implementation(libs.slf4j.android)
     implementation(libs.gson)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.logging)

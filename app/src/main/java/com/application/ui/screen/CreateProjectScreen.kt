@@ -67,20 +67,7 @@ fun CreateProjectScreen(
     val snackBarHostState = remember { SnackbarHostState() }
     val pickPictureLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
-    ) { imageUri ->
-        if (imageUri != null) {
-            viewModel.updateThumbnail(imageUri)
-//            context.contentResolver
-//                .query(imageUri, null, null, null).use { cursor ->
-//                    val nameIndex = cursor?.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-//                    cursor?.moveToFirst()
-//                    nameIndex?.let {
-//                        val fileName = cursor.getString(it)
-//                        viewModel.updateThumbnail(imageUri)
-//                    }
-//                }
-        }
-    }
+    ) { imageUri -> imageUri?.let(viewModel::updateThumbnail) }
 
     if (state.error != null) {
         val error = stringResource(id = state.error!!)
