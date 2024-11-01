@@ -10,6 +10,24 @@ class UserRepository(
     private val userService: IUserService
 ) {
     private val cachedUsers = mutableMapOf<String, User>()
+    private val loggedUserKey = "LOGGED_USER_KEY"
+
+    fun login(username: String, password: String) {
+        cachedUsers[loggedUserKey] = User(
+            id = "user",
+            username = username,
+            name = "Unknown User"
+        )
+    }
+
+    fun getLoggedUser(): User? {
+//        return cachedUsers[loggedUserKey]
+        return User(
+            id = "user",
+            username = "test",
+            name = "Unknown User"
+        )
+    }
 
     /**
      * Get user information from server.

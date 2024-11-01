@@ -4,8 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.R
 import com.application.constant.UiStatus
-import com.application.data.entity.Form
-import com.application.data.repository.ProjectRepository
+import com.application.data.repository.FormRepository
 import com.application.ui.state.CreateFormUiState
 import com.application.util.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateFormViewModel @Inject constructor(
-    val repository: ProjectRepository
+    val repository: FormRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow(CreateFormUiState())
     val state = _state.asStateFlow()

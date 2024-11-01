@@ -5,7 +5,9 @@ import com.application.data.datasource.IAttachmentService
 import com.application.data.datasource.IProjectService
 import com.application.data.datasource.IUserService
 import com.application.data.repository.AttachmentRepository
+import com.application.data.repository.FormRepository
 import com.application.data.repository.ProjectRepository
+import com.application.data.repository.StageRepository
 import com.application.data.repository.UserRepository
 import com.application.util.FileReader
 import dagger.Module
@@ -33,6 +35,18 @@ class RepositoryModule {
         attachmentRepository: AttachmentRepository
     ): ProjectRepository {
         return ProjectRepository(projectService, userRepository, attachmentRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideStageRepository(projectService: IProjectService): StageRepository {
+        return StageRepository(projectService)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFormRepository(projectService: IProjectService): FormRepository {
+        return FormRepository(projectService)
     }
 
     @Provides

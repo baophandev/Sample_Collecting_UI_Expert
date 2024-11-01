@@ -11,6 +11,7 @@ import com.application.data.entity.request.UpdateProjectRequest
 import com.application.data.entity.request.UpdateStageRequest
 import com.application.data.entity.response.FieldResponse
 import com.application.data.entity.response.FormResponse
+import com.application.data.entity.response.PagingResponse
 import com.application.data.entity.response.ProjectResponse
 import com.application.data.entity.response.StageResponse
 
@@ -18,13 +19,13 @@ interface IProjectService {
 
     //Project
     suspend fun createProject(body: CreateProjectRequest): String
-    suspend fun getAllProject(
+    suspend fun getAllProjects(
         userId: String,
         query: ProjectQueryType = ProjectQueryType.ALL,
         status: ProjectStatus = ProjectStatus.NORMAL,
         pageNumber: Int = 0,
         pageSize: Int = 6
-    ): List<ProjectResponse>
+    ): PagingResponse<ProjectResponse>
     suspend fun getProject(projectId: String): ProjectResponse
     suspend fun updateProject(
         projectId: String,
@@ -35,11 +36,11 @@ interface IProjectService {
 
     //Stage of Project
     suspend fun createStage(body: CreateStageRequest): String
-    suspend fun getAllStage(
+    suspend fun getAllStages(
         projectId: String,
         pageNumber: Int = 0,
         pageSize: Int = 6
-    ): List<StageResponse>
+    ): PagingResponse<StageResponse>
     suspend fun getStage(stageId: String): StageResponse
     suspend fun updateStage(
         stageId: String,
@@ -49,11 +50,11 @@ interface IProjectService {
 
     //Form of Project
     suspend fun createForm(body: CreateFormRequest): String
-    suspend fun getAllForm(
+    suspend fun getAllForms(
         projectId: String,
         pageNumber: Int = 0,
         pageSize: Int = 6
-    ): List<FormResponse>
+    ): PagingResponse<FormResponse>
     suspend fun getForm(formId: String): FormResponse
     suspend fun updateForm(
         formId: String,

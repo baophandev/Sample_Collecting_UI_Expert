@@ -86,7 +86,6 @@ fun AppNavigationGraph(
                 }
 
                 HomeScreen(
-                    userId = it,
                     navigateToLogin = popBackToLogin,
                     navigateToCreateProject = navigateToCreateProject,
                     navigateToDetailProject = navigateToDetailProject,

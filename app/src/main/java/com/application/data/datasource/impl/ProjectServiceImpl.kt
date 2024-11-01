@@ -13,6 +13,7 @@ import com.application.data.entity.request.UpdateProjectRequest
 import com.application.data.entity.request.UpdateStageRequest
 import com.application.data.entity.response.FieldResponse
 import com.application.data.entity.response.FormResponse
+import com.application.data.entity.response.PagingResponse
 import com.application.data.entity.response.ProjectResponse
 import com.application.data.entity.response.StageResponse
 import io.ktor.client.call.body
@@ -26,9 +27,7 @@ import io.ktor.http.contentType
 import io.ktor.http.parameters
 
 class ProjectServiceImpl : IProjectService, AbstractClient() {
-
     private val client = getClient("http://${ServiceHost.GATEWAY_SERVER}/api/v1/")
-
 
     //Project
     override suspend fun createProject(body: CreateProjectRequest): String {
@@ -37,21 +36,19 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         }.body()
     }
 
-    override suspend fun getAllProject(
+    override suspend fun getAllProjects(
         userId: String,
         query: ProjectQueryType,
         status: ProjectStatus,
         pageNumber: Int,
         pageSize: Int
-    ): List<ProjectResponse> {
+    ): PagingResponse<ProjectResponse> {
         return client.get(urlString = "project/$userId/user") {
             url {
-                parameters {
-                    append("query", query.name)
-                    append("status", status.name)
-                    append("pageNumber", "$pageNumber")
-                    append("pageSize", "$pageSize")
-                }
+                encodedParameters.append("query", query.name)
+                encodedParameters.append("status", status.name)
+                encodedParameters.append("pageNumber", "$pageNumber")
+                encodedParameters.append("pageSize", "$pageSize")
             }
         }.body()
     }
@@ -80,11 +77,11 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         }.body()
     }
 
-    override suspend fun getAllStage(
+    override suspend fun getAllStages(
         projectId: String,
         pageNumber: Int,
         pageSize: Int
-    ): List<StageResponse> {
+    ): PagingResponse<StageResponse> {
         return client.get(urlString = "stage/$projectId/project") {
             url {
                 parameters {
@@ -118,11 +115,11 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         }.body()
     }
 
-    override suspend fun getAllForm(
+    override suspend fun getAllForms(
         projectId: String,
         pageNumber: Int,
         pageSize: Int
-    ): List<FormResponse> {
+    ): PagingResponse<FormResponse> {
         return client.get(urlString = "form/$projectId/project") {
             url {
                 parameters {

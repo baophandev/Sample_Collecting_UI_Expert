@@ -3,7 +3,9 @@ package com.application.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.constant.UiStatus
+import com.application.data.repository.FormRepository
 import com.application.data.repository.ProjectRepository
+import com.application.data.repository.StageRepository
 import com.application.ui.state.DetailUiState
 import com.application.util.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +19,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DetailViewModel @Inject constructor(
-    private val repository: ProjectRepository
+    private val projectRepository: ProjectRepository,
+    private val stageRepository: StageRepository,
+    private val formRepository: FormRepository,
 ) : ViewModel() {
 
     // luu vao day
@@ -31,7 +35,7 @@ class DetailViewModel @Inject constructor(
     ) {
         _state.update { it.copy(status = UiStatus.LOADING) }
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getProject(projectId, skipCached).collectLatest { resourceState ->
+            projectRepository.getProject(projectId, skipCached).collectLatest { resourceState ->
                 when (resourceState) {
                     is ResourceState.Error -> _state.update { it.copy(status = UiStatus.ERROR) }
                     is ResourceState.Success -> _state.update {
@@ -63,7 +67,7 @@ class DetailViewModel @Inject constructor(
     fun getStages(projectId: String, successHandler: (() -> Unit)? = null) {
         _state.update { it.copy(stageStatus = UiStatus.LOADING) }
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getAllStage(projectId).collectLatest { resourceState ->
+            stageRepository.getAllStages(projectId).collectLatest { resourceState ->
                 when (resourceState) {
                     is ResourceState.Success -> {
                         val stages = resourceState.data
@@ -91,7 +95,7 @@ class DetailViewModel @Inject constructor(
         _state.update { it.copy(formStatus = UiStatus.LOADING) }
 
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getAllForm(projectId).collectLatest { resourceState ->
+            formRepository.getAllForms(projectId).collectLatest { resourceState ->
                 when (resourceState) {
                     is ResourceState.Success -> {
                         val forms = resourceState.data

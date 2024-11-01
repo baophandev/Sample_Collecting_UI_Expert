@@ -4,7 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.R
 import com.application.constant.UiStatus
-import com.application.data.repository.ProjectRepository
+import com.application.data.repository.FormRepository
+import com.application.data.repository.StageRepository
 import com.application.ui.state.CreateStageUiState
 import com.application.util.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,7 +19,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateStageViewModel @Inject constructor(
-    val repository: ProjectRepository
+    private val stageRepository: StageRepository,
+    private val formRepository: FormRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CreateStageUiState())
@@ -31,7 +33,7 @@ class CreateStageViewModel @Inject constructor(
     private fun getAllForms(projectId: String) {
         _state.update { it.copy(status = UiStatus.LOADING) }
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getAllForm(projectId).collectLatest { resourceState ->
+            formRepository.getAllForms(projectId).collectLatest { resourceState ->
                 when (resourceState) {
                     is ResourceState.Success -> _state.update {
                         it.copy(
@@ -88,7 +90,7 @@ class CreateStageViewModel @Inject constructor(
         }
 
         viewModelScope.launch(Dispatchers.IO) {
-            repository.createStage(
+            stageRepository.createStage(
                 name = currentState.name,
                 description = currentState.description,
                 startDate = currentState.startDate,
