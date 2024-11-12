@@ -3,7 +3,7 @@ package com.application.ui.navigation
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import com.application.data.entity.Project
-import com.application.data.entity.Stage
+import com.application.data.entity.Form
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +15,7 @@ data class NavigationDataHolder(
     val userId: String? = "test",
     val thumbnailUri: Uri? = null,
     val project: Project? = null,
-    val stage: Stage?= null,
+    val stage: Form?= null,
     val stageId: String? = null,
     val sample: Pair<String, Uri>? = null
 )

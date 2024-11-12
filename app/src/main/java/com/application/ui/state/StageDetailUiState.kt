@@ -1,7 +1,6 @@
 package com.application.ui.state
 
 import android.net.Uri
-import androidx.annotation.StringRes
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.application.constant.UiStatus

@@ -1,9 +1,8 @@
 package com.application.data.repository
 
 import android.util.Log
-import androidx.paging.PagingSource
-import androidx.paging.PagingState
 import com.application.data.datasource.IProjectService
+import com.application.data.entity.Form
 import com.application.data.entity.Stage
 import com.application.data.entity.request.CreateStageRequest
 import com.application.data.entity.response.StageResponse
@@ -16,16 +15,8 @@ import kotlinx.coroutines.flow.flowOf
 
 class StageRepository(
     private val projectService: IProjectService,
-) : PagingSource<Int, Stage>() {
+) {
     private val cachedStages: MutableMap<String, Stage> = mutableMapOf()
-
-    override fun getRefreshKey(state: PagingState<Int, Stage>): Int? {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Stage> {
-        TODO("Not yet implemented")
-    }
 
     /**
      * Create a new stage of project.
@@ -102,8 +93,7 @@ class StageRepository(
             val stage = mapResponseToStage(response)
             emit(ResourceState.Success(stage))
         }.catch { exception ->
-            Log.e(TAG, exception.message ?: "Unknown exception")
-            Log.e(TAG, exception.stackTraceToString())
+            Log.e(TAG, exception.message, exception)
             emit(ResourceState.Error(message = "Cannot get a stage"))
         }
     }

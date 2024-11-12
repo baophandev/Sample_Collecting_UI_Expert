@@ -7,7 +7,9 @@ import com.application.data.datasource.IProjectService
 import com.application.data.entity.request.CreateFieldRequest
 import com.application.data.entity.request.CreateFormRequest
 import com.application.data.entity.request.CreateProjectRequest
+import com.application.data.entity.request.CreateSampleRequest
 import com.application.data.entity.request.CreateStageRequest
+import com.application.data.entity.request.UpdateFieldRequest
 import com.application.data.entity.request.UpdateFormRequest
 import com.application.data.entity.request.UpdateProjectRequest
 import com.application.data.entity.request.UpdateStageRequest
@@ -144,15 +146,39 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
 
 
     //Field
-    override suspend fun createField(body: CreateFieldRequest): String {
+    override suspend fun createField(formId: String, body: CreateFieldRequest): String {
+        return client.post("field/$formId"){
+            setBody(body)
+        }.body()
+    }
+
+    override suspend fun getAllField(
+        formId: String,
+        pageNumber: Int,
+        pageSize: Int
+    ): List<FieldResponse> {
+        return client.get(urlString = "field/$formId/form") {
+            url {
+                parameters {
+                    append("pageNumber", "$pageNumber")
+                    append("pageSize", "$pageSize")
+                }
+            }
+        }.body()
+    }
+
+    override suspend fun getField(fieldId: String): FieldResponse {
+        return client.get(urlString = "field/$fieldId").body()
+    }
+
+    override suspend fun updateField(
+        formId: String,
+        updateRequestData: UpdateFieldRequest
+    ): Boolean {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getAllField(formId: String): List<FieldResponse> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun getField(formId: String): FieldResponse {
+    override suspend fun createSample(body: CreateSampleRequest): String {
         TODO("Not yet implemented")
     }
 }

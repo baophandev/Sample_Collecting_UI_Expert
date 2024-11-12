@@ -247,6 +247,7 @@ fun DetailScreen(
 
                                     DetailScreenSwitchState.FORMS ->
                                         FormTab(
+                                            userId = userId,
                                             status = state.formStatus,
                                             error = state.formError?.let { stringResource(id = it) },
                                             forms = state.forms,
@@ -464,6 +465,7 @@ fun StageTab(
 @OptIn(ExperimentalFoundationApi::class)
 fun FormTab(
     modifier: Modifier = Modifier,
+    userId: String,
     status: UiStatus,
     error: String? = null,
     forms: List<Form>,
@@ -505,26 +507,26 @@ fun FormTab(
                         .fillMaxWidth(),
                     onModifyClicked = {
                         onFormClick(form.id)
-//                            if (userId == state.project?.owner?.id) {
-//                                navigateToModifyForm(form.id)
+                        if (form.projectOwnerId == userId) {
+                            onFormClick(form.id)
+                        } else {
+                            var alertType = AlertType.CREATE_NEW_PROJECT
+                        }
+                    },
+//                    onDeleteClicked = if (existStageUsage != null && existStageUsage) null
+//                    else {
+//                        {
+//                            if (form.projectOwnerId == userId) {
+//                                state.forms.remove(form)
+//                                viewModel.deleteForm(
+//                                    projectId = project.id,
+//                                    formId = form.id
+//                                )
 //                            } else {
 //                                alertType = AlertType.CREATE_NEW_PROJECT
 //                            }
-//                        },
-//                        onDeleteClicked = if (existStageUsage != null && existStageUsage) null
-//                        else {
-//                            {
-//                                if (userId == state.project?.owner?.id) {
-//                                    state.forms.remove(form)
-//                                    viewModel.deleteForm(
-//                                        projectId = project.id,
-//                                        formId = form.id
-//                                    )
-//                                } else {
-//                                    alertType = AlertType.CREATE_NEW_PROJECT
-//                                }
-//                            }
-                    }
+//                        }
+//                    }
                 )
             }
 

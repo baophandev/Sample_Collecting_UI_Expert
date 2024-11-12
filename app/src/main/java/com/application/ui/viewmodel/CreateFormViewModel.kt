@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -34,8 +35,6 @@ class CreateFormViewModel @Inject constructor(
     fun submitForm(projectId: String, successHandler: (String) -> Unit) {
         if (!validateFields()) return
 
-        _state.update { it.copy(status = UiStatus.LOADING) }
-
         val currentState = state.value
 
         currentState.fields.removeIf(String::isBlank)
@@ -57,8 +56,11 @@ class CreateFormViewModel @Inject constructor(
             repository.createForm(
                 title = currentState.title,
                 description = currentState.description,
-                projectOwnerId = projectId
-            ).collectLatest(collectAction)
+                projectOwnerId = projectId,
+                fields = currentState.fields.toList()
+            )
+                .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
+                .collectLatest(collectAction)
         }
     }
 

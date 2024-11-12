@@ -5,6 +5,7 @@ import com.application.data.datasource.IAttachmentService
 import com.application.data.datasource.IProjectService
 import com.application.data.datasource.IUserService
 import com.application.data.repository.AttachmentRepository
+import com.application.data.repository.FieldRepository
 import com.application.data.repository.FormRepository
 import com.application.data.repository.ProjectRepository
 import com.application.data.repository.StageRepository
@@ -45,8 +46,17 @@ class RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideFormRepository(projectService: IProjectService): FormRepository {
-        return FormRepository(projectService)
+    fun provideFieldRepository(projectService: IProjectService): FieldRepository {
+        return FieldRepository(projectService)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFormRepository(
+        projectService: IProjectService,
+        fieldRepository: FieldRepository
+    ): FormRepository {
+        return FormRepository(projectService, fieldRepository)
     }
 
     @Provides

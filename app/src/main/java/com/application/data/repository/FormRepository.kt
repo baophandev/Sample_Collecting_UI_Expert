@@ -1,11 +1,10 @@
 package com.application.data.repository
 
 import android.util.Log
-import androidx.paging.PagingSource
-import androidx.paging.PagingState
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Form
 import com.application.data.entity.request.CreateFormRequest
+import com.application.data.entity.request.UpdateFormRequest
 import com.application.data.entity.response.FormResponse
 import com.application.data.repository.ProjectRepository.Companion.TAG
 import com.application.util.ResourceState
@@ -13,19 +12,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.last
 
 class FormRepository(
     private val projectService: IProjectService,
-) : PagingSource<Int, Form>() {
+    private val fieldRepository: FieldRepository
+) {
     private val cachedForms: MutableMap<String, Form> = mutableMapOf()
-
-    override fun getRefreshKey(state: PagingState<Int, Form>): Int? {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Form> {
-        TODO("Not yet implemented")
-    }
 
     /**
      * Get all forms of a project by projectId.
@@ -42,9 +35,8 @@ class FormRepository(
             cachedForms.putAll(forms.map { Pair(it.id, it) })
             emit(ResourceState.Success(forms))
         }.catch { exception ->
-            Log.e(TAG, exception.message ?: "Unknown exception")
-            Log.e(TAG, exception.stackTraceToString())
-            emit(ResourceState.Error(message = "Cannot create a new form"))
+            Log.e(TAG, exception.message, exception)
+            emit(ResourceState.Error(message = "Cannot get all forms"))
         }
     }
 
@@ -52,17 +44,20 @@ class FormRepository(
      * Get a form of a project by formId.
      *
      */
-    fun getForm(formId: String): Flow<ResourceState<Form>> {
-        if (cachedForms.containsKey(formId))
+    fun getForm(
+        formId: String,
+        skipCached: Boolean = false
+    ): Flow<ResourceState<Form>> {
+        if (!skipCached && cachedForms.containsKey(formId))
             return flowOf(ResourceState.Success(cachedForms[formId]!!))
 
         return flow<ResourceState<Form>> {
             val response = projectService.getForm(formId)
+
             val form = mapResponseToForm(response)
             emit(ResourceState.Success(form))
         }.catch { exception ->
-            Log.e(TAG, exception.message ?: "Unknown exception")
-            Log.e(TAG, exception.stackTraceToString())
+            Log.e(TAG, exception.message, exception)
             emit(ResourceState.Error(message = "Cannot get a form"))
         }
     }
@@ -73,7 +68,8 @@ class FormRepository(
     fun createForm(
         title: String,
         description: String? = null,
-        projectOwnerId: String
+        projectOwnerId: String,
+        fields: List<String>
     ): Flow<ResourceState<String>> {
         val body = CreateFormRequest(
             title = title,
@@ -83,6 +79,15 @@ class FormRepository(
 
         return flow<ResourceState<String>> {
             val formId = projectService.createForm(body)
+            fields.forEachIndexed { index, fieldName ->
+                val resourceState = fieldRepository.createField(
+                    formId = formId,
+                    name = fieldName,
+                    numberOrder = index
+                ).last()
+                if (resourceState is ResourceState.Error)
+                    throw Exception("Cannot create field with name: $fieldName")
+            }
             val newForm = Form(
                 id = formId,
                 title = title,
@@ -92,11 +97,35 @@ class FormRepository(
             cachedForms[formId] = newForm
             emit(ResourceState.Success(formId))
         }.catch { exception ->
-            Log.e(TAG, exception.message ?: "Unknown exception")
-            Log.e(TAG, exception.stackTraceToString())
+            Log.e(TAG, exception.message, exception)
             emit(ResourceState.Error(message = "Cannot create a new form"))
         }
     }
+
+    /**
+     * Update a form of project.
+     */
+    fun updateForm(
+        formId: String,
+        title: String,
+        description: String? = null
+    ): Flow<ResourceState<Boolean>> {
+        val updateRequest = UpdateFormRequest(
+            title = title,
+            description = description
+        )
+        return flow<ResourceState<Boolean>> {
+            val updateResult =
+                projectService.updateForm(formId = formId, updateRequestData = updateRequest)
+            // get updated form from server
+            if (updateResult) getForm(formId = formId, skipCached = true)
+            emit(ResourceState.Success(true))
+        }.catch { exception ->
+            Log.e(TAG, exception.message, exception)
+            emit(ResourceState.Error(message = "Cannot update form"))
+        }
+    }
+
 
     private fun mapResponseToForm(response: FormResponse): Form {
         return Form(

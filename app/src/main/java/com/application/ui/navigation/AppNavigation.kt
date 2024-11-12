@@ -20,6 +20,7 @@ import com.application.ui.screen.CreateStageScreen
 import com.application.ui.screen.DetailScreen
 import com.application.ui.screen.HomeScreen
 import com.application.ui.screen.LoginScreen
+import com.application.ui.screen.ModifyFormScreen
 import com.application.ui.screen.ModifyProjectScreen
 import com.application.ui.state.NavigationState
 
@@ -130,7 +131,8 @@ fun AppNavigationGraph(
                     navController.navigate(Routes.ADD_FORM_SCREEN)
                 }
                 val navigateToModifyForm: (String) -> Unit = { formId ->
-                    navController.navigate(Routes.MODIFY_FORM_SCREEN + "/$formId")
+                    backStackEntry.savedStateHandle[Routes.FORM_ID_STACK_KEY] = formId
+                    navController.navigate(Routes.MODIFY_FORM_SCREEN)
                 }
 
                 DetailScreen(
@@ -338,7 +340,20 @@ fun AppNavigationGraph(
 //            }
         }
 
-        composable(Routes.MODIFY_FORM_SCREEN + "/{formId}") {
+        composable(Routes.MODIFY_FORM_SCREEN) {
+            val formId = navController
+                .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.FORM_ID_STACK_KEY)
+            if (formId != null) {
+                ModifyFormScreen(
+                    formId = formId,
+                    popBackToLogin = popBackToLogin,
+                    popBackToHome = popBackToHome,
+                    popBackToDetail = { isUpdated ->
+                        if (isUpdated)
+                            state = state.copy(needToReload = true)
+                        popBackToDetail()
+                    }
+                )
 //            val project = data.project
 //            if (project != null) {
 //                it.arguments?.getString("formId")?.let { formId ->
@@ -353,12 +368,13 @@ fun AppNavigationGraph(
 //                    }
 //                }
 //            }
-            //            else {
+                //            else {
 //                LaunchedEffect(key1 = null) {
 //                    Toast.makeText(context, projectNotExist, Toast.LENGTH_SHORT).show()
 //                    navigateToHome()
 //                }
 //            }
+            }
         }
     }
 }
