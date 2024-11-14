@@ -44,9 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.application.R
 
-//Each project (or post) has up to several pictures
-//For each pictures, there need to be an answer field (with or without a following answer picture)
-//Professional can also answer a generic question for all images in that post
+//Mỗi dự án là một post. Mỗi post có các hình ảnh (Image) và 1 câu trả lời chung
+//Image gồm câu hỏi và description từ khách + câu trả lời và hình ảnh trả lời (professional)
 
 data class PostAnswerData(
     val images: List<ImageAnswerData>,
@@ -73,7 +72,7 @@ fun GeneratePostInPostAnswerScreen() {
             "",
             R.drawable.splash_logo, //Ảnh chuyên gia trả lời
         ),
-        ImageAnswerData(R.drawable.birthday_icon, "hinh nay chup dep ne")
+//        ImageAnswerData(R.drawable.birthday_icon, "hinh nay chup dep ne")
     )
 
     //Danh sách tất cả các ảnh
@@ -85,19 +84,51 @@ fun GeneratePostInPostAnswerScreen() {
     ImagesInPostAnswerScreen(posts)
 }
 
+//image = -1 nghĩa là không có hình ảnh nào được cấp.
+//Phiên bản hiện tại không hiển thị file hay hình ảnh gì cả, nếu cần chỉnh sửa theo hướng review được
+//uncomment phần nội dung bên trong hàm LoadEachImage
 @Composable
 private fun LoadEachImage(image: Int = -1, index: Int) {
-    if (image != -1) {
-        Image(
-            painter = painterResource(id = image),
-            contentDescription = "Image $index",
-            contentScale = ContentScale.FillHeight,
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxSize(0.3f)
-                .clip(RoundedCornerShape(20.dp)),
-        )
-        TextField(
+//    if (image != -1) {
+//        Image(
+//            painter = painterResource(id = image),
+//            contentDescription = "Image $index",
+//            contentScale = ContentScale.FillHeight,
+//            modifier = Modifier
+//                .fillMaxHeight()
+//                .fillMaxSize(0.3f)
+//                .clip(RoundedCornerShape(20.dp)),
+//        )
+//        TextField(
+//            value = "",
+//            onValueChange = {},
+//            shape = RoundedCornerShape(20.dp),
+//            colors = TextFieldDefaults.colors(
+//                focusedIndicatorColor = Color.Transparent,
+//                unfocusedIndicatorColor = Color.Transparent,
+//                disabledIndicatorColor = Color.Transparent,
+//                errorIndicatorColor = Color.Transparent
+//            ),
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(start = 5.dp)
+//        )
+//    } else {
+//        TextField(
+//            value = "",
+//            onValueChange = {},
+//            shape = RoundedCornerShape(20.dp),
+//            colors = TextFieldDefaults.colors(
+//                focusedIndicatorColor = Color.Transparent,
+//                unfocusedIndicatorColor = Color.Transparent,
+//                disabledIndicatorColor = Color.Transparent,
+//                errorIndicatorColor = Color.Transparent
+//            ),
+//            modifier = Modifier
+//                .fillMaxSize()
+//        )
+//    }
+            TextField(
             value = "",
             onValueChange = {},
             shape = RoundedCornerShape(20.dp),
@@ -109,22 +140,92 @@ private fun LoadEachImage(image: Int = -1, index: Int) {
             ),
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 5.dp)
         )
-    } else {
-        TextField(
-            value = "",
-            onValueChange = {},
-            shape = RoundedCornerShape(20.dp),
-            colors = TextFieldDefaults.colors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                errorIndicatorColor = Color.Transparent
-            ),
+}
+
+@Composable
+private fun GeneralAnswer(){
+    Column(
+        modifier = Modifier
+            .padding(15.dp, 0.dp)
+            .fillMaxWidth()
+    ) {
+        Text(
+            text = "Trả lời tổng thể:",
+            style = TextStyle(
+                color = Color(0xFF7cc6ff),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+            )
+        )
+
+        Card(
             modifier = Modifier
-                .fillMaxSize()
-        )
+                .fillMaxWidth()
+                .padding(top = 5.dp)
+                .height(230.dp)
+                .shadow(5.dp, shape = RoundedCornerShape(13.dp), false, Color.Black)
+        ) {
+            TextField(
+                value = "",
+                onValueChange = {},
+                shape = RoundedCornerShape(20.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.75f)
+
+//                                .background(Color.Red)
+            )
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 3.dp)
+                    .height(1.dp)
+                    .background(Color.Gray)
+            )
+            Row(
+                modifier = Modifier
+                    .padding(top = 12.dp, start = 10.dp)
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.5f)
+            ) {
+                IconButton(
+                    onClick = { /*TODO*/ },
+                    modifier = Modifier
+                        .padding(start = 6.dp, end = 10.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_gallery),
+                        contentDescription = "",
+                        tint = Color.Gray
+                    )
+                }
+                IconButton(
+                    onClick = { /*TODO*/ }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_paperclip),
+                        contentDescription = "Paperclip",
+                        tint = Color.Gray,
+                    )
+                }
+            }
+        }
+
+    }
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 12.dp, end = 12.dp, top = 10.dp)
+    ) {
     }
 }
 
@@ -228,90 +329,7 @@ fun ImagesInPostAnswerScreen(posts: PostAnswerData) {
                 }
             }
             item {
-                Column(
-                    modifier = Modifier
-                        .padding(15.dp, 0.dp)
-                        .fillMaxWidth()
-//                        .background(Color.Red)
-                ) {
-                    Text(
-                        text = "Trả lời tổng thể:",
-                        style = TextStyle(
-                            color = Color(0xFF7cc6ff),
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    )
-
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 5.dp)
-                            .height(230.dp)
-                            .shadow(5.dp, shape = RoundedCornerShape(13.dp), false, Color.Black)
-                    ) {
-                        TextField(
-                            value = "",
-                            onValueChange = {},
-                            shape = RoundedCornerShape(20.dp),
-                            colors = TextFieldDefaults.colors(
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent,
-                                disabledIndicatorColor = Color.Transparent,
-                                errorIndicatorColor = Color.Transparent
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .fillMaxHeight(0.75f)
-
-//                                .background(Color.Red)
-                        )
-                        Spacer(modifier = Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                            .background(Color.Gray)
-                        )
-                        Row(
-                            modifier = Modifier
-                                .padding(top = 12.dp, start = 10.dp)
-                                .fillMaxWidth()
-                                .fillMaxHeight(0.5f)
-                        ) {
-                            IconButton(
-                                onClick = { /*TODO*/ },
-                                modifier = Modifier
-                                    .padding(start = 6.dp, end = 10.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_gallery),
-                                    contentDescription = "",
-                                    tint = Color.Gray
-                                )
-                            }
-                            IconButton(
-                                onClick = { /*TODO*/ }
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_paperclip),
-                                    contentDescription = "Paperclip",
-                                    tint = Color.Gray,
-                                )
-                            }
-                        }
-                    }
-
-                }
-                Row (
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier =  Modifier
-                        .fillMaxWidth()
-                        .padding(start = 12.dp, end = 12.dp, top = 10.dp)
-                ) {
-
-
-                }
-
+                GeneralAnswer()
             }
         }
     )
