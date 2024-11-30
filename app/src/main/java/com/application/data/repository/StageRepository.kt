@@ -1,10 +1,13 @@
 package com.application.data.repository
 
+import android.net.Uri
 import android.util.Log
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Form
 import com.application.data.entity.Stage
 import com.application.data.entity.request.CreateStageRequest
+import com.application.data.entity.request.UpdateProjectRequest
+import com.application.data.entity.request.UpdateStageRequest
 import com.application.data.entity.response.StageResponse
 import com.application.data.repository.ProjectRepository.Companion.TAG
 import com.application.util.ResourceState
@@ -12,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.last
 
 class StageRepository(
     private val projectService: IProjectService,
@@ -84,8 +88,8 @@ class StageRepository(
      * Get a stage by stageId .
      * @param .
      */
-    fun getStage(stageId: String): Flow<ResourceState<Stage>> {
-        if (cachedStages.containsKey(stageId))
+    fun getStage(stageId: String, skipCached: Boolean = false): Flow<ResourceState<Stage>> {
+        if (!skipCached && cachedStages.containsKey(stageId))
             return flowOf(ResourceState.Success(cachedStages[stageId]!!))
 
         return flow<ResourceState<Stage>> {
@@ -95,6 +99,47 @@ class StageRepository(
         }.catch { exception ->
             Log.e(TAG, exception.message, exception)
             emit(ResourceState.Error(message = "Cannot get a stage"))
+        }
+    }
+
+    fun updateStage(
+        stageId: String,
+        name: String? = null,
+        description: String? = null,
+        startDate: String? = null,
+        endDate: String? = null,
+        formId: String? = null,
+        projectOwnerId: String,
+    ): Flow<ResourceState<Boolean>> {
+        var updateRequest = UpdateStageRequest(
+            name = name,
+            description = description,
+            startDate = startDate,
+            endDate = endDate,
+            formId = formId
+        )
+        return flow<ResourceState<Boolean>> {
+
+            val updateResult = projectService.updateStage(stageId, updateRequest)
+            // get updated project from server
+            if (updateResult) getStage(stageId, true)
+
+            emit(ResourceState.Success(true))
+        }.catch { exception ->
+            Log.e(TAG, exception.message, exception)
+            emit(ResourceState.Error(message = "Cannot update stages"))
+        }
+    }
+
+    fun deleteStage(
+        stageId: String
+    ): Flow<ResourceState<Boolean>> {
+        return flow<ResourceState<Boolean>>{
+            val deleteResult = projectService.deleteStage(stageId = stageId)
+            if (deleteResult) emit(ResourceState.Success(true))
+        }.catch { exception ->
+            Log.e(TAG, exception.message, exception)
+            emit(ResourceState.Error(message = "Cannot delete project"))
         }
     }
 

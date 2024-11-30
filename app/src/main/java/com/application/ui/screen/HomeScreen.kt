@@ -54,7 +54,9 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     navigateToLogin: () -> Unit,
     navigateToCreateProject: () -> Unit,
-    navigateToDetailProject: (String) -> Unit
+    navigateToDetailProject: (String) -> Unit,
+    navigateToWorkersQuestionScreen: () -> Unit,
+    navigateToExpertChatScreen: () -> Unit
 ) {
     val lazyPagingItems = viewModel.flow.collectAsLazyPagingItems()
     var isRefreshing by remember { mutableStateOf(false) }
@@ -114,7 +116,10 @@ fun HomeScreen(
             }
         },
         bottomBar = {
-            BotNavigationBar {
+            BotNavigationBar(
+                onWorkersQuestionClick = navigateToWorkersQuestionScreen,
+                onExpertChatsClick = navigateToExpertChatScreen
+            ){
                 IconButton(
                     modifier = Modifier.size(50.dp),
                     onClick = navigateToCreateProject

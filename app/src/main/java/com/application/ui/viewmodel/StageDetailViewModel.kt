@@ -50,8 +50,25 @@ class StageDetailViewModel @Inject constructor(
         }
     }
 
-    fun deleteStage(projectId: String, stageId: String, successHandler: () -> Unit) {
+    fun deleteStage(projectOwnerId: String, stageId: String, successHandler: () -> Unit) {
+        if (projectOwnerId.isNullOrEmpty()){
+            _state.update { it.copy(status = UiStatus.ERROR) }
+            return
+        }
+        _state.update { it.copy(status = UiStatus.LOADING) }
         viewModelScope.launch(Dispatchers.IO) {
+            repository.deleteStage(stageId = stageId).collectLatest { resourceState ->
+                when (resourceState) {
+                    is ResourceState.Success -> {
+                        viewModelScope.launch { successHandler?.let { successHandler() } }
+                    }
+
+                    is ResourceState.Error -> {
+                        //val error = resourceState.resId
+                        _state.update { it.copy(status = UiStatus.ERROR, error = "Cannot delete stage") }
+                    }
+                }
+            }
         }
     }
 

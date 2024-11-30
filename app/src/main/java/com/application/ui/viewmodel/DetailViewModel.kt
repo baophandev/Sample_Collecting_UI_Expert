@@ -52,15 +52,27 @@ class DetailViewModel @Inject constructor(
 
     fun deleteProject(
         projectId: String,
-        emailMembers: List<String>? = null,
+        projectOwnerId:String? = null,
         successHandler: () -> Unit
     ) {
-        viewModelScope.launch(Dispatchers.IO) {
+        if (projectOwnerId.isNullOrEmpty()){
+            _state.update { it.copy(status = UiStatus.ERROR) }
+            return
         }
-    }
-
-    fun deleteForm(projectId: String, formId: String) {
+        _state.update { it.copy(status = UiStatus.LOADING) }
         viewModelScope.launch(Dispatchers.IO) {
+            projectRepository.deleteProject(projectId = projectId).collectLatest { resourceState ->
+                when (resourceState) {
+                    is ResourceState.Success -> {
+                        viewModelScope.launch { successHandler?.let { successHandler() } }
+                    }
+
+                    is ResourceState.Error -> {
+                        val error = resourceState.resId
+                        _state.update { it.copy(status = UiStatus.ERROR, error = error) }
+                    }
+                }
+            }
         }
     }
 
@@ -116,6 +128,29 @@ class DetailViewModel @Inject constructor(
 
             }
         }
+    }
+
+    fun deleteForm(
+        formId: String,
+        //stageId:String,
+        successHandler: (() -> Unit)? = null) {
+        _state.update { it.copy(status = UiStatus.LOADING) }
+        viewModelScope.launch(Dispatchers.IO) {
+
+                formRepository.deleteForm(formId).collectLatest { resourceState ->
+                    when (resourceState) {
+                        is ResourceState.Success -> {
+                            viewModelScope.launch { successHandler?.let { successHandler() } }
+                        }
+
+                        is ResourceState.Error -> {
+                            val error = resourceState.resId
+                            _state.update { it.copy(status = UiStatus.ERROR, error = error) }
+                        }
+                    }
+                }
+            }
+
     }
 
 

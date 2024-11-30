@@ -1,24 +1,17 @@
 package com.application.data.paging
 
-import android.net.Uri
 import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.application.data.datasource.IProjectService
-import com.application.data.entity.Project
 import com.application.data.entity.Form
-import com.application.data.entity.response.ProjectResponse
-import com.application.data.repository.AttachmentRepository
-import com.application.data.repository.UserRepository
-import com.application.util.ResourceState
+import com.application.data.entity.response.FormResponse
 import io.ktor.client.plugins.ClientRequestException
-import kotlinx.coroutines.flow.last
 import java.io.IOException
 
 class FormPagingSource(
+    private val projectId: String,
     private val projectService: IProjectService,
-    private val userRepository: UserRepository,
-    private val attachmentRepository: AttachmentRepository
 ) : PagingSource<Int, Form>() {
 
     override fun getRefreshKey(state: PagingState<Int, Form>): Int? {
@@ -33,19 +26,17 @@ class FormPagingSource(
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Form> {
         val nextPageNumber = params.key ?: 0
-        val user = userRepository.getLoggedUser()
-            ?: return LoadResult.Error(Exception("Cannot get projects because of user not logged in"))
         try {
-            val response = projectService.getAllProjects(
-                userId = user.id,
+            val response = projectService.getAllForms(
+                projectId = projectId,
                 pageNumber = nextPageNumber,
                 pageSize = params.loadSize
             )
 
-            val projects = response.content.map { mapResponseToProject(it) }
+            val forms = response.content.map(this::mapResponseToForm)
             val nextKey = if (!response.last) nextPageNumber + 1 else null
             return LoadResult.Page(
-                data = listOf(),
+                data = forms,
                 prevKey = null, // Only paging forward.
                 nextKey = nextKey
             )
@@ -58,28 +49,17 @@ class FormPagingSource(
         }
     }
 
-    private suspend fun mapResponseToProject(response: ProjectResponse): Project {
-        val ownerState = userRepository.getUser(response.ownerId).last()
-        val owner = if (ownerState is ResourceState.Success)
-            ownerState.data else UserRepository.DEFAULT_USER.copy()
-        val atmState = if (response.thumbnailId != null)
-            attachmentRepository.getAttachment(response.thumbnailId).last() else null
-        val thumbnailUrl = if (atmState is ResourceState.Success)
-            atmState.data.url else null
-
-        return Project(
+    private fun mapResponseToForm(response: FormResponse): Form {
+        return Form(
             id = response.id,
-            thumbnail = if (thumbnailUrl != null) Uri.parse(thumbnailUrl) else null,
-            name = response.name,
             description = response.description,
-            startDate = response.startDate,
-            endDate = response.endDate,
-            owner = owner
+            title = response.title,
+            projectOwnerId = response.projectOwnerId
         )
     }
 
     companion object {
-        const val TAG = "ProjectPagingSource"
+        const val TAG = "FormPagingSource"
     }
 
 }

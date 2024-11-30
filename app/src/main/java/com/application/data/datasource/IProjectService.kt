@@ -15,6 +15,7 @@ import com.application.data.entity.response.FieldResponse
 import com.application.data.entity.response.FormResponse
 import com.application.data.entity.response.PagingResponse
 import com.application.data.entity.response.ProjectResponse
+import com.application.data.entity.response.SampleResponse
 import com.application.data.entity.response.StageResponse
 
 interface IProjectService {
@@ -28,12 +29,14 @@ interface IProjectService {
         pageNumber: Int = 0,
         pageSize: Int = 6
     ): PagingResponse<ProjectResponse>
+
     suspend fun getProject(projectId: String): ProjectResponse
     suspend fun updateProject(
         projectId: String,
         updateRequestData: UpdateProjectRequest
     ): Boolean
 
+    suspend fun deleteProject(projectId: String): Boolean
 
 
     //Stage of Project
@@ -43,12 +46,13 @@ interface IProjectService {
         pageNumber: Int = 0,
         pageSize: Int = 6
     ): PagingResponse<StageResponse>
+
     suspend fun getStage(stageId: String): StageResponse
     suspend fun updateStage(
         stageId: String,
         updateRequestData: UpdateStageRequest
     ): Boolean
-
+    suspend fun deleteStage(stageId: String): Boolean
 
     //Form of Stage
     suspend fun createForm(body: CreateFormRequest): String
@@ -57,11 +61,13 @@ interface IProjectService {
         pageNumber: Int = 0,
         pageSize: Int = 6
     ): PagingResponse<FormResponse>
+
     suspend fun getForm(formId: String): FormResponse
     suspend fun updateForm(
         formId: String,
         updateRequestData: UpdateFormRequest
     ): Boolean
+    suspend fun deleteForm(formId: String): Boolean
 
     //Field of Form
     suspend fun createField(formId: String, body: CreateFieldRequest): String
@@ -70,12 +76,19 @@ interface IProjectService {
         pageNumber: Int = 0,
         pageSize: Int = 6
     ): List<FieldResponse>
+
     suspend fun getField(formId: String): FieldResponse
     suspend fun updateField(
-        formId: String,
+        fieldId: String,
+        updateRequestData: UpdateFieldRequest
+    ): Boolean
+    suspend fun deleteField(fieldId: String): Boolean
+    suspend fun updateFieldDynamic(
+        fieldId: String,
         updateRequestData: UpdateFieldRequest
     ): Boolean
 
     // Sample of Stage
     suspend fun createSample(body: CreateSampleRequest): String
+    suspend fun getSample(sampleId: String): SampleResponse
 }

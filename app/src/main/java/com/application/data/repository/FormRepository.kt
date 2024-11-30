@@ -103,6 +103,23 @@ class FormRepository(
     }
 
     /**
+     * Delete a form of stage.
+     */
+    fun deleteForm(
+        formId: String
+    ): Flow<ResourceState<Boolean>> {
+        return flow<ResourceState<Boolean>>{
+            val deleteResult = projectService.deleteForm(formId = formId)
+            if (deleteResult) emit(ResourceState.Success(true))
+        }.catch { exception ->
+            Log.e(TAG, exception.message, exception)
+            emit(ResourceState.Error(message = "Cannot delete form"))
+        }
+    }
+
+
+
+    /**
      * Update a form of project.
      */
     fun updateForm(

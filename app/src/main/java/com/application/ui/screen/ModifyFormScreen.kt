@@ -53,6 +53,8 @@ fun ModifyFormScreen(
     popBackToLogin: () -> Unit,
     popBackToHome: () -> Unit,
     popBackToDetail: (Boolean) -> Unit,
+    navigateToWorkersQuestionScreen: () -> Unit,
+    navigateToExpertChatScreen: () -> Unit
 ) {
 
     val state by viewModel.state.collectAsState()
@@ -69,7 +71,10 @@ fun ModifyFormScreen(
                 TopBar(title = R.string.modify_form, signOutClicked = popBackToLogin)
             },
             bottomBar = {
-                BotNavigationBar {
+                BotNavigationBar (
+                    onWorkersQuestionClick = navigateToWorkersQuestionScreen,
+                    onExpertChatsClick = navigateToExpertChatScreen
+                ) {
                     IconButton(
                         modifier = Modifier.size(50.dp),
 

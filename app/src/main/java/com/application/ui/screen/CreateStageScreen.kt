@@ -56,7 +56,9 @@ fun CreateStageScreen(
     projectId: String,
     navigateToLogin: () -> Unit,
     navigateToHome: () -> Unit,
-    navigateToDetail: () -> Unit
+    navigateToDetail: () -> Unit,
+    navigateToWorkersQuestionScreen: () -> Unit,
+    navigateToExpertChatScreen: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -68,7 +70,11 @@ fun CreateStageScreen(
                 modifier = Modifier,
                 topBar = { TopBar(title = R.string.create_stage, signOutClicked = navigateToLogin) },
                 bottomBar = {
-                    BotNavigationBar(modifier = Modifier.padding(vertical = 10.dp)) {
+                    BotNavigationBar(
+                        modifier = Modifier.padding(vertical = 10.dp),
+                        onWorkersQuestionClick = navigateToWorkersQuestionScreen,
+                        onExpertChatsClick = navigateToExpertChatScreen
+                    ) {
                         IconButton(
                             modifier = Modifier.size(50.dp),
 

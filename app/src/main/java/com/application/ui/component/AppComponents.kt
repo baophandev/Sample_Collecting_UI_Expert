@@ -565,8 +565,7 @@ fun FormContainer(
                 .wrapContentWidth()
         )
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onModifyClicked) {
                 Icon(
@@ -577,8 +576,6 @@ fun FormContainer(
                 )
             }
             onDeleteClicked?.let {
-                Spacer(modifier = Modifier.size(5.dp))
-
                 IconButton(onClick = it) {
                     Icon(
                         modifier = Modifier.size(24.dp),

@@ -53,6 +53,8 @@ fun CreateFormScreen(
     navigateToLogin: () -> Unit,
     navigateToHome: () -> Unit,
     navigateToDetail: (String?) -> Unit,
+    navigateToWorkersQuestionScreen: () -> Unit,
+    navigateToExpertChatScreen: () -> Unit
 ) {
     val state by createFormViewModel.state.collectAsState()
 
@@ -67,10 +69,12 @@ fun CreateFormScreen(
                 modifier = Modifier,
                 topBar = { TopBar(title = R.string.create_form, signOutClicked = navigateToLogin) },
                 bottomBar = {
-                    BotNavigationBar {
+                    BotNavigationBar(
+                        onWorkersQuestionClick = navigateToWorkersQuestionScreen,
+                        onExpertChatsClick = navigateToExpertChatScreen
+                    ) {
                         IconButton(
                             modifier = Modifier.size(50.dp),
-
                             onClick = navigateToHome
                         ) {
                             Icon(

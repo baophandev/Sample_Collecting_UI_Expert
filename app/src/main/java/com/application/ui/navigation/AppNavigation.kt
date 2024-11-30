@@ -18,10 +18,14 @@ import com.application.ui.screen.CreateFormScreen
 import com.application.ui.screen.CreateProjectScreen
 import com.application.ui.screen.CreateStageScreen
 import com.application.ui.screen.DetailScreen
+
 import com.application.ui.screen.HomeScreen
 import com.application.ui.screen.LoginScreen
 import com.application.ui.screen.ModifyFormScreen
 import com.application.ui.screen.ModifyProjectScreen
+import com.application.ui.screen.ModifyStageScreen
+import com.application.ui.screen.StageDetailScreen
+import com.application.ui.screen.WorkersQuestionScreen
 import com.application.ui.state.NavigationState
 
 fun NavHostController.navigateSingleTop(route: String) {
@@ -60,6 +64,13 @@ fun AppNavigationGraph(
             saveState = false
         )
     }
+    val popBackToStage: () -> Unit = {
+        navController.popBackStack(
+            route = Routes.STAGE_DETAIL_SCREEN,
+            inclusive = false,
+            saveState = false
+        )
+    }
 
     NavHost(
         navController = navController,
@@ -79,17 +90,25 @@ fun AppNavigationGraph(
                 backStackEntry.savedStateHandle[Routes.USER_ID_STACK_KEY] = userId
 
                 val navigateToCreateProject: () -> Unit = {
-                    navController.navigate(Routes.CREATE_PROJECT_SCREEN)
+                    navController.navigateSingleTop(Routes.CREATE_PROJECT_SCREEN)
                 }
                 val navigateToDetailProject: (String) -> Unit = { projectId ->
                     backStackEntry.savedStateHandle[Routes.PROJECT_ID_STACK_KEY] = projectId
-                    navController.navigate(Routes.DETAIL_SCREEN)
+                    navController.navigateSingleTop(Routes.DETAIL_SCREEN)
+                }
+                val navigateToWorkersQuestionScreen: () -> Unit = {
+                    navController.navigateSingleTop(Routes.WORKERS_QUESTION_SCREEN)
+                }
+                val navigateToExpertChatsScreen: () -> Unit = {
+                    navController.navigateSingleTop(Routes.EXPERT_CHATS_SCREEN)
                 }
 
                 HomeScreen(
                     navigateToLogin = popBackToLogin,
                     navigateToCreateProject = navigateToCreateProject,
                     navigateToDetailProject = navigateToDetailProject,
+                    navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
+                    navigateToExpertChatScreen = navigateToExpertChatsScreen
                 )
             }
         }
@@ -97,13 +116,21 @@ fun AppNavigationGraph(
         composable(Routes.CREATE_PROJECT_SCREEN) {
             val userId = navController
                 .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.USER_ID_STACK_KEY)
+            val navigateToWorkersQuestionScreen: () -> Unit = {
+                navController.navigateSingleTop(Routes.WORKERS_QUESTION_SCREEN)
+            }
+            val navigateToExpertChatsScreen: () -> Unit = {
+                navController.navigateSingleTop(Routes.EXPERT_CHATS_SCREEN)
+            }
             userId?.let {
                 CreateProjectScreen(
                     userId = it,
                     navigateToLogin = popBackToLogin,
                     navigateToHome = {
                         popBackToHome()
-                    }
+                    },
+                    navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
+                    navigateToExpertChatScreen = navigateToExpertChatsScreen
                 )
             }
         }
@@ -118,21 +145,22 @@ fun AppNavigationGraph(
                 backStackEntry.savedStateHandle[Routes.PROJECT_ID_STACK_KEY] = projectId
 
                 val navigateToModify: () -> Unit = {
-                    navController.navigate(Routes.MODIFY_PROJECT_SCREEN)
+                    navController.navigateSingleTop(Routes.MODIFY_PROJECT_SCREEN)
                 }
                 val navigateToStageDetail: (String) -> Unit = { stageId ->
                     backStackEntry.savedStateHandle[Routes.STAGE_ID_STACK_KEY] = stageId
-                    navController.navigate(Routes.STAGE_DETAIL_SCREEN)
+                    backStackEntry.savedStateHandle[Routes.PROJECT_ID_STACK_KEY] = projectId
+                    navController.navigateSingleTop(Routes.STAGE_DETAIL_SCREEN)
                 }
                 val navigateToAddStage: () -> Unit = {
-                    navController.navigate(Routes.ADD_STAGE_SCREEN)
+                    navController.navigateSingleTop(Routes.ADD_STAGE_SCREEN)
                 }
                 val navigateToAddForm: () -> Unit = {
-                    navController.navigate(Routes.ADD_FORM_SCREEN)
+                    navController.navigateSingleTop(Routes.ADD_FORM_SCREEN)
                 }
                 val navigateToModifyForm: (String) -> Unit = { formId ->
                     backStackEntry.savedStateHandle[Routes.FORM_ID_STACK_KEY] = formId
-                    navController.navigate(Routes.MODIFY_FORM_SCREEN)
+                    navController.navigateSingleTop(Routes.MODIFY_FORM_SCREEN)
                 }
 
                 DetailScreen(
@@ -156,24 +184,29 @@ fun AppNavigationGraph(
 //            }
         }
 
-        composable(Routes.STAGE_DETAIL_SCREEN) {
+        composable(Routes.STAGE_DETAIL_SCREEN) { backStackEntry ->
             val stageId = navController
                 .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.STAGE_ID_STACK_KEY)
+            val projectId = navController
+                .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.PROJECT_ID_STACK_KEY)
 
             if (stageId != null) {
-                val navigateToModifyStage: (String) -> Unit =
-                    { stageId -> navController.navigate(Routes.MODIFY_STAGE_SCREEN + "/$stageId") }
+                val navigateToModifyStage: () -> Unit = {
+                    backStackEntry.savedStateHandle[Routes.STAGE_ID_STACK_KEY] = stageId
+                    backStackEntry.savedStateHandle[Routes.PROJECT_ID_STACK_KEY] = projectId
+                    navController.navigateSingleTop(Routes.MODIFY_STAGE_SCREEN)
+                }
                 val navigateToCapture: () -> Unit =
-                    { navController.navigate(Routes.CAPTURE_SCREEN) }
+                    { navController.navigateSingleTop(Routes.CAPTURE_SCREEN) }
 
-//                StageDetailScreen(
-//                    isProjectOwner = true,
-//                    stageId = stageId,
-//                    thumbnailUri = data.thumbnailUri,
-//                    navigateToModifyStage = navigateToModifyStage,
-//                    navigateToCapture = navigateToCapture,
-//                    navigateToDetail = popBackToDetail
-//                )
+                StageDetailScreen(
+                    isProjectOwner = true,
+                    stageId = stageId,
+                    //thumbnailUri = data.thumbnailUri,
+                    navigateToModifyStage = navigateToModifyStage,
+                    navigateToCapture = navigateToCapture,
+                    navigateToDetail = popBackToDetail
+                )
             }
 //            else {
 //                LaunchedEffect(key1 = null) {
@@ -186,6 +219,12 @@ fun AppNavigationGraph(
         composable(Routes.ADD_FORM_SCREEN) {
             val projectId = navController
                 .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.PROJECT_ID_STACK_KEY)
+            val navigateToWorkersQuestionScreen: () -> Unit = {
+                navController.navigateSingleTop(Routes.WORKERS_QUESTION_SCREEN)
+            }
+            val navigateToExpertChatsScreen: () -> Unit = {
+                navController.navigateSingleTop(Routes.EXPERT_CHATS_SCREEN)
+            }
             if (projectId != null) {
                 CreateFormScreen(
                     projectId = projectId,
@@ -193,7 +232,9 @@ fun AppNavigationGraph(
                     navigateToHome = popBackToHome,
                     navigateToDetail = {
                         popBackToDetail()
-                    }
+                    },
+                    navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
+                    navigateToExpertChatScreen = navigateToExpertChatsScreen
                 )
             }
 //            else {
@@ -207,12 +248,20 @@ fun AppNavigationGraph(
         composable(Routes.ADD_STAGE_SCREEN) {
             val projectId = navController
                 .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.PROJECT_ID_STACK_KEY)
+            val navigateToWorkersQuestionScreen: () -> Unit = {
+                navController.navigateSingleTop(Routes.WORKERS_QUESTION_SCREEN)
+            }
+            val navigateToExpertChatsScreen: () -> Unit = {
+                navController.navigateSingleTop(Routes.EXPERT_CHATS_SCREEN)
+            }
             if (projectId != null) {
                 CreateStageScreen(
                     projectId = projectId,
                     navigateToLogin = popBackToLogin,
                     navigateToHome = popBackToHome,
-                    navigateToDetail = popBackToDetail
+                    navigateToDetail = popBackToDetail,
+                    navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
+                    navigateToExpertChatScreen = navigateToExpertChatsScreen
                 )
             }
 //            else {
@@ -233,7 +282,7 @@ fun AppNavigationGraph(
             }
             val navigateToCreateSample: (Pair<String, Uri>) -> Unit = { sample ->
 //                viewModel.updateSample(sample)
-                navController.navigate(Routes.CREATE_SAMPLE_SCREEN)
+                navController.navigateSingleTop(Routes.CREATE_SAMPLE_SCREEN)
             }
 
             CaptureScreen(
@@ -289,6 +338,12 @@ fun AppNavigationGraph(
         composable(Routes.MODIFY_PROJECT_SCREEN) {
             val projectId = navController
                 .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.PROJECT_ID_STACK_KEY)
+            val navigateToWorkersQuestionScreen: () -> Unit = {
+                navController.navigateSingleTop(Routes.WORKERS_QUESTION_SCREEN)
+            }
+            val navigateToExpertChatsScreen: () -> Unit = {
+                navController.navigateSingleTop(Routes.EXPERT_CHATS_SCREEN)
+            }
             if (projectId != null) {
                 ModifyProjectScreen(
                     projectId = projectId,
@@ -298,7 +353,9 @@ fun AppNavigationGraph(
                         if (isUpdated)
                             state = state.copy(needToReload = true)
                         popBackToDetail()
-                    }
+                    },
+                    navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
+                    navigateToExpertChatScreen = navigateToExpertChatsScreen
                 )
             }
 //            else {
@@ -309,40 +366,50 @@ fun AppNavigationGraph(
 //            }
         }
 
-        composable(Routes.MODIFY_STAGE_SCREEN + "/{stageId}") { stackEntry ->
-//            val project = data.project
-//            if (project != null) {
-//                stackEntry.arguments?.getString("stageId")?.let { stageId ->
-//                    project.data.stages?.get(stageId)?.let { stage ->
-//                        ModifyStageScreen(
-//                            projectId = project.id,
-//                            projectEmailMembers = project.data.memberIds?.map { it.value },
-//                            stage = Pair(stageId, stage),
-//                            forms = project.data.forms!!.map { Pair(it.key, it.value.name!!) }
-//                                .toMap(),
-//                            navigateToLogin = navigateToLogin,
-//                            navigateToHome = navigateToHome,
-//                            navigateToStage = {
-//                                navController.popBackStack(
-//                                    route = Routes.STAGE_DETAIL_SCREEN,
-//                                    inclusive = false,
-//                                    saveState = false
-//                                )
-//                            }
-//                        )
-//                    }
-//                }
-//            } else {
+        composable(Routes.MODIFY_STAGE_SCREEN) {
+            val stageId = navController
+                .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.STAGE_ID_STACK_KEY)
+            val projectId = navController
+                .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.PROJECT_ID_STACK_KEY)
+            val navigateToWorkersQuestionScreen: () -> Unit = {
+                navController.navigateSingleTop(Routes.WORKERS_QUESTION_SCREEN)
+            }
+            val navigateToExpertChatsScreen: () -> Unit = {
+                navController.navigateSingleTop(Routes.EXPERT_CHATS_SCREEN)
+            }
+            if (stageId != null && projectId != null) {
+                ModifyStageScreen(
+                    projectId = projectId,
+                    stageId = stageId,
+                    popBackToLogin = popBackToLogin,
+                    popBackToHome = popBackToHome,
+                    postUpdatedHandler = { isUpdated ->
+                        if (isUpdated)
+                            state = state.copy(needToReload = true)
+                        popBackToStage()
+                    },
+                    navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
+                    navigateToExpertChatScreen = navigateToExpertChatsScreen
+                )
+            }
+        }
+//            else {
 //                LaunchedEffect(key1 = null) {
 //                    Toast.makeText(context, projectNotExist, Toast.LENGTH_SHORT).show()
 //                    navigateToHome()
 //                }
 //            }
-        }
+
 
         composable(Routes.MODIFY_FORM_SCREEN) {
             val formId = navController
                 .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.FORM_ID_STACK_KEY)
+            val navigateToWorkersQuestionScreen: () -> Unit = {
+                navController.navigateSingleTop(Routes.WORKERS_QUESTION_SCREEN)
+            }
+            val navigateToExpertChatsScreen: () -> Unit = {
+                navController.navigateSingleTop(Routes.EXPERT_CHATS_SCREEN)
+            }
             if (formId != null) {
                 ModifyFormScreen(
                     formId = formId,
@@ -352,7 +419,9 @@ fun AppNavigationGraph(
                         if (isUpdated)
                             state = state.copy(needToReload = true)
                         popBackToDetail()
-                    }
+                    },
+                    navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
+                    navigateToExpertChatScreen = navigateToExpertChatsScreen
                 )
 //            val project = data.project
 //            if (project != null) {
@@ -376,5 +445,45 @@ fun AppNavigationGraph(
 //            }
             }
         }
+
+        composable(Routes.WORKERS_QUESTION_SCREEN){
+            val userId = navController
+                .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.USER_ID_STACK_KEY)
+            val navigateToWorkersQuestionScreen: () -> Unit = {
+                navController.navigateSingleTop(Routes.WORKERS_QUESTION_SCREEN)
+            }
+            val navigateToExpertChatsScreen: () -> Unit = {
+                navController.navigateSingleTop(Routes.EXPERT_CHATS_SCREEN)
+            }
+            userId?.let {
+                WorkersQuestionScreen(
+                    navigateToHome = {
+                        popBackToHome()
+                    },
+                    navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
+                    navigateToExpertChatScreen = navigateToExpertChatsScreen
+                )
+            }
+        }
+//        composable(Routes.EXPERT_CHATS_SCREEN){
+//            val userId = navController
+//                .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.USER_ID_STACK_KEY)
+//            val navigateToWorkersQuestionScreen: () -> Unit = {
+//                navController.navigateSingleTop(Routes.WORKERS_QUESTION_SCREEN)
+//            }
+//            val navigateToExpertChatsScreen: () -> Unit = {
+//                navController.navigateSingleTop(Routes.EXPERT_CHATS_SCREEN)
+//            }
+//            userId?.let {
+//                ExpertChatsScreen(
+//                    navigateToHome = {
+//                        popBackToHome()
+//                    },
+//                    navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
+//                    navigateToExpertChatScreen = navigateToExpertChatsScreen
+//                )
+//            }
+//        }
+
     }
 }

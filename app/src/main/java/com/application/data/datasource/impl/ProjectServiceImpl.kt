@@ -17,8 +17,10 @@ import com.application.data.entity.response.FieldResponse
 import com.application.data.entity.response.FormResponse
 import com.application.data.entity.response.PagingResponse
 import com.application.data.entity.response.ProjectResponse
+import com.application.data.entity.response.SampleResponse
 import com.application.data.entity.response.StageResponse
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
@@ -71,6 +73,11 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         return response.status == HttpStatusCode.NoContent
     }
 
+    override suspend fun deleteProject(projectId: String): Boolean {
+        val response = client.delete(urlString = "project/$projectId")
+        return response.status == HttpStatusCode.NoContent
+    }
+
 
     //Stage
     override suspend fun createStage(body: CreateStageRequest): String {
@@ -109,6 +116,11 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         return response.status == HttpStatusCode.NoContent
     }
 
+    override suspend fun deleteStage(stageId: String): Boolean {
+        val response = client.delete(urlString = "stage/$stageId")
+        return response.status == HttpStatusCode.NoContent
+    }
+
 
     //Form
     override suspend fun createForm(body: CreateFormRequest): String {
@@ -144,6 +156,11 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         return response.status == HttpStatusCode.NoContent
     }
 
+    override suspend fun deleteForm(formId: String): Boolean {
+        val response = client.delete(urlString = "form/$formId")
+        return response.status == HttpStatusCode.NoContent
+    }
+
 
     //Field
     override suspend fun createField(formId: String, body: CreateFieldRequest): String {
@@ -172,13 +189,33 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
     }
 
     override suspend fun updateField(
-        formId: String,
+        fieldId: String,
+        updateRequestData: UpdateFieldRequest
+    ): Boolean {
+        val response = client.patch(urlString = "field/$fieldId"){
+            contentType(ContentType.Application.Json)
+            setBody(updateRequestData)
+        }
+        return response.status == HttpStatusCode.NoContent
+    }
+
+    override suspend fun deleteField(fieldId: String): Boolean {
+        val response = client.delete(urlString = "field/$fieldId")
+        return response.status == HttpStatusCode.NoContent
+    }
+
+    override suspend fun updateFieldDynamic(
+        fieldId: String,
         updateRequestData: UpdateFieldRequest
     ): Boolean {
         TODO("Not yet implemented")
     }
 
     override suspend fun createSample(body: CreateSampleRequest): String {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getSample(sampleId: String): SampleResponse {
         TODO("Not yet implemented")
     }
 }

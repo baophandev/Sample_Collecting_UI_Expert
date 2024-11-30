@@ -75,7 +75,7 @@ fun StageDetailScreen(
     isProjectOwner: Boolean,
     stageId: String,
     thumbnailUri: Uri? = null,
-    navigateToModifyStage: (String) -> Unit,
+    navigateToModifyStage: () -> Unit,
     navigateToCapture: () -> Unit,
     navigateToDetail: () -> Unit
 ) {
@@ -112,11 +112,13 @@ fun StageDetailScreen(
                     background = colorResource(id = R.color.red),
                     border = BorderStroke(0.dp, Color.Transparent)
                 ) {
-                    viewModel.deleteStage(
-                        projectId = stageId,
-                        stageId = stageId,
-                        successHandler = navigateToDetail
-                    )
+                    state.stage?.projectOwnerId?.let {
+                        viewModel.deleteStage(
+                            projectOwnerId = it,
+                            stageId = stageId,
+                            successHandler = navigateToDetail
+                        )
+                    }
                 }
             },
             dismissButton = {
@@ -312,9 +314,7 @@ fun StageDetailScreen(
                                     textSize = 16.sp,
                                     background = MaterialTheme.colorScheme.primary,
                                     border = BorderStroke(0.dp, Color.Transparent),
-                                    action = {
-                                        navigateToModifyStage(stageId)
-                                    }
+                                    action = navigateToModifyStage
                                 )
                             }
                         }

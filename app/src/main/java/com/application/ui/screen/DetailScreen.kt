@@ -17,8 +17,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -57,6 +60,7 @@ import com.application.ui.component.CustomButton
 import com.application.ui.component.FormContainer
 import com.application.ui.component.LoadingScreen
 import com.application.ui.component.StageContainer
+import com.application.ui.component.TopNavigationBar
 import com.application.ui.viewmodel.DetailViewModel
 
 internal enum class DetailScreenSwitchState { DETAIL, STAGES, FORMS }
@@ -150,7 +154,7 @@ fun DetailScreen(
                         when (alertType) {
                             AlertType.DELETE -> viewModel.deleteProject(
                                 projectId = state.project!!.id,
-                                emailMembers = state.project!!.memberUsernames,
+                                projectOwnerId = state.project?.owner?.id,
                                 successHandler = navigateToHome
                             )
 
@@ -290,30 +294,30 @@ fun DetailScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-//                        TopNavigationBar(
-//                            backAction = navigateToHome
-//                        ) {
-//                            val emailOwner = project.data.emailOwner
-//                            if (emailOwner != null && emailOwner == userEmail) {
-//                                DropdownMenuItem(
-//                                    leadingIcon = {
-//                                        Icon(
-//                                            modifier = Modifier.size(20.dp),
-//                                            imageVector = Icons.Default.Delete,
-//                                            contentDescription = "Delete project",
-//                                            tint = colorResource(id = R.color.red)
-//                                        )
-//                                    },
-//                                    text = {
-//                                        Text(
-//                                            color = colorResource(id = R.color.red),
-//                                            text = stringResource(id = R.string.delete_project)
-//                                        )
-//                                    },
-//                                    onClick = { alertType = AlertType.DELETE }
-//                                )
-//                            }
-//                        }
+                        TopNavigationBar(
+                            backAction = navigateToHome
+                        ) {
+                            val emailOwner = state.project?.owner?.id
+                            if (emailOwner != null && emailOwner == state.project?.owner?.id) {
+                                DropdownMenuItem(
+                                    leadingIcon = {
+                                        Icon(
+                                            modifier = Modifier.size(20.dp),
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "Delete project",
+                                            tint = colorResource(id = R.color.red)
+                                        )
+                                    },
+                                    text = {
+                                        Text(
+                                            color = colorResource(id = R.color.red),
+                                            text = stringResource(id = R.string.delete_project)
+                                        )
+                                    },
+                                    onClick = { alertType = AlertType.DELETE }
+                                )
+                            }
+                        }
                             Spacer(modifier = Modifier.size(40.dp))
                             state.project?.name?.let {
                                 Text(
@@ -464,6 +468,7 @@ fun StageTab(
 @Composable
 @OptIn(ExperimentalFoundationApi::class)
 fun FormTab(
+    viewModel: DetailViewModel = hiltViewModel(),
     modifier: Modifier = Modifier,
     userId: String,
     status: UiStatus,
@@ -472,6 +477,7 @@ fun FormTab(
     onRefreshClick: () -> Unit,
     onFormClick: (String) -> Unit,
 ) {
+    var alertType by remember { mutableStateOf(AlertType.NONE) }
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(10.dp)
@@ -496,9 +502,6 @@ fun FormTab(
             }
 
             UiStatus.SUCCESS -> items(forms) { form ->
-//                    val existStageUsage = state.forms?.any {
-//                        it.id == form.id
-//                    }
                 Spacer(modifier = Modifier.size(10.dp))
                 FormContainer(
                     name = form.title,
@@ -513,20 +516,17 @@ fun FormTab(
                             var alertType = AlertType.CREATE_NEW_PROJECT
                         }
                     },
-//                    onDeleteClicked = if (existStageUsage != null && existStageUsage) null
-//                    else {
-//                        {
-//                            if (form.projectOwnerId == userId) {
-//                                state.forms.remove(form)
-//                                viewModel.deleteForm(
-//                                    projectId = project.id,
-//                                    formId = form.id
-//                                )
-//                            } else {
-//                                alertType = AlertType.CREATE_NEW_PROJECT
-//                            }
-//                        }
-//                    }
+                    onDeleteClicked =
+                        {
+                            if (form.projectOwnerId == userId) {
+                                //forms.remove(form)
+                                viewModel.deleteForm(
+                                    formId = form.id
+                                )
+                            } else {
+                                alertType = AlertType.CREATE_NEW_PROJECT
+                            }
+                        }
                 )
             }
 

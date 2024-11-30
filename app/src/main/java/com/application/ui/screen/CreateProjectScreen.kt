@@ -60,7 +60,9 @@ fun CreateProjectScreen(
     viewModel: CreateProjectViewModel = hiltViewModel(),
     userId: String,
     navigateToLogin: () -> Unit,
-    navigateToHome: (String?) -> Unit
+    navigateToHome: (String?) -> Unit,
+    navigateToWorkersQuestionScreen: () -> Unit,
+    navigateToExpertChatScreen: () -> Unit
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
@@ -109,7 +111,10 @@ fun CreateProjectScreen(
                 TopBar(title = R.string.create_project, signOutClicked = navigateToLogin)
             },
             bottomBar = {
-                BotNavigationBar {
+                BotNavigationBar (
+                    onWorkersQuestionClick = navigateToWorkersQuestionScreen,
+                    onExpertChatsClick = navigateToExpertChatScreen
+                ) {
                     IconButton(
                         modifier = Modifier.size(50.dp),
 

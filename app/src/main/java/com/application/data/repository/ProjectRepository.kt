@@ -158,6 +158,18 @@ class ProjectRepository(
         )
     }
 
+    fun deleteProject(
+        projectId: String
+    ): Flow<ResourceState<Boolean>> {
+        return flow<ResourceState<Boolean>>{
+            val deleteResult = projectService.deleteProject(projectId = projectId)
+            if (deleteResult) emit(ResourceState.Success(true))
+        }.catch { exception ->
+            Log.e(TAG, exception.message, exception)
+            emit(ResourceState.Error(message = "Cannot delete project"))
+        }
+    }
+
     companion object {
         const val TAG = "ProjectRepository"
     }
