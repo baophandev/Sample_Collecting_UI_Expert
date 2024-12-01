@@ -114,64 +114,6 @@ fun WorkerQuestionScreenTopBar() {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-//        Column {
-//            IconButton(
-//                onClick = { /*TODO*/ },
-//                colors = IconButtonColors(
-//                    Color(0xFF007E2F),
-//                    Color(0xFF007E2F),
-//                    Color(0xFF007E2F),
-//                    Color(0xFF007E2F)
-//                ),
-//                modifier = Modifier
-//                    .height(45.dp)
-//                    .width(100.dp)
-//            ) {
-//                Image(
-//                    painter = painterResource(id = R.drawable.return_arrow),
-//                    contentDescription = "view answer",
-//                    contentScale = ContentScale.Crop,
-//                    colorFilter = ColorFilter.tint(Color.White),
-//                    modifier = Modifier
-//                        .size(20.dp)
-//                )
-//            }
-//        }
-//        Column(
-//            modifier = Modifier
-//                .padding(start = 5.dp)
-//        ) {
-//            OutlinedTextField(
-//                value = "",
-//                onValueChange = { /*TODO*/ },
-//                singleLine = true,
-//                shape = RoundedCornerShape(20.dp),
-//                colors = OutlinedTextFieldDefaults.colors().copy(
-//                    unfocusedContainerColor = Color(0xFF007E2F),
-//                    focusedContainerColor = Color(0xFF007E2F)
-//                ),
-//                placeholder = {
-//                    Box(
-//                        modifier = Modifier.padding(start = 20.dp),
-//                        contentAlignment = Alignment.CenterStart
-//                    ) {
-//                        Text(
-//                            text = "Tìm kiếm...",
-//                            color = Color.White,
-//                            style = TextStyle(
-//                                fontSize = 12.sp,
-//                                fontWeight = FontWeight.Bold,
-//                                lineHeight = 20.sp,
-//                            ),
-//                        )
-//                    }
-//                },
-//
-//                modifier = Modifier
-//                    .fillMaxWidth(.85f)
-//                    .height(50.dp)
-//            )
-//        }
             BasicTextField(
                 modifier = Modifier
                     .background(

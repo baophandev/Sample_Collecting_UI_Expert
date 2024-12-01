@@ -56,7 +56,7 @@ fun BotNavigationBar(
         ) {
             Icon(
                 modifier = Modifier.fillMaxSize(.75f),
-                painter = painterResource(id = R.drawable.user_question_icon),
+                painter = painterResource(id = R.drawable.worker_question_icon),
                 contentDescription = "Worker Question screen",
                 tint = MaterialTheme.colorScheme.secondary
             )

@@ -14,10 +14,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.application.R
 import com.application.ui.screen.CaptureScreen
+import com.application.ui.screen.ChatScreen
 import com.application.ui.screen.CreateFormScreen
 import com.application.ui.screen.CreateProjectScreen
 import com.application.ui.screen.CreateStageScreen
 import com.application.ui.screen.DetailScreen
+import com.application.ui.screen.ExpertChatsScreen
 
 import com.application.ui.screen.HomeScreen
 import com.application.ui.screen.LoginScreen
@@ -446,7 +448,7 @@ fun AppNavigationGraph(
             }
         }
 
-        composable(Routes.WORKERS_QUESTION_SCREEN){
+        composable(Routes.WORKERS_QUESTION_SCREEN) {
             val userId = navController
                 .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.USER_ID_STACK_KEY)
             val navigateToWorkersQuestionScreen: () -> Unit = {
@@ -465,25 +467,32 @@ fun AppNavigationGraph(
                 )
             }
         }
-//        composable(Routes.EXPERT_CHATS_SCREEN){
-//            val userId = navController
-//                .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.USER_ID_STACK_KEY)
-//            val navigateToWorkersQuestionScreen: () -> Unit = {
-//                navController.navigateSingleTop(Routes.WORKERS_QUESTION_SCREEN)
-//            }
-//            val navigateToExpertChatsScreen: () -> Unit = {
-//                navController.navigateSingleTop(Routes.EXPERT_CHATS_SCREEN)
-//            }
-//            userId?.let {
-//                ExpertChatsScreen(
-//                    navigateToHome = {
-//                        popBackToHome()
-//                    },
-//                    navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
-//                    navigateToExpertChatScreen = navigateToExpertChatsScreen
-//                )
-//            }
-//        }
 
+        composable(Routes.EXPERT_CHATS_SCREEN) {
+            val userId = navController
+                .previousBackStackEntry?.savedStateHandle?.get<String>(Routes.USER_ID_STACK_KEY)
+            val navigateToChatScreen: () -> Unit = {
+                navController.navigateSingleTop(Routes.CHAT_SCREEN)
+            }
+            userId?.let {
+                ExpertChatsScreen(
+                    navigateToHome = {
+                        popBackToHome()
+                    },
+                    navigateToChat = navigateToChatScreen
+                )
+            }
+        }
+
+        composable(Routes.CHAT_SCREEN) {
+            val navigateToExpertChatListScreen: () -> Unit = {
+                navController.popBackStack()
+            }
+            ChatScreen(
+                navigateToExpertChatListScreen = navigateToExpertChatListScreen
+            )
+        }
     }
 }
+
+
