@@ -71,6 +71,7 @@ interface IProjectService {
 
     //Field of Form
     suspend fun createField(formId: String, body: CreateFieldRequest): String
+    suspend fun createDynamicField(sampleId: String, body: CreateFieldRequest): String
     suspend fun getAllField(
         formId: String,
         pageNumber: Int = 0,
@@ -83,6 +84,7 @@ interface IProjectService {
         updateRequestData: UpdateFieldRequest
     ): Boolean
     suspend fun deleteField(fieldId: String): Boolean
+    suspend fun deleteDynamicField(fieldId: String): Boolean
     suspend fun updateFieldDynamic(
         fieldId: String,
         updateRequestData: UpdateFieldRequest

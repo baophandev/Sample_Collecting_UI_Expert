@@ -64,14 +64,14 @@ fun ModifyFormScreen(
             viewModel.loadModifiedForm(formId)
             viewModel.loadAllModifiedField(formId)
         }
+
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
         UiStatus.SUCCESS -> Scaffold(
-
             topBar = {
                 TopBar(title = R.string.modify_form, signOutClicked = popBackToLogin)
             },
             bottomBar = {
-                BotNavigationBar (
+                BotNavigationBar(
                     onWorkersQuestionClick = navigateToWorkersQuestionScreen,
                     onExpertChatsClick = navigateToExpertChatScreen
                 ) {
@@ -96,8 +96,7 @@ fun ModifyFormScreen(
                     .padding(padding),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceAround
-            )
-            {
+            ) {
                 state.form?.let {
                     CustomTextField(
                         modifier = Modifier
@@ -155,7 +154,9 @@ fun ModifyFormScreen(
                     }
                 }
 
-                if (state.fields.isNotEmpty()) {
+                if (state.isFormUpdated || state.addedFieldIds.isNotEmpty() ||
+                    state.updatedFieldIds.isNotEmpty() || state.deletedFieldIds.isNotEmpty()
+                ) {
                     CustomButton(
                         modifier = Modifier
                             .fillMaxWidth()

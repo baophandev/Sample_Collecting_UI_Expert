@@ -17,6 +17,7 @@ import com.application.ui.screen.CaptureScreen
 import com.application.ui.screen.ChatScreen
 import com.application.ui.screen.CreateFormScreen
 import com.application.ui.screen.CreateProjectScreen
+import com.application.ui.screen.CreateSampleScreen
 import com.application.ui.screen.CreateStageScreen
 import com.application.ui.screen.DetailScreen
 import com.application.ui.screen.ExpertChatsScreen
@@ -294,7 +295,7 @@ fun AppNavigationGraph(
             )
         }
 
-        composable(Routes.CREATE_SAMPLE_SCREEN) {
+//        composable(Routes.CREATE_SAMPLE_SCREEN) {
 //            val project = data.project
 //
 //            if (project == null) {
@@ -335,7 +336,7 @@ fun AppNavigationGraph(
 //                    )
 //                }
 //            }
-        }
+//        }
 
         composable(Routes.MODIFY_PROJECT_SCREEN) {
             val projectId = navController

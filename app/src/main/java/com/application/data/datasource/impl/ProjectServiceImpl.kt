@@ -4,6 +4,7 @@ import com.application.constant.ProjectQueryType
 import com.application.constant.ProjectStatus
 import com.application.constant.ServiceHost
 import com.application.data.datasource.IProjectService
+import com.application.data.entity.request.CreateDynamicFieldRequest
 import com.application.data.entity.request.CreateFieldRequest
 import com.application.data.entity.request.CreateFormRequest
 import com.application.data.entity.request.CreateProjectRequest
@@ -169,6 +170,12 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         }.body()
     }
 
+    override suspend fun createDynamicField(sampleId: String, body: CreateFieldRequest): String {
+        return client.post("field/$sampleId/dynamic"){
+            setBody(body)
+        }.body()
+    }
+
     override suspend fun getAllField(
         formId: String,
         pageNumber: Int,
@@ -204,6 +211,11 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         return response.status == HttpStatusCode.NoContent
     }
 
+    override suspend fun deleteDynamicField(fieldId: String): Boolean {
+        val response = client.delete(urlString = "field/$fieldId/dynamic")
+        return response.status == HttpStatusCode.NoContent
+    }
+
     override suspend fun updateFieldDynamic(
         fieldId: String,
         updateRequestData: UpdateFieldRequest
@@ -211,6 +223,7 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         TODO("Not yet implemented")
     }
 
+    //Sample
     override suspend fun createSample(body: CreateSampleRequest): String {
         TODO("Not yet implemented")
     }

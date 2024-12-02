@@ -35,7 +35,6 @@ class StageDetailViewModel @Inject constructor(
         }
     }
 
-
     fun setCurrentStage(stageId: String, projectId: String) {
         _state.update { it.copy() }
 
@@ -51,7 +50,7 @@ class StageDetailViewModel @Inject constructor(
     }
 
     fun deleteStage(projectOwnerId: String, stageId: String, successHandler: () -> Unit) {
-        if (projectOwnerId.isNullOrEmpty()){
+        if (projectOwnerId.isNullOrEmpty()) {
             _state.update { it.copy(status = UiStatus.ERROR) }
             return
         }
@@ -65,7 +64,12 @@ class StageDetailViewModel @Inject constructor(
 
                     is ResourceState.Error -> {
                         //val error = resourceState.resId
-                        _state.update { it.copy(status = UiStatus.ERROR, error = "Cannot delete stage") }
+                        _state.update {
+                            it.copy(
+                                status = UiStatus.ERROR,
+                                error = "Cannot delete stage"
+                            )
+                        }
                     }
                 }
             }

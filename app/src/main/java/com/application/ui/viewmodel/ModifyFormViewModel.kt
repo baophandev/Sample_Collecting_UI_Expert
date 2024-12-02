@@ -29,7 +29,14 @@ class ModifyFormViewModel @Inject constructor(
     fun loadModifiedForm(formId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             formRepository.getForm(formId)
-                .onStart { _state.update { it.copy(status = UiStatus.LOADING, isUpdated = false) } }
+                .onStart {
+                    _state.update {
+                        it.copy(
+                            status = UiStatus.LOADING,
+                            isFormUpdated = false
+                        )
+                    }
+                }
                 .collectLatest { resourceState ->
                     when (resourceState) {
                         is ResourceState.Success -> _state.update {
@@ -47,7 +54,14 @@ class ModifyFormViewModel @Inject constructor(
     fun loadAllModifiedField(formId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             fieldRepository.getAllFields(formId)
-                .onStart { _state.update { it.copy(status = UiStatus.LOADING, isUpdated = false) } }
+                .onStart {
+                    _state.update {
+                        it.copy(
+                            status = UiStatus.LOADING,
+                            isFormUpdated = false
+                        )
+                    }
+                }
                 .collectLatest { resourceState ->
                     when (resourceState) {
                         is ResourceState.Success -> _state.update {
@@ -78,7 +92,7 @@ class ModifyFormViewModel @Inject constructor(
 
     fun updateTitle(title: String) {
         val currentForm = state.value.form
-        _state.update { it.copy(form = currentForm?.copy(title = title), isUpdated = true) }
+        _state.update { it.copy(form = currentForm?.copy(title = title), isFormUpdated = true) }
     }
 
     fun updateDescription(description: String) {
@@ -86,40 +100,54 @@ class ModifyFormViewModel @Inject constructor(
         _state.update {
             it.copy(
                 form = currentForm?.copy(description = description),
-                isUpdated = true
+                isFormUpdated = true
             )
         }
     }
 
     fun submit(successHandler: (Boolean) -> Unit) {
+        val latestAction : (ResourceState<Boolean>) -> Unit = { resourceState ->
+            when (resourceState) {
+                is ResourceState.Error -> _state.update {
+                    it.copy(
+                        status = UiStatus.ERROR,
+                        error = resourceState.resId
+                    )
+                }
+
+                is ResourceState.Success -> {
+                    _state.update { it.copy(status = UiStatus.SUCCESS) }
+                    viewModelScope.launch {
+                        successHandler(resourceState.data)
+                    }
+                }
+            }
+        }
+
         state.value.form?.let { currentForm ->
+
+
             viewModelScope.launch(Dispatchers.IO) {
-                if (state.value.isUpdated)
+                // chỗ này cập nhật thông tin của form, không bao gồm các field
+                if (state.value.isFormUpdated)
                     formRepository.updateForm(
                         formId = currentForm.id,
                         title = currentForm.title,
                         description = currentForm.description
                     )
                         .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
-                        .collectLatest { resourceState ->
-                            when (resourceState) {
-                                is ResourceState.Error -> _state.update {
-                                    it.copy(
-                                        status = UiStatus.ERROR,
-                                        error = resourceState.resId
-                                    )
-                                }
+                        .collectLatest(latestAction)
+                else if (state.value.addedFieldIds.isNotEmpty()) {
+                    // chỗ này kiểm tra các field được thêm
+                    val addedField = state.value.addedFieldIds.map {
 
-                                is ResourceState.Success -> {
-                                    _state.update { it.copy(status = UiStatus.SUCCESS) }
-                                    viewModelScope.launch {
-                                        successHandler(resourceState.data)
-                                    }
-                                }
-                            }
+                    }
+                } else if (state.value.updatedFieldIds.isNotEmpty()) {
+                    // chỗ này kiểm tra các field được cập nhật
 
-                        }
-
+                } else if (state.value.deletedFieldIds.isNotEmpty()) {
+                    // chỗ này kiểm tra các field bị xóa
+                }
                 TODO("Using tracking lists to perform actions accordingly")
 
             }

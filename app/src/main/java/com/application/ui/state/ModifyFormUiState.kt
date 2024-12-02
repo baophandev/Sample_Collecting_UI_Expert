@@ -13,5 +13,5 @@ data class ModifyFormUiState(
     val addedFieldIds: List<String> = emptyList(),
     val updatedFieldIds: Set<String> = emptySet(),
     val deletedFieldIds: List<String> = emptyList(),
-    val isUpdated: Boolean = false
+    val isFormUpdated: Boolean = false
 )
