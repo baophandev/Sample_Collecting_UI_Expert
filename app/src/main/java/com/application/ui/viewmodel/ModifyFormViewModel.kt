@@ -2,13 +2,11 @@ package com.application.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.application.constant.UiStatus
-import com.application.data.entity.Field
+import com.application.android.utility.state.ResourceState
 import com.application.data.entity.Form
 import com.application.data.repository.FieldRepository
 import com.application.data.repository.FormRepository
 import com.application.ui.state.ModifyFormUiState
-import com.application.util.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

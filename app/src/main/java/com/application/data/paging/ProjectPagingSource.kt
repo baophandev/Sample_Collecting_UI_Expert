@@ -9,7 +9,7 @@ import com.application.data.entity.Project
 import com.application.data.entity.response.ProjectResponse
 import com.application.data.repository.AttachmentRepository
 import com.application.data.repository.UserRepository
-import com.application.util.ResourceState
+import com.application.android.utility.state.ResourceState
 import io.ktor.client.plugins.ClientRequestException
 import kotlinx.coroutines.flow.last
 import java.io.IOException

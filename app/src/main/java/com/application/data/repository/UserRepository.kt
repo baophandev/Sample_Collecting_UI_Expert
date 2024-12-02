@@ -1,8 +1,8 @@
 package com.application.data.repository
 
+import com.application.android.utility.state.ResourceState
 import com.application.data.datasource.IUserService
 import com.application.data.entity.User
-import com.application.util.ResourceState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 

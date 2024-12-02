@@ -1,9 +1,9 @@
 package com.application.data.datasource.impl
 
+import com.application.android.utility.file.FileInfo
 import com.application.constant.ServiceHost
 import com.application.data.datasource.IAttachmentService
 import com.application.data.entity.response.AttachmentResponse
-import com.application.util.FileInfo
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.forms.formData

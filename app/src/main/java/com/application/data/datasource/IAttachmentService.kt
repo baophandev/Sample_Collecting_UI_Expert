@@ -1,7 +1,7 @@
 package com.application.data.datasource
 
+import com.application.android.utility.file.FileInfo
 import com.application.data.entity.response.AttachmentResponse
-import com.application.util.FileInfo
 
 interface IAttachmentService {
 

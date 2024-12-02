@@ -3,6 +3,8 @@ package com.application.ui.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.application.android.utility.state.ResourceState
+import com.application.data.entity.Stage
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -13,7 +15,6 @@ import com.application.data.entity.Form
 import com.application.data.paging.FormPagingSource
 import com.application.data.paging.ProjectPagingSource
 import com.application.data.repository.FormRepository
-import com.application.util.ResourceState
 import com.application.data.repository.StageRepository
 import com.application.ui.state.ModifyStageUiState
 import com.application.ui.viewmodel.HomeViewModel.Companion.TAG

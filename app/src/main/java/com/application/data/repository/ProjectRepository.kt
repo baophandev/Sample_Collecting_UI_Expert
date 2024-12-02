@@ -2,6 +2,7 @@ package com.application.data.repository
 
 import android.net.Uri
 import android.util.Log
+import com.application.android.utility.state.ResourceState
 import com.application.constant.ProjectQueryType
 import com.application.constant.ProjectStatus
 import com.application.data.datasource.IProjectService
@@ -9,7 +10,6 @@ import com.application.data.entity.Project
 import com.application.data.entity.request.CreateProjectRequest
 import com.application.data.entity.request.UpdateProjectRequest
 import com.application.data.entity.response.ProjectResponse
-import com.application.util.ResourceState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
