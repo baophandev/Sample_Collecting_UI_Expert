@@ -3,10 +3,10 @@ package com.application.ui.viewmodel
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.application.android.utility.state.ResourceState
 import com.application.constant.UiStatus
 import com.application.data.repository.ProjectRepository
 import com.application.ui.state.ModifyProjectUiState
-import com.application.util.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

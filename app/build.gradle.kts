@@ -92,8 +92,8 @@ dependencies {
     implementation(libs.rxandroid)
     implementation(libs.stompprotocolandroid)
 
-    implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
+    implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(libs.androidx.camera.core)
@@ -102,6 +102,8 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.camera.extensions)
 
+    implementation(project(":app:utility"))
+    implementation(project(":app:chat-library"))
 }
 
 kapt {

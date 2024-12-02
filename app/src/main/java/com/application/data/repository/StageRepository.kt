@@ -8,7 +8,7 @@ import com.application.data.entity.Stage
 import com.application.data.entity.request.CreateStageRequest
 import com.application.data.entity.response.StageResponse
 import com.application.data.repository.ProjectRepository.Companion.TAG
-import com.application.util.ResourceState
+import com.application.android.utility.state.ResourceState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow

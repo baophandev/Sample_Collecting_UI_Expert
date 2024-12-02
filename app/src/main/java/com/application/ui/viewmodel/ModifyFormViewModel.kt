@@ -2,7 +2,7 @@ package com.application.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.application.util.ResourceState
+import com.application.android.utility.state.ResourceState
 import com.application.data.entity.Form
 import com.application.ui.state.ModifyFormUiState
 import dagger.hilt.android.lifecycle.HiltViewModel

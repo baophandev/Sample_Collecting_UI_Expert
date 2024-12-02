@@ -1,6 +1,7 @@
 package com.application.di
 
 import android.content.Context
+import com.application.android.utility.file.FileReader
 import com.application.data.datasource.IAttachmentService
 import com.application.data.datasource.IProjectService
 import com.application.data.datasource.IUserService
@@ -9,7 +10,6 @@ import com.application.data.repository.FormRepository
 import com.application.data.repository.ProjectRepository
 import com.application.data.repository.StageRepository
 import com.application.data.repository.UserRepository
-import com.application.util.FileReader
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -1,4 +1,4 @@
-package com.application.util
+package com.application.android.utility.file
 
 data class FileInfo(
     val name: String,
