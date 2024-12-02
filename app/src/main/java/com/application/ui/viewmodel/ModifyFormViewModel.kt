@@ -3,6 +3,8 @@ package com.application.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.android.utility.state.ResourceState
+import com.application.constant.UiStatus
+import com.application.data.entity.Field
 import com.application.data.entity.Form
 import com.application.data.repository.FieldRepository
 import com.application.data.repository.FormRepository
