@@ -53,6 +53,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
+import com.application.constant.ReloadSignal
 import com.application.constant.UiStatus
 import com.application.data.entity.Form
 import com.application.data.entity.Stage
@@ -70,7 +71,7 @@ internal enum class AlertType { CREATE_NEW_PROJECT, DELETE, ADD_FORM, NONE }
 @Composable
 fun DetailScreen(
     viewModel: DetailViewModel = hiltViewModel(),
-    needToReload: Boolean,
+    reloadSignal: ReloadSignal,
     onReloadSuccessfully: (Boolean) -> Unit,
     projectId: String,
     userId: String,
@@ -97,12 +98,28 @@ fun DetailScreen(
 
     val notInStage = stringResource(id = R.string.not_in_stage)
 
-    if (needToReload)
-        viewModel.loadProject(
-            projectId = projectId,
-            skipCached = true,
-            onComplete = onReloadSuccessfully
-        )
+    if (reloadSignal != ReloadSignal.NONE) {
+        when (reloadSignal) {
+            ReloadSignal.RELOAD_STAGE ->
+                viewModel.getStages(
+                    projectId = projectId,
+                    successHandler = onReloadSuccessfully
+                )
+            ReloadSignal.RELOAD_FORM ->
+                viewModel.getForms(
+                    projectId = projectId,
+                    successHandler = onReloadSuccessfully
+                )
+            ReloadSignal.RELOAD_PROJECT ->
+                viewModel.loadProject(
+                    projectId = projectId,
+                    skipCached = true,
+                    onComplete = onReloadSuccessfully
+                )
+
+            else -> {}
+        }
+    }
 
     when (state.status) {
         UiStatus.INIT -> {
@@ -261,7 +278,16 @@ fun DetailScreen(
                                                     successHandler = null
                                                 )
                                             },
-                                            onFormClick = navigateToModifyForm
+                                            onFormClick = { formId ->
+                                                formId?.let(navigateToModifyForm)
+                                            },
+                                            onFormDeleteClicked = { formId ->
+                                                if (formId != null) {
+                                                    viewModel.deleteForm(formId = formId)
+                                                } else {
+                                                    alertType = AlertType.CREATE_NEW_PROJECT
+                                                }
+                                            }
                                         )
                                 }
                             }
@@ -294,30 +320,30 @@ fun DetailScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                        TopNavigationBar(
-                            backAction = navigateToHome
-                        ) {
-                            val emailOwner = state.project?.owner?.id
-                            if (emailOwner != null && emailOwner == state.project?.owner?.id) {
-                                DropdownMenuItem(
-                                    leadingIcon = {
-                                        Icon(
-                                            modifier = Modifier.size(20.dp),
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = "Delete project",
-                                            tint = colorResource(id = R.color.red)
-                                        )
-                                    },
-                                    text = {
-                                        Text(
-                                            color = colorResource(id = R.color.red),
-                                            text = stringResource(id = R.string.delete_project)
-                                        )
-                                    },
-                                    onClick = { alertType = AlertType.DELETE }
-                                )
+                            TopNavigationBar(
+                                backAction = navigateToHome
+                            ) {
+                                val emailOwner = state.project?.owner?.id
+                                if (emailOwner != null && emailOwner == state.project?.owner?.id) {
+                                    DropdownMenuItem(
+                                        leadingIcon = {
+                                            Icon(
+                                                modifier = Modifier.size(20.dp),
+                                                imageVector = Icons.Default.Delete,
+                                                contentDescription = "Delete project",
+                                                tint = colorResource(id = R.color.red)
+                                            )
+                                        },
+                                        text = {
+                                            Text(
+                                                color = colorResource(id = R.color.red),
+                                                text = stringResource(id = R.string.delete_project)
+                                            )
+                                        },
+                                        onClick = { alertType = AlertType.DELETE }
+                                    )
+                                }
                             }
-                        }
                             Spacer(modifier = Modifier.size(40.dp))
                             state.project?.name?.let {
                                 Text(
@@ -468,16 +494,15 @@ fun StageTab(
 @Composable
 @OptIn(ExperimentalFoundationApi::class)
 fun FormTab(
-    viewModel: DetailViewModel = hiltViewModel(),
     modifier: Modifier = Modifier,
     userId: String,
     status: UiStatus,
     error: String? = null,
     forms: List<Form>,
     onRefreshClick: () -> Unit,
-    onFormClick: (String) -> Unit,
+    onFormClick: (String?) -> Unit,
+    onFormDeleteClicked: (String?) -> Unit
 ) {
-    var alertType by remember { mutableStateOf(AlertType.NONE) }
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(10.dp)
@@ -509,24 +534,13 @@ fun FormTab(
                         .padding(horizontal = 10.dp)
                         .fillMaxWidth(),
                     onModifyClicked = {
-                        onFormClick(form.id)
-                        if (form.projectOwnerId == userId) {
-                            onFormClick(form.id)
-                        } else {
-                            var alertType = AlertType.CREATE_NEW_PROJECT
-                        }
+                        val formId = if (form.projectOwnerId == userId) form.id else null
+                        onFormClick(formId)
                     },
-                    onDeleteClicked =
-                        {
-                            if (form.projectOwnerId == userId) {
-                                //forms.remove(form)
-                                viewModel.deleteForm(
-                                    formId = form.id
-                                )
-                            } else {
-                                alertType = AlertType.CREATE_NEW_PROJECT
-                            }
-                        }
+                    onDeleteClicked = {
+                        val formId = if (form.projectOwnerId == userId) form.id else null
+                        onFormDeleteClicked(formId)
+                    }
                 )
             }
 

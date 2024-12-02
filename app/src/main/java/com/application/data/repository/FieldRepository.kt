@@ -4,6 +4,7 @@ import android.util.Log
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Field
 import com.application.data.entity.request.CreateFieldRequest
+import com.application.data.entity.request.UpdateFieldRequest
 import com.application.data.entity.response.FieldResponse
 import com.application.util.ResourceState
 import kotlinx.coroutines.flow.Flow
@@ -14,7 +15,7 @@ import kotlinx.coroutines.flow.flowOf
 
 class FieldRepository(
     private val projectService: IProjectService,
-){
+) {
     private val cachedFields: MutableMap<String, Field> = mutableMapOf()
 
     //Field
@@ -77,6 +78,7 @@ class FieldRepository(
             val fieldId = projectService.createField(formId, body)
             val newField = Field(
                 id = fieldId,
+                numberOrder = numberOrder,
                 name = name,
                 formId = formId
             )
@@ -88,34 +90,39 @@ class FieldRepository(
         }
     }
 
-    /**
-     * Update a form of project.
-     */
-//    fun updateForm(
-//        formId: String,
-//        title: String,
-//        description: String? = null
-//    ): Flow<ResourceState<Boolean>> {
-//        var updateRequest = UpdateFormRequest(
-//            title = title,
-//            description = description
-//        )
-//        return flow<ResourceState<Boolean>> {
-//            val updateResult =
-//                projectService.updateForm(formId = formId, updateRequestData = updateRequest)
-//            // get updated form from server
-//            if (updateResult) getForm(formId = formId, skipCached = true)
-//            emit(ResourceState.Success(true))
-//        }.catch { exception ->
-//            Log.e(TAG, exception.message, exception)
-//            emit(ResourceState.Error(message = "Cannot update form"))
-//        }
-//    }
+    fun updateField(
+        fieldId: String,
+        fieldName: String? = null,
+        numberOrder: Int? = null
+    ): Flow<ResourceState<Boolean>> {
+        val updateRequest = UpdateFieldRequest(
+            fieldName = fieldName,
+            numberOrder = numberOrder
+        )
+        return flow<ResourceState<Boolean>> {
+            val updateResult =
+                projectService.updateField(fieldId = fieldId, updateRequestData = updateRequest)
+            emit(ResourceState.Success(updateResult))
+        }.catch { exception ->
+            Log.e(TAG, exception.message, exception)
+            emit(ResourceState.Error(message = "Cannot update field"))
+        }
+    }
 
+    fun deleteField(fieldId: String): Flow<ResourceState<Boolean>> {
+        return flow<ResourceState<Boolean>> {
+            val updateResult = projectService.deleteField(fieldId = fieldId)
+            emit(ResourceState.Success(updateResult))
+        }.catch { exception ->
+            Log.e(TAG, exception.message, exception)
+            emit(ResourceState.Error(message = "Cannot delete field"))
+        }
+    }
 
     private fun mapResponseToField(response: FieldResponse): Field {
         return Field(
             id = response.id,
+            numberOrder = response.numberOrder,
             name = response.name ?: " ",
             formId = response.formId
         )

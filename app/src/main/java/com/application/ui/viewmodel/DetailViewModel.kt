@@ -64,7 +64,7 @@ class DetailViewModel @Inject constructor(
             projectRepository.deleteProject(projectId = projectId).collectLatest { resourceState ->
                 when (resourceState) {
                     is ResourceState.Success -> {
-                        viewModelScope.launch { successHandler?.let { successHandler() } }
+                        viewModelScope.launch { successHandler() }
                     }
 
                     is ResourceState.Error -> {
@@ -76,7 +76,7 @@ class DetailViewModel @Inject constructor(
         }
     }
 
-    fun getStages(projectId: String, successHandler: (() -> Unit)? = null) {
+    fun getStages(projectId: String, successHandler: ((Boolean) -> Unit)? = null) {
         _state.update { it.copy(stageStatus = UiStatus.LOADING) }
         viewModelScope.launch(Dispatchers.IO) {
             stageRepository.getAllStages(projectId).collectLatest { resourceState ->
@@ -89,7 +89,7 @@ class DetailViewModel @Inject constructor(
                                 stages = stages
                             )
                         }
-                        viewModelScope.launch { successHandler?.let { successHandler() } }
+                        viewModelScope.launch { successHandler?.let { successHandler(true) } }
                     }
 
                     is ResourceState.Error -> {
@@ -103,7 +103,7 @@ class DetailViewModel @Inject constructor(
         }
     }
 
-    fun getForms(projectId: String, successHandler: (() -> Unit)? = null) {
+    fun getForms(projectId: String, successHandler: ((Boolean) -> Unit)? = null) {
         _state.update { it.copy(formStatus = UiStatus.LOADING) }
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -117,7 +117,7 @@ class DetailViewModel @Inject constructor(
                                 forms = forms
                             )
                         }
-                        viewModelScope.launch { successHandler?.let { successHandler() } }
+                        viewModelScope.launch { successHandler?.let { successHandler(true) } }
                     }
 
                     is ResourceState.Error -> {

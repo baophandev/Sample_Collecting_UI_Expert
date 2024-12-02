@@ -62,7 +62,7 @@ fun ModifyFormScreen(
     when (state.status) {
         UiStatus.INIT -> {
             viewModel.loadModifiedForm(formId)
-            viewModel.loadAllModifiedField(formId)
+            viewModel.loadAllModifiedFields(formId)
         }
 
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))

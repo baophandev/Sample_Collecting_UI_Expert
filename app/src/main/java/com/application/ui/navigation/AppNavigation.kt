@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.application.R
+import com.application.constant.ReloadSignal
 import com.application.ui.screen.CaptureScreen
 import com.application.ui.screen.ChatScreen
 import com.application.ui.screen.CreateFormScreen
@@ -36,12 +37,9 @@ fun NavHostController.navigateSingleTop(route: String) {
 }
 
 @Composable
-fun AppNavigationGraph(
-) {
+fun AppNavigationGraph() {
     var state by remember { mutableStateOf(NavigationState()) }
     val navController = rememberNavController()
-//    val data by viewModel.data.collectAsState()
-    val context = LocalContext.current
 
     val projectNotExist = stringResource(id = R.string.project_not_exist)
     val stageNotExist = stringResource(id = R.string.stage_not_exist)
@@ -169,8 +167,8 @@ fun AppNavigationGraph(
                 DetailScreen(
                     projectId = projectId,
                     userId = userId,
-                    needToReload = state.needToReload,
-                    onReloadSuccessfully = { state = state.copy(needToReload = false) },
+                    reloadSignal = state.reloadSignal,
+                    onReloadSuccessfully = { state = state.copy(reloadSignal = ReloadSignal.NONE) },
                     navigateToHome = popBackToHome,
                     navigateToModify = navigateToModify,
                     navigateToStageDetail = navigateToStageDetail,
@@ -276,13 +274,6 @@ fun AppNavigationGraph(
         }
 
         composable(Routes.CAPTURE_SCREEN) {
-            val popBackToStage: () -> Unit = {
-                navController.popBackStack(
-                    route = Routes.STAGE_DETAIL_SCREEN,
-                    inclusive = false,
-                    saveState = false
-                )
-            }
             val navigateToCreateSample: (Pair<String, Uri>) -> Unit = { sample ->
 //                viewModel.updateSample(sample)
                 navController.navigateSingleTop(Routes.CREATE_SAMPLE_SCREEN)
@@ -354,7 +345,7 @@ fun AppNavigationGraph(
                     popBackToHome = popBackToHome,
                     postUpdatedHandler = { isUpdated ->
                         if (isUpdated)
-                            state = state.copy(needToReload = true)
+                            state = state.copy(reloadSignal = ReloadSignal.RELOAD_PROJECT)
                         popBackToDetail()
                     },
                     navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
@@ -388,7 +379,7 @@ fun AppNavigationGraph(
                     popBackToHome = popBackToHome,
                     postUpdatedHandler = { isUpdated ->
                         if (isUpdated)
-                            state = state.copy(needToReload = true)
+                            state = state.copy(reloadSignal = ReloadSignal.RELOAD_STAGE)
                         popBackToStage()
                     },
                     navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
@@ -420,7 +411,7 @@ fun AppNavigationGraph(
                     popBackToHome = popBackToHome,
                     popBackToDetail = { isUpdated ->
                         if (isUpdated)
-                            state = state.copy(needToReload = true)
+                            state = state.copy(reloadSignal = ReloadSignal.RELOAD_FORM)
                         popBackToDetail()
                     },
                     navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,

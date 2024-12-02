@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.constant.UiStatus
 import com.application.data.entity.Field
+import com.application.data.entity.Form
 import com.application.data.repository.FieldRepository
 import com.application.data.repository.FormRepository
 import com.application.ui.state.ModifyFormUiState
@@ -51,7 +52,7 @@ class ModifyFormViewModel @Inject constructor(
         }
     }
 
-    fun loadAllModifiedField(formId: String) {
+    fun loadAllModifiedFields(formId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             fieldRepository.getAllFields(formId)
                 .onStart {
@@ -76,20 +77,6 @@ class ModifyFormViewModel @Inject constructor(
         }
     }
 
-    fun addNewField() {
-        state.value.form?.let { currentForm ->
-            val currentFields = state.value.fields
-            val mutableFields = currentFields.toMutableList()
-            // add temporary field
-            val temporaryId = "${System.currentTimeMillis()}-tmp"
-            mutableFields.add(Field(temporaryId, "", currentForm.id))
-
-            val addedFieldIds = state.value.addedFieldIds.toMutableList()
-            addedFieldIds.add(temporaryId)
-            _state.update { it.copy(fields = mutableFields, addedFieldIds = addedFieldIds) }
-        }
-    }
-
     fun updateTitle(title: String) {
         val currentForm = state.value.form
         _state.update { it.copy(form = currentForm?.copy(title = title), isFormUpdated = true) }
@@ -105,52 +92,17 @@ class ModifyFormViewModel @Inject constructor(
         }
     }
 
-    fun submit(successHandler: (Boolean) -> Unit) {
-        val latestAction : (ResourceState<Boolean>) -> Unit = { resourceState ->
-            when (resourceState) {
-                is ResourceState.Error -> _state.update {
-                    it.copy(
-                        status = UiStatus.ERROR,
-                        error = resourceState.resId
-                    )
-                }
-
-                is ResourceState.Success -> {
-                    _state.update { it.copy(status = UiStatus.SUCCESS) }
-                    viewModelScope.launch {
-                        successHandler(resourceState.data)
-                    }
-                }
-            }
-        }
-
+    fun addNewField() {
         state.value.form?.let { currentForm ->
+            val currentFields = state.value.fields
+            val mutableFields = currentFields.toMutableList()
+            // add temporary field
+            val temporaryId = "${System.currentTimeMillis()}-tmp"
+            mutableFields.add(Field(temporaryId, currentFields.size, "", currentForm.id))
 
-
-            viewModelScope.launch(Dispatchers.IO) {
-                // chỗ này cập nhật thông tin của form, không bao gồm các field
-                if (state.value.isFormUpdated)
-                    formRepository.updateForm(
-                        formId = currentForm.id,
-                        title = currentForm.title,
-                        description = currentForm.description
-                    )
-                        .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
-                        .collectLatest(latestAction)
-                else if (state.value.addedFieldIds.isNotEmpty()) {
-                    // chỗ này kiểm tra các field được thêm
-                    val addedField = state.value.addedFieldIds.map {
-
-                    }
-                } else if (state.value.updatedFieldIds.isNotEmpty()) {
-                    // chỗ này kiểm tra các field được cập nhật
-
-                } else if (state.value.deletedFieldIds.isNotEmpty()) {
-                    // chỗ này kiểm tra các field bị xóa
-                }
-                TODO("Using tracking lists to perform actions accordingly")
-
-            }
+            val addedFieldIds = state.value.addedFieldIds.toMutableList()
+            addedFieldIds.add(temporaryId)
+            _state.update { it.copy(fields = mutableFields, addedFieldIds = addedFieldIds) }
         }
     }
 
@@ -180,6 +132,159 @@ class ModifyFormViewModel @Inject constructor(
             val deletedFieldIds = state.value.deletedFieldIds.toMutableList()
             deletedFieldIds.add(field.id)
             _state.update { it.copy(fields = mutableFields, deletedFieldIds = deletedFieldIds) }
+        }
+    }
+
+    fun submit(successHandler: (Boolean) -> Unit) {
+        val currentState = state.value
+        if (currentState.form == null) return
+
+        val currentForm = currentState.form
+        val currentFields = currentState.fields
+
+        _state.update { it.copy(status = UiStatus.LOADING) }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            // chỗ này cập nhật thông tin của form, không bao gồm các field
+            if (state.value.isFormUpdated)
+                updateFormToRepository(updatedForm = currentForm, successHandler = successHandler)
+            else if (currentState.addedFieldIds.isNotEmpty()) {
+                // chỗ này kiểm tra các field được thêm
+                val addedFieldIds = currentState.addedFieldIds
+                val addedFields = currentFields.filter { addedFieldIds.contains(it.id) }
+                addFieldToRepository(
+                    formId = currentForm.id,
+                    addedFields = addedFields,
+                    successHandler = successHandler
+                )
+            } else if (currentState.updatedFieldIds.isNotEmpty()) {
+                // chỗ này kiểm tra các field được cập nhật
+                val updatedFieldIds = currentState.updatedFieldIds
+                val updatedFields = currentFields.filter { updatedFieldIds.contains(it.id) }
+                updateFieldToRepository(
+                    updatedFields = updatedFields,
+                    successHandler = successHandler
+                )
+            } else if (currentState.deletedFieldIds.isNotEmpty()) {
+                // chỗ này kiểm tra các field bị xóa
+                val deletedFieldIds = currentState.deletedFieldIds
+                deleteFieldToRepository(
+                    deleteFieldIds = deletedFieldIds,
+                    successHandler = successHandler
+                )
+            }
+        }
+    }
+
+    private suspend fun updateFormToRepository(
+        updatedForm: Form,
+        successHandler: (Boolean) -> Unit
+    ) {
+        formRepository.updateForm(
+            formId = updatedForm.id,
+            title = updatedForm.title,
+            description = updatedForm.description
+        ).collectLatest { resourceState ->
+            when (resourceState) {
+                is ResourceState.Error -> _state.update {
+                    it.copy(
+                        status = UiStatus.ERROR,
+                        error = resourceState.resId
+                    )
+                }
+
+                is ResourceState.Success -> {
+                    _state.update { it.copy(status = UiStatus.SUCCESS) }
+                    viewModelScope.launch {
+                        successHandler(resourceState.data)
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun addFieldToRepository(
+        formId: String,
+        addedFields: List<Field>,
+        successHandler: (Boolean) -> Unit
+    ) {
+        addedFields.forEachIndexed { index, newField ->
+            fieldRepository.createField(
+                formId = formId,
+                name = newField.name,
+                numberOrder = index
+            ).collectLatest { resourceState ->
+                when (resourceState) {
+                    is ResourceState.Error -> _state.update {
+                        it.copy(
+                            status = UiStatus.ERROR,
+                            error = resourceState.resId
+                        )
+                    }
+
+                    is ResourceState.Success -> {
+                        _state.update { it.copy(status = UiStatus.SUCCESS) }
+                        viewModelScope.launch {
+                            successHandler(true)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun updateFieldToRepository(
+        updatedFields: List<Field>,
+        successHandler: (Boolean) -> Unit
+    ) {
+        updatedFields.forEachIndexed { index, updatedField ->
+            fieldRepository.updateField(
+                fieldId = updatedField.id,
+                fieldName = updatedField.name,
+                numberOrder = index
+            ).collectLatest { resourceState ->
+                when (resourceState) {
+                    is ResourceState.Error -> _state.update {
+                        it.copy(
+                            status = UiStatus.ERROR,
+                            error = resourceState.resId
+                        )
+                    }
+
+                    is ResourceState.Success -> {
+                        _state.update { it.copy(status = UiStatus.SUCCESS) }
+                        viewModelScope.launch {
+                            successHandler(resourceState.data)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun deleteFieldToRepository(
+        deleteFieldIds: List<String>,
+        successHandler: (Boolean) -> Unit
+    ) {
+        deleteFieldIds.forEach { deletedFieldId ->
+            fieldRepository.deleteField(fieldId = deletedFieldId)
+                .collectLatest { resourceState ->
+                    when (resourceState) {
+                        is ResourceState.Error -> _state.update {
+                            it.copy(
+                                status = UiStatus.ERROR,
+                                error = resourceState.resId
+                            )
+                        }
+
+                        is ResourceState.Success -> {
+                            _state.update { it.copy(status = UiStatus.SUCCESS) }
+                            viewModelScope.launch {
+                                successHandler(resourceState.data)
+                            }
+                        }
+                    }
+                }
         }
     }
 

@@ -1,5 +1,7 @@
 package com.application.ui.state
 
+import com.application.constant.ReloadSignal
+
 data class NavigationState(
-    val needToReload: Boolean = false
+    val reloadSignal: ReloadSignal = ReloadSignal.NONE
 )
