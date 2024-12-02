@@ -4,7 +4,6 @@ import com.application.constant.ProjectQueryType
 import com.application.constant.ProjectStatus
 import com.application.constant.ServiceHost
 import com.application.data.datasource.IProjectService
-import com.application.data.entity.request.CreateDynamicFieldRequest
 import com.application.data.entity.request.CreateFieldRequest
 import com.application.data.entity.request.CreateFormRequest
 import com.application.data.entity.request.CreateProjectRequest
@@ -191,8 +190,8 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         }.body()
     }
 
-    override suspend fun getField(fieldId: String): FieldResponse {
-        return client.get(urlString = "field/$fieldId").body()
+    override suspend fun getField(formId: String): FieldResponse {
+        return client.get(urlString = "field/$formId").body()
     }
 
     override suspend fun updateField(
