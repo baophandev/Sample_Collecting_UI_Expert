@@ -35,7 +35,6 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,7 +72,6 @@ internal enum class StageSwitchState { DETAIL, PHOTOS }
 @Composable
 fun StageDetailScreen(
     viewModel: StageDetailViewModel = hiltViewModel(),
-    isProjectOwner: Boolean,
     stageId: String,
     thumbnailUri: Uri? = null,
     navigateToModifyStage: () -> Unit,
@@ -219,10 +217,10 @@ fun StageDetailScreen(
                                                 )
                                             }
                                         },
-                                        onSelectImages = if (isProjectOwner) { isSelecting ->
+                                        onSelectImages = if (state.isProjectOwner) { isSelecting ->
                                             showAddPhoto = !isSelecting
                                         } else null,
-                                        onDeleteImages = if (isProjectOwner) { removeList ->
+                                        onDeleteImages = if (state.isProjectOwner) { removeList ->
                                             removeList.forEach { uri ->
                                                 state.imageUris.find { it.second == uri }
                                                     ?.let { sample ->
@@ -270,7 +268,7 @@ fun StageDetailScreen(
                             TopNavigationBar(
                                 backAction = navigateToDetail
                             ) {
-                                if (isProjectOwner) {
+                                if (state.isProjectOwner) {
                                     DropdownMenuItem(
                                         leadingIcon = {
                                             Icon(
@@ -308,7 +306,7 @@ fun StageDetailScreen(
                 ) {
                     when (switch) {
                         StageSwitchState.DETAIL -> {
-                            if (isProjectOwner) {
+                            if (state.isProjectOwner) {
                                 CustomButton(
                                     modifier = Modifier.fillMaxWidth(.7f),
                                     text = stringResource(id = R.string.modify),
@@ -360,15 +358,33 @@ fun StageDetailScreen(
                                         contentAlignment = Alignment.BottomStart
                                     ) {
                                         Column(modifier = Modifier.padding(vertical = 10.dp)) {
-                                            NameAndValueField(
+//                                            NameAndValueField(
+//                                                modifier = Modifier
+//                                                    .padding(horizontal = 15.dp),
+//                                                fieldName = stringResource(id = R.string.written_by),
+//                                                fieldNameSize = 18.sp,
+//                                                fieldValue = sample.writtenBy!!,
+//                                                fieldValueSize = 18.sp
+//                                            )
+                                            LazyColumn(
                                                 modifier = Modifier
-                                                    .padding(horizontal = 15.dp),
-                                                fieldName = stringResource(id = R.string.written_by),
-                                                fieldNameSize = 18.sp,
-                                                fieldValue = sample.writtenBy!!,
-                                                fieldValueSize = 18.sp
-                                            )
-                                            sample.data?.toList()?.let { data ->
+                                                    .padding(horizontal = 15.dp)
+                                                    .fillMaxWidth()
+                                                    .wrapContentHeight(),
+                                                horizontalAlignment = Alignment.Start,
+                                                verticalArrangement = Arrangement.Bottom
+                                            ) {
+                                                items(sample.answers) { answer ->
+                                                    Spacer(modifier = Modifier.size(10.dp))
+                                                    NameAndValueField(
+                                                        fieldName = answer.field.name + ": ",
+                                                        fieldNameSize = 18.sp,
+                                                        fieldValue = answer.content,
+                                                        fieldValueSize = 18.sp
+                                                    )
+                                                }
+                                            }
+                                            sample.dynamicFields?.let { dynamicFields ->
                                                 LazyColumn(
                                                     modifier = Modifier
                                                         .padding(horizontal = 15.dp)
@@ -377,12 +393,12 @@ fun StageDetailScreen(
                                                     horizontalAlignment = Alignment.Start,
                                                     verticalArrangement = Arrangement.Bottom
                                                 ) {
-                                                    items(data) { value ->
+                                                    items(dynamicFields) { field ->
                                                         Spacer(modifier = Modifier.size(10.dp))
                                                         NameAndValueField(
-                                                            fieldName = value.first + ": ",
+                                                            fieldName = field.name + ": ",
                                                             fieldNameSize = 18.sp,
-                                                            fieldValue = value.second,
+                                                            fieldValue = field.value,
                                                             fieldValueSize = 18.sp
                                                         )
                                                     }

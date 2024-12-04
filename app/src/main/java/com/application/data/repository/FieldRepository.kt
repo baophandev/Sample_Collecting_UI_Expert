@@ -23,21 +23,16 @@ class FieldRepository(
      * Get all field of a form by formId.
      *
      */
-    fun getAllFields(
-        formId: String,
-        pageNumber: Int = 0,
-        pageSize: Int = 6
-    ): Flow<ResourceState<List<Field>>> {
+    fun getAllFields(formId: String): Flow<ResourceState<List<Field>>> {
         return flow<ResourceState<List<Field>>> {
 //            val fields = projectService.getAllField(formId, pageNumber, pageSize)
 //                .content.map(this@FieldRepository::mapResponseToField)           
-            val fields = projectService.getAllField(formId, pageNumber, pageSize)
+            val fields = projectService.getAllFields(formId)
                 .map(this@FieldRepository::mapResponseToField)
             cachedFields.putAll(fields.map { Pair(it.id, it) })
             emit(ResourceState.Success(fields))
         }.catch { exception ->
-            Log.e(TAG, exception.message ?: "Unknown exception")
-            Log.e(TAG, exception.stackTraceToString())
+            Log.e(TAG, exception.message, exception)
             emit(ResourceState.Error(message = "Cannot create a new form"))
         }
     }

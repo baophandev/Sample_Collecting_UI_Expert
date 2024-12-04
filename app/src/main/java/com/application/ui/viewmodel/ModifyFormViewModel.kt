@@ -148,7 +148,7 @@ class ModifyFormViewModel @Inject constructor(
             // chỗ này cập nhật thông tin của form, không bao gồm các field
             if (state.value.isFormUpdated)
                 updateFormToRepository(updatedForm = currentForm, successHandler = successHandler)
-            else if (currentState.addedFieldIds.isNotEmpty()) {
+            if (currentState.addedFieldIds.isNotEmpty()) {
                 // chỗ này kiểm tra các field được thêm
                 val addedFieldIds = currentState.addedFieldIds
                 val addedFields = currentFields.filter { addedFieldIds.contains(it.id) }
@@ -157,7 +157,8 @@ class ModifyFormViewModel @Inject constructor(
                     addedFields = addedFields,
                     successHandler = successHandler
                 )
-            } else if (currentState.updatedFieldIds.isNotEmpty()) {
+            }
+            if (currentState.updatedFieldIds.isNotEmpty()) {
                 // chỗ này kiểm tra các field được cập nhật
                 val updatedFieldIds = currentState.updatedFieldIds
                 val updatedFields = currentFields.filter { updatedFieldIds.contains(it.id) }
@@ -165,7 +166,8 @@ class ModifyFormViewModel @Inject constructor(
                     updatedFields = updatedFields,
                     successHandler = successHandler
                 )
-            } else if (currentState.deletedFieldIds.isNotEmpty()) {
+            }
+            if (currentState.deletedFieldIds.isNotEmpty()) {
                 // chỗ này kiểm tra các field bị xóa
                 val deletedFieldIds = currentState.deletedFieldIds
                 deleteFieldToRepository(

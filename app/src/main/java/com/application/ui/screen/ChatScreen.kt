@@ -54,6 +54,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -76,7 +77,7 @@ fun TopChatBar(
     route: () -> Unit
 ) {
     TopAppBar(modifier = modifier, colors = TopAppBarDefaults.topAppBarColors().copy(
-        containerColor = Color(50, 219, 137, 255)
+        containerColor = colorResource(id = R.color.main_green)
     ), title = {
         Text(
             text = title,

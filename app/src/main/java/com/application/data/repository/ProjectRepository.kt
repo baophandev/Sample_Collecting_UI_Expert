@@ -22,6 +22,7 @@ class ProjectRepository(
     private val attachmentRepository: AttachmentRepository
 ) {
     private val cachedProjects: MutableMap<String, Project> = mutableMapOf()
+
     /**
      * Create a new project.
      * @param thumbnail If it is not uploaded to server successfully, the creating process will be failed.
@@ -161,12 +162,23 @@ class ProjectRepository(
     fun deleteProject(
         projectId: String
     ): Flow<ResourceState<Boolean>> {
-        return flow<ResourceState<Boolean>>{
+        return flow<ResourceState<Boolean>> {
             val deleteResult = projectService.deleteProject(projectId = projectId)
             if (deleteResult) emit(ResourceState.Success(true))
         }.catch { exception ->
             Log.e(TAG, exception.message, exception)
             emit(ResourceState.Error(message = "Cannot delete project"))
+        }
+    }
+
+    fun isProjectOwner(userId: String, projectId: String): Flow<ResourceState<Boolean>> {
+        return flow {
+            when (val resourceState = getProject(projectId).last()) {
+                is ResourceState.Error ->
+                    emit(ResourceState.Error(message = "Cannot get the project to check"))
+                is ResourceState.Success ->
+                    emit(ResourceState.Success(resourceState.data.owner.id == userId))
+            }
         }
     }
 

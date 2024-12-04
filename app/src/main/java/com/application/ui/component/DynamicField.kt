@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.sp
 import com.application.R
 
 @Composable
-fun FlexField(
+fun DynamicField(
     modifier: Modifier = Modifier,
     isError: Boolean = false,
     fieldName: String,

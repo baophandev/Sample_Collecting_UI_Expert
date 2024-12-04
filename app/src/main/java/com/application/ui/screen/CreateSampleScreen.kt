@@ -49,9 +49,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
+import com.application.constant.UiStatus
 import com.application.ui.component.BlockField
 import com.application.ui.component.CustomButton
-import com.application.ui.component.FlexField
+import com.application.ui.component.DynamicField
 import com.application.ui.component.LoadingScreen
 import com.application.ui.viewmodel.CreateSampleViewModel
 
@@ -59,11 +60,8 @@ import com.application.ui.viewmodel.CreateSampleViewModel
 @Composable
 fun CreateSampleScreen(
     viewModel: CreateSampleViewModel = hiltViewModel(),
-    isProjectOwner: Boolean,
-    projectId: String,
     stageId: String,
-    sampleImage: Pair<String, Uri>,
-    formFields: List<String>? = null,
+    newSample: Pair<String, Uri>,
     navigateToCapture: (String?) -> Unit,
     navigateToHome: () -> Unit
 ) {
@@ -82,11 +80,11 @@ fun CreateSampleScreen(
         )
     )
 
-    if (state.blockFields.isEmpty() && formFields != null)
-        formFields.forEach { state.blockFields.add(Pair(it, "")) }
-    else if (state.loading) LoadingScreen(text = stringResource(id = R.string.saving_sample))
-    else {
-        Box {
+    when (state.status) {
+        UiStatus.INIT -> viewModel.loadForm(stageId)
+        UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
+        UiStatus.ERROR -> TODO()
+        UiStatus.SUCCESS -> Box {
             BottomSheetScaffold(
                 scaffoldState = scaffoldState,
                 sheetPeekHeight = 600.dp,
@@ -99,14 +97,15 @@ fun CreateSampleScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Top
                     ) {
-                        state.blockFields.forEachIndexed { index, data ->
+                        state.fields.forEachIndexed { index, data ->
                             Row(
                                 modifier = Modifier.padding(bottom = 8.dp)
                             ) {
                                 BlockField(
-                                    fieldName = data.first,
+                                    fieldName = data.name,
                                     onValueChange = {
-                                        state.blockFields[index] = data.copy(second = it)
+//                                        state.fields[index] = data.copy(second = it)
+                                        TODO("Change field value")
                                     }
                                 )
                             }
@@ -121,7 +120,7 @@ fun CreateSampleScreen(
                                 modifier = Modifier
                                     .padding(0.dp)
                                     .size(50.dp),
-                                onClick = { state.flexFields.add(Pair("", "")) }
+                                onClick = { TODO("Add a dynamic field") }
                             ) {
                                 Icon(
                                     modifier = Modifier.fillMaxSize(),
@@ -131,21 +130,21 @@ fun CreateSampleScreen(
                                 )
                             }
                         }
-                        state.flexFields.forEachIndexed { index, data ->
+                        state.dynamicFields.forEachIndexed { index, data ->
                             Row(
                                 modifier = Modifier.padding(bottom = 8.dp)
                             ) {
-                                FlexField(
-                                    fieldName = data.first,
+                                DynamicField(
+                                    fieldName = data.name,
                                     onFieldNameChange = { fieldName ->
-                                        state.flexFields[index] = data.copy(first = fieldName)
+                                        TODO("Change a dynamic field name")
                                     },
-                                    fieldValue = data.second,
+                                    fieldValue = data.value,
                                     onFieldValueChange = { fieldValue ->
-                                        state.flexFields[index] = data.copy(second = fieldValue)
+                                        TODO("Change a dynamic field value")
                                     },
                                     onDeleteClicked = {
-                                        state.flexFields.removeAt(index)
+                                        TODO("Remove a dynamic field")
                                     }
                                 )
                             }
@@ -178,7 +177,7 @@ fun CreateSampleScreen(
             ) { _ ->
                 Box(modifier = Modifier.fillMaxSize()) {
                     AsyncImage(
-                        model = ImageRequest.Builder(context).data(sampleImage.second).build(),
+                        model = ImageRequest.Builder(context).data(newSample.second).build(),
                         contentDescription = "Sample Image",
                         modifier = Modifier
                             .fillMaxWidth()
@@ -219,10 +218,8 @@ fun CreateSampleScreen(
                     border = BorderStroke(0.dp, Color.Transparent),
                     action = {
                         viewModel.submitSample(
-                            isProjectOwner = isProjectOwner,
-                            projectId = projectId,
                             stageId = stageId,
-                            sampleImage = sampleImage,
+                            sampleImage = newSample,
                             result = navigateToCapture,
                             isCancelled = {
                                 Toast.makeText(context, cannotCreateSample, Toast.LENGTH_SHORT)

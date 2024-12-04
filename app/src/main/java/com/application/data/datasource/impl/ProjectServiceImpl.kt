@@ -66,7 +66,7 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         projectId: String,
         updateRequestData: UpdateProjectRequest
     ): Boolean {
-        val response = client.patch(urlString = "project/$projectId"){
+        val response = client.patch(urlString = "project/$projectId") {
             contentType(ContentType.Application.Json)
             setBody(updateRequestData)
         }
@@ -109,7 +109,7 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         stageId: String,
         updateRequestData: UpdateStageRequest
     ): Boolean {
-        val response = client.patch(urlString = "stage/$stageId"){
+        val response = client.patch(urlString = "stage/$stageId") {
             contentType(ContentType.Application.Json)
             setBody(updateRequestData)
         }
@@ -149,7 +149,7 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
     }
 
     override suspend fun updateForm(formId: String, updateRequestData: UpdateFormRequest): Boolean {
-        val response = client.patch(urlString = "form/$formId"){
+        val response = client.patch(urlString = "form/$formId") {
             contentType(ContentType.Application.Json)
             setBody(updateRequestData)
         }
@@ -164,30 +164,20 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
 
     //Field
     override suspend fun createField(formId: String, body: CreateFieldRequest): String {
-        return client.post("field/$formId"){
+        return client.post("field/$formId") {
             setBody(body)
         }.body()
     }
 
     override suspend fun createDynamicField(sampleId: String, body: CreateFieldRequest): String {
-        return client.post("field/$sampleId/dynamic"){
+        return client.post("field/$sampleId/dynamic") {
             setBody(body)
         }.body()
     }
 
-    override suspend fun getAllField(
-        formId: String,
-        pageNumber: Int,
-        pageSize: Int
-    ): List<FieldResponse> {
-        return client.get(urlString = "field/$formId/form") {
-            url {
-                parameters {
-                    append("pageNumber", "$pageNumber")
-                    append("pageSize", "$pageSize")
-                }
-            }
-        }.body()
+    override suspend fun getAllFields(formId: String): List<FieldResponse> {
+        return client.get(urlString = "field/$formId/form")
+            .body()
     }
 
     override suspend fun getField(formId: String): FieldResponse {
@@ -198,7 +188,7 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         fieldId: String,
         updateRequestData: UpdateFieldRequest
     ): Boolean {
-        val response = client.patch(urlString = "field/$fieldId"){
+        val response = client.patch(urlString = "field/$fieldId") {
             contentType(ContentType.Application.Json)
             setBody(updateRequestData)
         }
@@ -224,10 +214,13 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
 
     //Sample
     override suspend fun createSample(body: CreateSampleRequest): String {
-        TODO("Not yet implemented")
+        return client.post("sample") {
+            setBody(body)
+        }.body()
     }
 
     override suspend fun getSample(sampleId: String): SampleResponse {
-        TODO("Not yet implemented")
+        return client.get(urlString = "sample/$sampleId")
+            .body()
     }
 }

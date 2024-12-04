@@ -5,4 +5,13 @@ data class Field(
     val numberOrder: Int,
     val name: String,
     val formId: String
-)
+) {
+    companion object {
+        val ERROR_FIELD = Field(
+            id = "error-field",
+            numberOrder = Int.MAX_VALUE,
+            name = "Error field",
+            formId = "no-form-id"
+        )
+    }
+}

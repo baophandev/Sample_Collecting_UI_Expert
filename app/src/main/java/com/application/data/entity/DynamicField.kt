@@ -1,6 +1,6 @@
-package com.application.data.entity.response
+package com.application.data.entity
 
-data class DynamicFieldResponse(
+data class DynamicField(
     val id: String,
     val name: String,
     val value: String,

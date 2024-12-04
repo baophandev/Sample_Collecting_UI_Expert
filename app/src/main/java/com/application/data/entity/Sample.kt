@@ -1,11 +1,16 @@
 package com.application.data.entity
 
-/**
- * @param data Map.Entry(fieldName, fieldValue)
- */
+import android.net.Uri
+import java.sql.Timestamp
+
 data class Sample(
     val id: String,
-    var writtenBy: String? = null,
-    var data: Map<String, String>? = null,
-    var projectId: String,
+    val image: Uri? = null,
+    val position: String? = null,
+    val createdAt: Timestamp,
+    val projectId: String,
+    val stageId: String,
+    val answers: List<Answer>,
+    val dynamicFields: List<DynamicField>? = null,
+//    val writtenBy: String? = null,
 )

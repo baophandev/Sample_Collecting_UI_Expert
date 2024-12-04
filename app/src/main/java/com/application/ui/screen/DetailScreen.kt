@@ -65,7 +65,7 @@ import com.application.ui.component.TopNavigationBar
 import com.application.ui.viewmodel.DetailViewModel
 
 internal enum class DetailScreenSwitchState { DETAIL, STAGES, FORMS }
-internal enum class AlertType { CREATE_NEW_PROJECT, DELETE, ADD_FORM, NONE }
+internal enum class AlertType { CREATE_NEW_PROJECT, DELETE, ADD_FORM, NONE, CANNOT_DELETE_FORM }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,11 +105,13 @@ fun DetailScreen(
                     projectId = projectId,
                     successHandler = onReloadSuccessfully
                 )
+
             ReloadSignal.RELOAD_FORM ->
                 viewModel.getForms(
                     projectId = projectId,
                     successHandler = onReloadSuccessfully
                 )
+
             ReloadSignal.RELOAD_PROJECT ->
                 viewModel.loadProject(
                     projectId = projectId,
@@ -140,6 +142,12 @@ fun DetailScreen(
                         R.string.modify_project,
                         R.string.modify_project_description,
                         R.string.create_project
+                    )
+
+                    AlertType.CANNOT_DELETE_FORM -> arrayOf(
+                        R.string.cannot_delete_form,
+                        R.string.cannot_delete_form_description,
+                        R.string.cannot_delete_form_submit
                     )
 
                     AlertType.DELETE -> arrayOf(
@@ -268,7 +276,6 @@ fun DetailScreen(
 
                                     DetailScreenSwitchState.FORMS ->
                                         FormTab(
-                                            userId = userId,
                                             status = state.formStatus,
                                             error = state.formError?.let { stringResource(id = it) },
                                             forms = state.forms,
@@ -278,14 +285,16 @@ fun DetailScreen(
                                                     successHandler = null
                                                 )
                                             },
-                                            onFormClick = { formId ->
-                                                formId?.let(navigateToModifyForm)
+                                            onFormModifyClick = { formId ->
+                                                if(state.project?.owner?.id == userId) {
+                                                    formId?.let(navigateToModifyForm)
+                                                }
                                             },
                                             onFormDeleteClicked = { formId ->
-                                                if (formId != null) {
+                                                if (formId != null && !viewModel.isFormUsed(formId)) {
                                                     viewModel.deleteForm(formId = formId)
                                                 } else {
-                                                    alertType = AlertType.CREATE_NEW_PROJECT
+                                                    alertType = AlertType.CANNOT_DELETE_FORM
                                                 }
                                             }
                                         )
@@ -495,13 +504,12 @@ fun StageTab(
 @OptIn(ExperimentalFoundationApi::class)
 fun FormTab(
     modifier: Modifier = Modifier,
-    userId: String,
     status: UiStatus,
     error: String? = null,
     forms: List<Form>,
     onRefreshClick: () -> Unit,
-    onFormClick: (String?) -> Unit,
-    onFormDeleteClicked: (String?) -> Unit
+    onFormModifyClick: (String) -> Unit,
+    onFormDeleteClicked: (String) -> Unit
 ) {
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
@@ -534,12 +542,10 @@ fun FormTab(
                         .padding(horizontal = 10.dp)
                         .fillMaxWidth(),
                     onModifyClicked = {
-                        val formId = if (form.projectOwnerId == userId) form.id else null
-                        onFormClick(formId)
+                        onFormModifyClick(form.id)
                     },
                     onDeleteClicked = {
-                        val formId = if (form.projectOwnerId == userId) form.id else null
-                        onFormDeleteClicked(formId)
+                        onFormDeleteClicked(form.id)
                     }
                 )
             }

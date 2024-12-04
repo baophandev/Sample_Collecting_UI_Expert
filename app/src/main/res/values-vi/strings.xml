@@ -87,6 +87,9 @@
     <string name="stage_not_exist">Đợt đang làm việc không còn tồn tại</string>
     <string name="create_sample_cancel">Không thể tạo mẫu bởi vì dự án đang làm việc không tồn tại</string>
     <string name="not_in_stage">Bạn không phải thành viên của đợt này</string>
+    <string name="cannot_delete_form">Không thể xóa biểu mẫu</string>
+    <string name="cannot_delete_form_description">Không thể xóa vì biểu mẫu đang được sử dụng</string>
+    <string name="cannot_delete_form_submit">Thoát</string>
 
     <string name="login_button">Đăng nhập</string>
     <string name="register_button">Đăng ký</string>

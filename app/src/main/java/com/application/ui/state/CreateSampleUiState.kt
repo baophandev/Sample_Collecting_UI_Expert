@@ -1,12 +1,15 @@
 package com.application.ui.state
 
 import androidx.annotation.StringRes
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
+import com.application.constant.UiStatus
+import com.application.data.entity.DynamicField
+import com.application.data.entity.Field
+import com.application.data.entity.Form
 
 data class CreateSampleUiState(
-    val blockFields: SnapshotStateList<Pair<String, String>> = mutableStateListOf(),
-    val flexFields: SnapshotStateList<Pair<String, String>> = mutableStateListOf(),
-    val loading: Boolean = false,
+    val formId: String? = null,
+    val fields: List<Field> = listOf(),
+    val dynamicFields: List<DynamicField> = listOf(),
+    val status: UiStatus = UiStatus.INIT,
     @StringRes val error: Int? = null,
 )

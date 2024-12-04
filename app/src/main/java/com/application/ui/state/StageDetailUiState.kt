@@ -9,6 +9,7 @@ import com.application.data.entity.Stage
 
 data class StageDetailUiState(
     val status: UiStatus = UiStatus.INIT,
+    val isProjectOwner: Boolean = true,
     val error: String? = null,
     val imageUris: SnapshotStateList<Pair<String, Uri>> = mutableStateListOf(), // nho sua cho nay nhe ban TODO()
     val sample: Sample? = null, // moi lan hien 1 sample

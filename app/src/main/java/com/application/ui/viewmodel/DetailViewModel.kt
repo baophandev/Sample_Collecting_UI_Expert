@@ -2,12 +2,12 @@ package com.application.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.application.android.utility.state.ResourceState
 import com.application.constant.UiStatus
 import com.application.data.repository.FormRepository
 import com.application.data.repository.ProjectRepository
 import com.application.data.repository.StageRepository
 import com.application.ui.state.DetailUiState
-import com.application.android.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,10 +52,10 @@ class DetailViewModel @Inject constructor(
 
     fun deleteProject(
         projectId: String,
-        projectOwnerId:String? = null,
+        projectOwnerId: String? = null,
         successHandler: () -> Unit
     ) {
-        if (projectOwnerId.isNullOrEmpty()){
+        if (projectOwnerId.isNullOrEmpty()) {
             _state.update { it.copy(status = UiStatus.ERROR) }
             return
         }
@@ -130,27 +130,30 @@ class DetailViewModel @Inject constructor(
         }
     }
 
-    fun deleteForm(
-        formId: String,
-        //stageId:String,
-        successHandler: (() -> Unit)? = null) {
+    fun deleteForm(formId: String) {
         _state.update { it.copy(status = UiStatus.LOADING) }
         viewModelScope.launch(Dispatchers.IO) {
+            formRepository.deleteForm(formId).collectLatest { resourceState ->
+                when (resourceState) {
+                    is ResourceState.Success -> {
+                        val currentForms = state.value.forms.toMutableList()
+                        currentForms.removeIf { it.id == formId }
+                        _state.update { it.copy(status = UiStatus.SUCCESS, forms = currentForms) }
+                    }
 
-                formRepository.deleteForm(formId).collectLatest { resourceState ->
-                    when (resourceState) {
-                        is ResourceState.Success -> {
-                            viewModelScope.launch { successHandler?.let { successHandler() } }
-                        }
-
-                        is ResourceState.Error -> {
-                            val error = resourceState.resId
-                            _state.update { it.copy(status = UiStatus.ERROR, error = error) }
-                        }
+                    is ResourceState.Error -> {
+                        val error = resourceState.resId
+                        _state.update { it.copy(status = UiStatus.ERROR, error = error) }
                     }
                 }
             }
+        }
 
+    }
+
+    fun isFormUsed(formId: String): Boolean {
+        // Kiểm tra xem stage nào có sử dụng formId này
+        return state.value.stages.any { it.formId == formId }
     }
 
 

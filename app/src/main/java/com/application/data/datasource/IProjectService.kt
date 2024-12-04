@@ -72,11 +72,7 @@ interface IProjectService {
     //Field of Form
     suspend fun createField(formId: String, body: CreateFieldRequest): String
     suspend fun createDynamicField(sampleId: String, body: CreateFieldRequest): String
-    suspend fun getAllField(
-        formId: String,
-        pageNumber: Int = 0,
-        pageSize: Int = 6
-    ): List<FieldResponse>
+    suspend fun getAllFields(formId: String): List<FieldResponse>
 
     suspend fun getField(formId: String): FieldResponse
     suspend fun updateField(
