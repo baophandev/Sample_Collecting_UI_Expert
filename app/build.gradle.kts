@@ -90,7 +90,6 @@ dependencies {
     implementation(libs.ktor.serialization.gson)
     implementation(libs.rxjava)
     implementation(libs.rxandroid)
-    implementation(libs.stompprotocolandroid)
 
     kapt(libs.hilt.android.compiler)
     implementation(libs.hilt.android)
@@ -104,6 +103,7 @@ dependencies {
 
     implementation(project(":app:utility"))
     implementation(project(":app:chat-library"))
+    implementation(project(":app:user-library"))
 }
 
 kapt {

@@ -2,11 +2,11 @@ package com.application.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.application.android.user_library.repository.UserRepository
 import com.application.android.utility.state.ResourceState
 import com.application.constant.UiStatus
 import com.application.data.repository.ProjectRepository
 import com.application.data.repository.StageRepository
-import com.application.data.repository.UserRepository
 import com.application.ui.state.StageDetailUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +29,7 @@ class StageDetailViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     fun loadStage(stageId: String) {
-        val loggedUser = userRepository.getLoggedUser() ?: throw Error("User doesn't log in.")
+        val loggedUser = userRepository.loggedUser ?: throw Error("User doesn't log in.")
 
         viewModelScope.launch(Dispatchers.IO) {
             stageRepository.getStage(stageId).collectLatest { resourceState ->
@@ -69,7 +69,7 @@ class StageDetailViewModel @Inject constructor(
     }
 
     fun deleteStage(projectOwnerId: String, stageId: String, successHandler: () -> Unit) {
-        if (projectOwnerId.isNullOrEmpty()) {
+        if (projectOwnerId.isEmpty()) {
             _state.update { it.copy(status = UiStatus.ERROR) }
             return
         }

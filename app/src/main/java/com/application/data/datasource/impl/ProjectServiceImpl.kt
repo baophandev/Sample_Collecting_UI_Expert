@@ -1,5 +1,6 @@
 package com.application.data.datasource.impl
 
+import com.application.android.utility.client.response.PagingResponse
 import com.application.constant.ProjectQueryType
 import com.application.constant.ProjectStatus
 import com.application.constant.ServiceHost
@@ -15,7 +16,6 @@ import com.application.data.entity.request.UpdateProjectRequest
 import com.application.data.entity.request.UpdateStageRequest
 import com.application.data.entity.response.FieldResponse
 import com.application.data.entity.response.FormResponse
-import com.application.data.entity.response.PagingResponse
 import com.application.data.entity.response.ProjectResponse
 import com.application.data.entity.response.SampleResponse
 import com.application.data.entity.response.StageResponse

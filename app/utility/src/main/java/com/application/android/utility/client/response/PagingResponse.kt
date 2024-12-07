@@ -1,4 +1,4 @@
-package com.application.data.entity.response
+package com.application.android.utility.client.response
 
 data class PagingResponse<T>(
     val totalPages: Int,

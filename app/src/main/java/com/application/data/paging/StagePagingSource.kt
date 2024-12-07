@@ -1,24 +1,17 @@
 package com.application.data.paging
 
-import android.net.Uri
 import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.application.android.utility.state.ResourceState
 import com.application.data.datasource.IProjectService
-import com.application.data.entity.Project
 import com.application.data.entity.Stage
-import com.application.data.entity.response.ProjectResponse
-import com.application.data.repository.AttachmentRepository
-import com.application.data.repository.UserRepository
+import com.application.data.entity.response.StageResponse
 import io.ktor.client.plugins.ClientRequestException
-import kotlinx.coroutines.flow.last
 import java.io.IOException
 
 class StagePagingSource(
+    private val projectId: String,
     private val projectService: IProjectService,
-    private val userRepository: UserRepository,
-    private val attachmentRepository: AttachmentRepository
 ) : PagingSource<Int, Stage>() {
 
     override fun getRefreshKey(state: PagingState<Int, Stage>): Int? {
@@ -33,19 +26,17 @@ class StagePagingSource(
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Stage> {
         val nextPageNumber = params.key ?: 0
-        val user = userRepository.getLoggedUser()
-            ?: return LoadResult.Error(Exception("Cannot get projects because of user not logged in"))
         try {
-            val response = projectService.getAllProjects(
-                userId = user.id,
+            val response = projectService.getAllStages(
+                projectId = projectId,
                 pageNumber = nextPageNumber,
                 pageSize = params.loadSize
             )
 
-            val projects = response.content.map { mapResponseToProject(it) }
+            val stages = response.content.map { mapResponseToProject(it) }
             val nextKey = if (!response.last) nextPageNumber + 1 else null
             return LoadResult.Page(
-                data = listOf(),
+                data = stages,
                 prevKey = null, // Only paging forward.
                 nextKey = nextKey
             )
@@ -58,28 +49,20 @@ class StagePagingSource(
         }
     }
 
-    private suspend fun mapResponseToProject(response: ProjectResponse): Project {
-        val ownerState = userRepository.getUser(response.ownerId).last()
-        val owner = if (ownerState is ResourceState.Success)
-            ownerState.data else UserRepository.DEFAULT_USER.copy()
-        val atmState = if (response.thumbnailId != null)
-            attachmentRepository.getAttachment(response.thumbnailId).last() else null
-        val thumbnailUrl = if (atmState is ResourceState.Success)
-            atmState.data.url else null
-
-        return Project(
+    private fun mapResponseToProject(response: StageResponse): Stage {
+        return Stage(
             id = response.id,
-            thumbnail = if (thumbnailUrl != null) Uri.parse(thumbnailUrl) else null,
             name = response.name,
             description = response.description,
+            projectOwnerId = response.projectOwnerId,
             startDate = response.startDate,
             endDate = response.endDate,
-            owner = owner
+            formId = response.formId
         )
     }
 
     companion object {
-        const val TAG = "ProjectPagingSource"
+        const val TAG = "StagePagingSource"
     }
 
 }

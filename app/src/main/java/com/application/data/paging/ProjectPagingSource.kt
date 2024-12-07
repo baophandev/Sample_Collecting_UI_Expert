@@ -4,15 +4,13 @@ import android.net.Uri
 import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import com.application.android.user_library.repository.UserRepository
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Project
 import com.application.data.entity.response.ProjectResponse
 import com.application.data.repository.AttachmentRepository
-import com.application.data.repository.UserRepository
 import com.application.android.utility.state.ResourceState
-import io.ktor.client.plugins.ClientRequestException
 import kotlinx.coroutines.flow.last
-import java.io.IOException
 
 class ProjectPagingSource(
     private val projectService: IProjectService,
@@ -32,7 +30,7 @@ class ProjectPagingSource(
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Project> {
         val nextPageNumber = params.key ?: 0
-        val user = userRepository.getLoggedUser()
+        val user = userRepository.loggedUser
             ?: return LoadResult.Error(Exception("Cannot get projects because of user not logged in"))
         try {
             val response = projectService.getAllProjects(
@@ -48,19 +46,23 @@ class ProjectPagingSource(
                 prevKey = null, // Only paging forward.
                 nextKey = nextKey
             )
-        } catch (e: IOException) {
-            Log.e(TAG, e.message, e)
-            return LoadResult.Error(e)
-        } catch (e: ClientRequestException) {
+        } catch (e: Exception) {
             Log.e(TAG, e.message, e)
             return LoadResult.Error(e)
         }
+//        catch (e: IOException) {
+//            Log.e(TAG, e.message, e)
+//            return LoadResult.Error(e)
+//        } catch (e: ClientRequestException) {
+//            Log.e(TAG, e.message, e)
+//            return LoadResult.Error(e)
+//        }
     }
 
     private suspend fun mapResponseToProject(response: ProjectResponse): Project {
         val ownerState = userRepository.getUser(response.ownerId).last()
         val owner = if (ownerState is ResourceState.Success)
-            ownerState.data else UserRepository.DEFAULT_USER.copy()
+            ownerState.data else throw Error("Cannot get project owner data.")
         val atmState = if (response.thumbnailId != null)
             attachmentRepository.getAttachment(response.thumbnailId).last() else null
         val thumbnailUrl = if (atmState is ResourceState.Success)

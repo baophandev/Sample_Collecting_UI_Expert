@@ -6,10 +6,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
+import com.application.android.user_library.repository.UserRepository
 import com.application.data.paging.ProjectPagingSource
 import com.application.data.datasource.IProjectService
 import com.application.data.repository.AttachmentRepository
-import com.application.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.catch
 import javax.inject.Inject

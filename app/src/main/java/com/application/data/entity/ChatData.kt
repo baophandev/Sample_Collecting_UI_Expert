@@ -1,4 +1,4 @@
-package com.application.ui.state
+package com.application.data.entity
 
 import android.graphics.Bitmap
 

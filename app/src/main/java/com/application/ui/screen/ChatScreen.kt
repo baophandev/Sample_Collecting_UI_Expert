@@ -66,7 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.application.R
-import com.application.ui.state.ChatData
+import com.application.data.entity.ChatData
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)

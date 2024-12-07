@@ -18,3 +18,4 @@ rootProject.name = "Sample Collecting Application"
 include(":app")
 include(":app:chat-library")
 include(":app:utility")
+include(":app:user-library")

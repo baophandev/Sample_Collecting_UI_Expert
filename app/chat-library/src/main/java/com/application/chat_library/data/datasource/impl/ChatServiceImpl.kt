@@ -24,11 +24,13 @@ import kotlinx.coroutines.runBlocking
 import ua.naiksoftware.stomp.Stomp
 import ua.naiksoftware.stomp.StompClient
 
-class ChatServiceImpl : IChatService, AbstractClient() {
+class ChatServiceImpl(
+    private val baseUrl: String
+) : IChatService, AbstractClient() {
 
-    private val client = getClient("http://10.0.2.2:8081/api/v1/chat/")
+//    private val client = getClient("http://10.0.2.2:8081/api/v1/chat/")
+    private val client = getClient(baseUrl)
 
-    //    private val client = getClient("http://${ServiceHost.GATEWAY_SERVER}/api/file/")
     private var stompClient: StompClient
     private var publishDest: String
     private var subscribeConversationDest: String

@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.last
+import com.application.android.user_library.repository.UserRepository
 
 class ProjectRepository(
     private val projectService: IProjectService,
@@ -142,7 +143,7 @@ class ProjectRepository(
     private suspend fun mapResponseToProject(response: ProjectResponse): Project {
         val ownerState = userRepository.getUser(response.ownerId).last()
         val owner = if (ownerState is ResourceState.Success)
-            ownerState.data else UserRepository.DEFAULT_USER.copy()
+            ownerState.data else throw Error("Cannot get project owner data.")
         val atmState = if (response.thumbnailId != null)
             attachmentRepository.getAttachment(response.thumbnailId).last() else null
         val thumbnailUrl = if (atmState is ResourceState.Success)
@@ -176,6 +177,7 @@ class ProjectRepository(
             when (val resourceState = getProject(projectId).last()) {
                 is ResourceState.Error ->
                     emit(ResourceState.Error(message = "Cannot get the project to check"))
+
                 is ResourceState.Success ->
                     emit(ResourceState.Success(resourceState.data.owner.id == userId))
             }

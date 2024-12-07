@@ -2,10 +2,10 @@ package com.application.data.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import com.application.android.user_library.repository.UserRepository
 import com.application.chat_library.data.datasource.IChatService
 import com.application.chat_library.data.entity.ChatConversation
 import com.application.chat_library.data.entity.response.ChatConversationResponse
-import com.application.data.repository.UserRepository
 import java.sql.Timestamp
 
 class ChatConversationPagingSource(
@@ -25,7 +25,7 @@ class ChatConversationPagingSource(
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ChatConversation> {
         val nextPageNumber = params.key ?: 0
-        val user = userRepository.getLoggedUser()
+        val user = userRepository.loggedUser
             ?: return LoadResult.Error(Exception("Cannot get conversations because of user not logged in"))
         val response = chatService.getAllConversations(
             userId = user.id,
