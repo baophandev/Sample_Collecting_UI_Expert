@@ -9,5 +9,6 @@ data class ModifyProjectUiState(
     @StringRes val error: Int? = null,
     val project: Project? = null,
     val memberUsernames: List<String> = listOf(),
-    val isUpdated: Boolean = false
+    val isUpdated: Boolean = false,
+    val isThumbnailUpdated: Boolean = false
 )

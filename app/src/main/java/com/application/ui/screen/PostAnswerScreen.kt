@@ -335,9 +335,10 @@ fun ImagesInPostAnswerScreen(posts: PostAnswerData) {
     )
 }
 
-@Preview(heightDp = 800, widthDp = 400, showBackground = true)
 @Composable
-fun PostAnswerScreenPreview() {
+fun PostAnswerScreen(
+    navigateToWorkersQuestionScreen: () -> Unit
+) {
     Scaffold(
         topBar = {
             Spacer(
@@ -350,7 +351,7 @@ fun PostAnswerScreenPreview() {
         },
         bottomBar = {
             Button(
-                onClick = { /*TODO*/ },
+                onClick = navigateToWorkersQuestionScreen,
                 colors = ButtonColors(
                     containerColor = Color(0xFF007e2f),
                     contentColor = Color.White,

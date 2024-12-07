@@ -46,7 +46,8 @@ class ModifyProjectViewModel @Inject constructor(
         _state.update {
             it.copy(
                 project = currentProject?.copy(thumbnail = thumbnail),
-                isUpdated = true
+                isUpdated = true,
+                isThumbnailUpdated = true
             )
         }
     }
@@ -89,7 +90,7 @@ class ModifyProjectViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             repository.updateProject(
                 projectId = currentProject.id,
-                thumbnail = currentProject.thumbnail,
+                thumbnail = if (state.value.isThumbnailUpdated) currentProject.thumbnail else null,
                 name = currentProject.name,
                 description = currentProject.description,
                 startDate = currentProject.startDate,

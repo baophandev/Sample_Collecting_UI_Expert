@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.application.R
 import com.application.android.utility.state.ResourceState
 import com.application.constant.UiStatus
+import com.application.data.entity.Answer
 import com.application.data.repository.FieldRepository
 import com.application.data.repository.StageRepository
 import com.application.ui.state.CreateSampleUiState
@@ -49,7 +50,9 @@ class CreateSampleViewModel @Inject constructor(
                                         it.copy(
                                             status = UiStatus.SUCCESS,
                                             formId = formId,
-                                            fields = fieldResourceState.data
+                                            answers = fieldResourceState.data.map { field ->
+                                                Answer(content = "", field = field)
+                                            }
                                         )
                                     }
                                 else _state.update {
@@ -64,6 +67,10 @@ class CreateSampleViewModel @Inject constructor(
 
     fun gotError() {
         _state.update { it.copy(error = null) }
+    }
+
+    fun updateDataOfField(data: String) {
+        _state.update { it.copy() }
     }
 
     fun submitSample(
@@ -88,5 +95,27 @@ class CreateSampleViewModel @Inject constructor(
     private fun validate(): Boolean {
 //        return state.value.fields.all { it..isNotBlank() }
         return true
+    }
+
+    fun updateAnswer(index: Int, newValue: String) {
+        val currentAnswers = state.value.answers.toMutableList()
+        if (index >= currentAnswers.size) return
+
+        val newAnswer = currentAnswers[index].copy(content = newValue)
+        currentAnswers.removeAt(index)
+        currentAnswers.add(index, newAnswer)
+        _state.update { it.copy(answers = currentAnswers) }
+    }
+
+    fun updateDynamicFieldName(index: Int, fieldName: String) {
+        TODO("Not yet implemented")
+    }
+
+    fun updateDynamicFieldValue(index: Int, fieldValue: String) {
+        TODO("Not yet implemented")
+    }
+
+    fun deleteDynamicField(index: Int) {
+        TODO("Not yet implemented")
     }
 }

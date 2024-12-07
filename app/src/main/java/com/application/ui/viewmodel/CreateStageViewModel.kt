@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -69,11 +70,8 @@ class CreateStageViewModel @Inject constructor(
         _state.update { it.copy(selectedForm = Pair(form.id, form.title)) }
     }
 
-    fun submitStage(projectId: String, formId: String, successHandler: () -> Unit) {
+    fun submitStage(projectId: String, formId: String, successHandler: (Boolean) -> Unit) {
         if (!validateFields()) return
-
-        _state.update { it.copy(status = UiStatus.LOADING) }
-
         val currentState = state.value
 
         val collectAction: (ResourceState<String>) -> Unit = { resourceState ->
@@ -84,7 +82,7 @@ class CreateStageViewModel @Inject constructor(
 
                 is ResourceState.Success -> {
                     _state.update { it.copy(status = UiStatus.SUCCESS) }
-                    viewModelScope.launch { successHandler() }
+                    viewModelScope.launch { successHandler(true) }
                 }
             }
         }

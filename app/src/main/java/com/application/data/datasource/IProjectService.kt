@@ -52,6 +52,7 @@ interface IProjectService {
         stageId: String,
         updateRequestData: UpdateStageRequest
     ): Boolean
+
     suspend fun deleteStage(stageId: String): Boolean
 
     //Form of Stage
@@ -67,6 +68,7 @@ interface IProjectService {
         formId: String,
         updateRequestData: UpdateFormRequest
     ): Boolean
+
     suspend fun deleteForm(formId: String): Boolean
 
     //Field of Form
@@ -79,6 +81,7 @@ interface IProjectService {
         fieldId: String,
         updateRequestData: UpdateFieldRequest
     ): Boolean
+
     suspend fun deleteField(fieldId: String): Boolean
     suspend fun deleteDynamicField(fieldId: String): Boolean
     suspend fun updateFieldDynamic(
@@ -89,4 +92,16 @@ interface IProjectService {
     // Sample of Stage
     suspend fun createSample(body: CreateSampleRequest): String
     suspend fun getSample(sampleId: String): SampleResponse
+    suspend fun deleteSample(sampleId: String): Boolean
+    suspend fun getAllSamplesOfStage(
+        stageId: String,
+        pageNumber: Int = 0,
+        pageSize: Int = 6
+    ): List<SampleResponse>
+
+    suspend fun getAllSamplesOfProject(
+        projectId: String,
+        pageNumber: Int = 0,
+        pageSize: Int = 6
+    ): List<SampleResponse>
 }

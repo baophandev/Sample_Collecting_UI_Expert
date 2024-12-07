@@ -139,7 +139,7 @@ fun CreateProjectScreen(
             ) {
                 Card(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(.95f)
                         .height(180.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = Color.LightGray
@@ -174,7 +174,7 @@ fun CreateProjectScreen(
 
                 CustomTextField(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(.95f)
                         .height(60.dp),
                     placeholder = { Text(text = stringResource(id = R.string.add_title)) },
                     singleLine = true,
@@ -184,7 +184,7 @@ fun CreateProjectScreen(
 
                 CustomTextField(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(.95f)
                         .height(100.dp),
                     placeholder = { Text(text = stringResource(id = R.string.add_description)) },
                     value = state.description,
@@ -192,7 +192,7 @@ fun CreateProjectScreen(
                 )
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(.95f),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     CustomDatePicker(
@@ -213,7 +213,7 @@ fun CreateProjectScreen(
                 )
 
                 CustomButton(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(.95f),
                     text = stringResource(id = R.string.submit),
                     textSize = 20.sp,
                     background = colorResource(id = R.color.main_green),

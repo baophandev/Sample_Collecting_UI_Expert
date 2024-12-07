@@ -100,7 +100,7 @@ fun ModifyFormScreen(
                 state.form?.let {
                     CustomTextField(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxWidth(.95f)
                             .height(60.dp),
                         placeholder = { Text(text = stringResource(id = R.string.add_title)) },
                         singleLine = true,
@@ -110,7 +110,7 @@ fun ModifyFormScreen(
                 }
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(.95f)
                         .padding(vertical = 10.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
@@ -136,7 +136,7 @@ fun ModifyFormScreen(
                 LazyColumn(
                     modifier = Modifier
                         .padding(vertical = 5.dp)
-                        .fillMaxWidth()
+                        .fillMaxWidth(.95f)
                         .height(490.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
@@ -159,7 +159,7 @@ fun ModifyFormScreen(
                 ) {
                     CustomButton(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxWidth(.95f)
                             .padding(horizontal = 25.dp, vertical = 10.dp)
                             .height(50.dp),
                         text = stringResource(id = R.string.save_button),

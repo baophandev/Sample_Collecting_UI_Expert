@@ -33,7 +33,7 @@ class FieldRepository(
             emit(ResourceState.Success(fields))
         }.catch { exception ->
             Log.e(TAG, exception.message, exception)
-            emit(ResourceState.Error(message = "Cannot create a new form"))
+            emit(ResourceState.Error(message = "Cannot get all fields of form"))
         }
     }
 

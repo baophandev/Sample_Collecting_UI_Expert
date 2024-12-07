@@ -31,6 +31,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -106,7 +107,7 @@ fun ModifyProjectScreen(
             ) {
                 Card(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth(.95f),
                     colors = CardDefaults.cardColors(
                         containerColor = colorResource(id = R.color.gray_color)
                     ),
@@ -155,7 +156,7 @@ fun ModifyProjectScreen(
                 }
                 CustomTextField(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(.95f)
                         .height(60.dp),
                     placeholder = { Text(text = stringResource(id = R.string.add_title)) },
                     singleLine = true,
@@ -164,7 +165,7 @@ fun ModifyProjectScreen(
                 )
                 CustomTextField(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(.95f)
                         .height(100.dp),
                     placeholder = { Text(text = stringResource(id = R.string.sample_description_default)) },
                     value = state.project?.description ?: "Khong co mo ta",
@@ -173,7 +174,7 @@ fun ModifyProjectScreen(
 
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth(.95f),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     CustomDatePicker(
@@ -191,7 +192,8 @@ fun ModifyProjectScreen(
                 if (state.memberUsernames.isEmpty()) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(20.dp))
+                            .fillMaxWidth(.95f)
                             .height(120.dp)
                             .border(
                                 width = 0.dp,
@@ -221,7 +223,7 @@ fun ModifyProjectScreen(
                 // Luu thong tin sau chinh sua
                 Button(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(.95f)
                         .height(40.dp),
                     enabled = state.isUpdated,
                     elevation = ButtonDefaults.buttonElevation(

@@ -32,7 +32,7 @@ class CreateFormViewModel @Inject constructor(
         _state.update { it.copy(title = title) }
     }
 
-    fun submitForm(projectId: String, successHandler: (String) -> Unit) {
+    fun submitForm(projectId: String, successHandler: (Boolean) -> Unit) {
         if (!validateFields()) return
 
         val currentState = state.value
@@ -47,7 +47,7 @@ class CreateFormViewModel @Inject constructor(
                 is ResourceState.Success -> {
                     _state.update { it.copy(status = UiStatus.SUCCESS) }
                     viewModelScope.launch {
-                        successHandler(resourceState.data)
+                        successHandler(true)
                     }
                 }
             }

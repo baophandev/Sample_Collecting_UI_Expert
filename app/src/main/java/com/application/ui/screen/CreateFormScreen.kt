@@ -50,9 +50,9 @@ import com.application.ui.viewmodel.CreateFormViewModel
 fun CreateFormScreen(
     createFormViewModel: CreateFormViewModel = hiltViewModel(),
     projectId: String,
+    postCreatedHandler: (Boolean) -> Unit,
     navigateToLogin: () -> Unit,
     navigateToHome: () -> Unit,
-    navigateToDetail: (String?) -> Unit,
     navigateToWorkersQuestionScreen: () -> Unit,
     navigateToExpertChatScreen: () -> Unit
 ) {
@@ -95,7 +95,7 @@ fun CreateFormScreen(
                 ) {
                     CustomTextField(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxWidth(.95f)
                             .height(80.dp)
                             .padding(vertical = 10.dp),
                         placeholder = { Text(text = stringResource(id = R.string.add_title)) },
@@ -107,7 +107,7 @@ fun CreateFormScreen(
                     Row(
                         modifier = Modifier
                             .padding(end = 10.dp)
-                            .fillMaxWidth()
+                            .fillMaxWidth(.95f)
                             .height(60.dp), // Adjust parent width as needed
                         horizontalArrangement = Arrangement.End  // Align elements to the right
                     ) {
@@ -128,7 +128,7 @@ fun CreateFormScreen(
                     LazyColumn(
                         modifier = Modifier
                             .padding(10.dp)
-                            .fillMaxWidth()
+                            .fillMaxWidth(.95f)
                             .fillMaxHeight(.9f),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -170,7 +170,7 @@ fun CreateFormScreen(
                                 action = {
                                     createFormViewModel.submitForm(
                                         projectId = projectId,
-                                        successHandler = navigateToDetail
+                                        successHandler = postCreatedHandler
                                     )
                                 }
                             )

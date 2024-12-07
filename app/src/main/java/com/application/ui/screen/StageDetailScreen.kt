@@ -57,6 +57,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
+import com.application.constant.ReloadSignal
 import com.application.constant.UiStatus
 import com.application.ui.component.CustomButton
 import com.application.ui.component.FullScreenImage
@@ -74,9 +75,12 @@ fun StageDetailScreen(
     viewModel: StageDetailViewModel = hiltViewModel(),
     stageId: String,
     thumbnailUri: Uri? = null,
+    reloadSignal: ReloadSignal,
+    onReloadSuccessfully: (Boolean) -> Unit,
+    deletedHandler: (Boolean) -> Unit,
     navigateToModifyStage: () -> Unit,
     navigateToCapture: () -> Unit,
-    navigateToDetail: () -> Unit
+    navigateToDetail: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
@@ -94,6 +98,18 @@ fun StageDetailScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showAddPhoto by remember { mutableStateOf(true) }
     var activeImageIdx by remember { mutableStateOf<Int?>(null) }
+
+    if (reloadSignal != ReloadSignal.NONE) {
+        when (reloadSignal) {
+            ReloadSignal.RELOAD_STAGE ->
+                viewModel.loadStage(
+                    stageId = stageId,
+                    onComplete = onReloadSuccessfully
+                )
+
+            else -> {}
+        }
+    }
 
     if (showDeleteDialog) {
         AlertDialog(
@@ -115,7 +131,7 @@ fun StageDetailScreen(
                         viewModel.deleteStage(
                             projectOwnerId = it,
                             stageId = stageId,
-                            successHandler = navigateToDetail
+                            successHandler = deletedHandler
                         )
                     }
                 }
@@ -266,7 +282,7 @@ fun StageDetailScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             TopNavigationBar(
-                                backAction = navigateToDetail
+                                backAction = { navigateToDetail(false) }
                             ) {
                                 if (state.isProjectOwner) {
                                     DropdownMenuItem(

@@ -223,4 +223,24 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         return client.get(urlString = "sample/$sampleId")
             .body()
     }
+
+    override suspend fun deleteSample(sampleId: String): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getAllSamplesOfStage(
+        stageId: String,
+        pageNumber: Int,
+        pageSize: Int
+    ): List<SampleResponse> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getAllSamplesOfProject(
+        projectId: String,
+        pageNumber: Int,
+        pageSize: Int
+    ): List<SampleResponse> {
+        TODO("Not yet implemented")
+    }
 }

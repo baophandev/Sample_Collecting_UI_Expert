@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +20,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -45,6 +45,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.application.R
+import com.application.constant.ReloadSignal
 import com.application.constant.UiStatus
 import com.application.ui.component.BotNavigationBar
 import com.application.ui.component.CustomButton
@@ -70,11 +71,12 @@ fun ModifyStageScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
-
     var expanded by remember { mutableStateOf(false) }
-
     when (state.status) {
-        UiStatus.INIT -> viewModel.loadStage(projectId, stageId)
+        UiStatus.INIT -> {
+            viewModel.loadStage(projectId, stageId)
+        }
+
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
         UiStatus.SUCCESS -> {
             val formLazyPagingItems = viewModel.flow.collectAsLazyPagingItems()
@@ -112,7 +114,7 @@ fun ModifyStageScreen(
                     verticalArrangement = Arrangement.SpaceAround
                 ) {
                     CustomTextField(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(.95f),
                         placeholder = { Text(text = stringResource(id = R.string.add_title)) },
                         singleLine = true,
                         value = state.stage?.name ?: "Khong co ten dot",
@@ -121,7 +123,7 @@ fun ModifyStageScreen(
 
                     CustomTextField(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxWidth(.95f)
                             .height(120.dp),
                         placeholder = { Text(text = stringResource(id = R.string.add_description)) },
                         value = state.stage?.description ?: "Khong co mo ta dot",
@@ -129,7 +131,7 @@ fun ModifyStageScreen(
                     )
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(.95f),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         CustomDatePicker(
@@ -151,10 +153,10 @@ fun ModifyStageScreen(
                     ) {
                         TextField(
                             modifier = Modifier
-//                            .menuAnchor()
-                                .fillMaxWidth(),
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                                .fillMaxWidth(.95f),
                             readOnly = true,
-                            value = "",
+                            value = state.selectedForm?.title ?: "Unknown form",
                             onValueChange = {},
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                             colors = ExposedDropdownMenuDefaults.textFieldColors(
@@ -166,31 +168,23 @@ fun ModifyStageScreen(
                         ExposedDropdownMenu(
                             expanded = expanded,
                             onDismissRequest = { expanded = false },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth(.95f),
                         ) {
-                            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                                if (formLazyPagingItems.itemCount == 0)
-                                    item {
-                                        DropdownMenuItem(
-                                            text = { Text("No form") },
-                                            onClick = {
-                                                expanded = false
-                                            },
-                                        )
-                                    }
-                                items(count = formLazyPagingItems.itemCount,
-                                    key = formLazyPagingItems.itemKey { it.id }
-                                ) { index ->
-                                    val form = formLazyPagingItems[index]
+                            if (formLazyPagingItems.itemCount == 0)
+                                DropdownMenuItem(
+                                    text = { Text("No form") },
+                                    onClick = { expanded = false },
+                                )
+                            else
+                                formLazyPagingItems.itemSnapshotList.forEach { form ->
                                     DropdownMenuItem(
-                                        text = { Text(form?.title ?: "Unknown form") },
+                                        text = { Text(form?.title ?: "") },
                                         onClick = {
                                             expanded = false
-                                            form?.id?.let(viewModel::updateFormId)
+                                            form?.let(viewModel::updateFormId)
                                         },
                                     )
                                 }
-                            }
                         }
                     }
 
@@ -198,7 +192,8 @@ fun ModifyStageScreen(
                     if (state.memberUsernames.isEmpty()) {
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(20.dp))
+                                .fillMaxWidth(.95f)
                                 .height(120.dp)
                                 .border(
                                     width = 0.dp,

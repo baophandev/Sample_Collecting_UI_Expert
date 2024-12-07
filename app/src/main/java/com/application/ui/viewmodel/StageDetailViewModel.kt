@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,11 +29,16 @@ class StageDetailViewModel @Inject constructor(
     private val _state = MutableStateFlow(StageDetailUiState())
     val state = _state.asStateFlow()
 
-    fun loadStage(stageId: String) {
+    fun loadStage(
+        stageId: String,
+        skipCached: Boolean = false,
+        onComplete: ((Boolean) -> Unit)? = null
+    ) {
         val loggedUser = userRepository.loggedUser ?: throw Error("User doesn't log in.")
 
+        _state.update { it.copy(status = UiStatus.LOADING) }
         viewModelScope.launch(Dispatchers.IO) {
-            stageRepository.getStage(stageId).collectLatest { resourceState ->
+            stageRepository.getStage(stageId, skipCached).collectLatest { resourceState ->
                 when (resourceState) {
                     is ResourceState.Error -> _state.update { it.copy(status = UiStatus.ERROR) }
                     is ResourceState.Success -> _state.update {
@@ -50,7 +56,34 @@ class StageDetailViewModel @Inject constructor(
                         )
                     }
                 }
+                onComplete?.let {
+                    viewModelScope.launch { onComplete(resourceState is ResourceState.Success) }
+                }
             }
+        }
+    }
+
+    fun updateStageInDetail(successHandler: (Boolean) -> Unit) {
+        val currentStage = state.value.stage!!
+        val stageId = currentStage.id
+
+        viewModelScope.launch(Dispatchers.IO) {
+            stageRepository.getStage(stageId)
+                .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
+                .collectLatest { resourceState ->
+                    when (resourceState) {
+                        is ResourceState.Error -> _state.update {
+                            it.copy(status = UiStatus.ERROR, error = "Cannot get stage")
+                        }
+
+                        is ResourceState.Success -> {
+                            _state.update { it.copy(status = UiStatus.SUCCESS) }
+                            viewModelScope.launch {
+                                successHandler(true)
+                            }
+                        }
+                    }
+                }
         }
     }
 
@@ -68,7 +101,11 @@ class StageDetailViewModel @Inject constructor(
         }
     }
 
-    fun deleteStage(projectOwnerId: String, stageId: String, successHandler: () -> Unit) {
+    fun deleteStage(
+        projectOwnerId: String,
+        stageId: String,
+        successHandler: (Boolean) -> Unit
+    ) {
         if (projectOwnerId.isEmpty()) {
             _state.update { it.copy(status = UiStatus.ERROR) }
             return
@@ -78,17 +115,12 @@ class StageDetailViewModel @Inject constructor(
             stageRepository.deleteStage(stageId = stageId).collectLatest { resourceState ->
                 when (resourceState) {
                     is ResourceState.Success -> {
-                        viewModelScope.launch { successHandler?.let { successHandler() } }
+                        viewModelScope.launch { successHandler(true) }
                     }
 
                     is ResourceState.Error -> {
                         //val error = resourceState.resId
-                        _state.update {
-                            it.copy(
-                                status = UiStatus.ERROR,
-                                error = "Cannot delete stage"
-                            )
-                        }
+                        _state.update { it.copy(status = UiStatus.ERROR, error = "Cannot delete stage") }
                     }
                 }
             }

@@ -68,6 +68,9 @@ class SampleRepository(
         }
     }
 
+    /**
+     * Get a sample by sampleId.
+     */
     fun getSample(sampleId: String, skipCached: Boolean = false): Flow<ResourceState<Sample>> {
         if (!skipCached && cachedSamples.containsKey(sampleId))
             return flowOf(ResourceState.Success(cachedSamples[sampleId]!!))
@@ -79,6 +82,46 @@ class SampleRepository(
         }.catch {
             Log.e(TAG, it.message, it)
             emit(ResourceState.Error(message = "Cannot get sample"))
+        }
+    }
+
+    /**
+     * Get all samples of a stage by stageId.
+     */
+    fun getAllSamplesOfStage(
+        stageId: String,
+        pageNumber: Int = 0,
+        pageSize: Int = 6
+    ): Flow<ResourceState<List<Sample>>> {
+        return flow<ResourceState<List<Sample>>> {
+            val samples =
+                projectService.getAllSamplesOfStage(stageId, pageNumber, pageSize)
+                    .map { mapResponseToSample(it) }
+            cachedSamples.putAll(samples.map { Pair(it.id, it) })
+            emit(ResourceState.Success(samples))
+        }.catch {
+            Log.e(TAG, it.message, it)
+            emit(ResourceState.Error(message = "Cannot all samples of stage"))
+        }
+    }
+
+    /**
+     * Get all samples of a project by projectId.
+     */
+    fun getAllSamplesOfProject(
+        projectId: String,
+        pageNumber: Int = 0,
+        pageSize: Int = 6
+    ): Flow<ResourceState<List<Sample>>> {
+        return flow<ResourceState<List<Sample>>> {
+            val samples =
+                projectService.getAllSamplesOfProject(projectId, pageNumber, pageSize)
+                    .map { mapResponseToSample(it) }
+            cachedSamples.putAll(samples.map { Pair(it.id, it) })
+            emit(ResourceState.Success(samples))
+        }.catch {
+            Log.e(TAG, it.message, it)
+            emit(ResourceState.Error(message = "Cannot all samples of project"))
         }
     }
 

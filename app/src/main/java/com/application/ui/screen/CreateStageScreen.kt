@@ -56,7 +56,7 @@ fun CreateStageScreen(
     projectId: String,
     navigateToLogin: () -> Unit,
     navigateToHome: () -> Unit,
-    navigateToDetail: () -> Unit,
+    postCreatedHandler: (Boolean) -> Unit,
     navigateToWorkersQuestionScreen: () -> Unit,
     navigateToExpertChatScreen: () -> Unit
 ) {
@@ -98,7 +98,7 @@ fun CreateStageScreen(
                     verticalArrangement = Arrangement.SpaceAround
                 ) {
                     CustomTextField(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(.95f),
                         placeholder = { Text(text = stringResource(id = R.string.add_title)) },
                         singleLine = true,
                         value = state.name,
@@ -107,7 +107,7 @@ fun CreateStageScreen(
 
                     CustomTextField(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxWidth(.95f)
                             .height(120.dp),
                         placeholder = { Text(text = "Add description") },
                         value = state.description,
@@ -115,7 +115,7 @@ fun CreateStageScreen(
                     )
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(.95f),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         CustomDatePicker(
@@ -131,7 +131,7 @@ fun CreateStageScreen(
                     Card(
                         modifier = Modifier
                             .height(60.dp)
-                            .fillMaxWidth(),
+                            .fillMaxWidth(.95f),
                         shape = RoundedCornerShape(10.dp),
                     ) {
                         var expanded by remember { mutableStateOf(false) }
@@ -187,8 +187,8 @@ fun CreateStageScreen(
                     )
 
                     CustomButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = "Submit",
+                        modifier = Modifier.fillMaxWidth(.95f),
+                        text = stringResource(id = R.string.submit),
                         textSize = 20.sp,
                         background = colorResource(id = R.color.main_green),
                         border = BorderStroke(0.dp, Color.Transparent),
@@ -197,7 +197,7 @@ fun CreateStageScreen(
                                 viewModel.submitStage(
                                     projectId = projectId,
                                     formId = it.first,
-                                    successHandler = navigateToDetail
+                                    successHandler = postCreatedHandler
                                 )
                             }
                         }

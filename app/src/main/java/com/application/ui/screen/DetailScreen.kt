@@ -76,7 +76,7 @@ fun DetailScreen(
     projectId: String,
     userId: String,
     navigateToHome: () -> Unit,
-    navigateToModify: () -> Unit,
+    navigateToModifyProject: (String) -> Unit,
     navigateToStageDetail: (String) -> Unit,
     navigateToAddStage: () -> Unit,
     navigateToAddForm: () -> Unit,
@@ -265,12 +265,13 @@ fun DetailScreen(
                                             status = state.stageStatus,
                                             error = state.stageError?.let { stringResource(id = it) },
                                             stages = state.stages,
-                                            onRefreshClick = {
-                                                viewModel.getStages(
-                                                    projectId = projectId,
-                                                    successHandler = null
-                                                )
-                                            },
+//                                            onRefreshClick = {
+//                                                viewModel.getStages(
+//
+//                                                    projectId = projectId,
+//                                                    successHandler = null
+//                                                )
+//                                            },
                                             onStageClick = navigateToStageDetail
                                         )
 
@@ -279,12 +280,12 @@ fun DetailScreen(
                                             status = state.formStatus,
                                             error = state.formError?.let { stringResource(id = it) },
                                             forms = state.forms,
-                                            onRefreshClick = {
-                                                viewModel.getForms(
-                                                    projectId = projectId,
-                                                    successHandler = null
-                                                )
-                                            },
+//                                            onRefreshClick = {
+//                                                viewModel.getForms(
+//                                                    projectId = projectId,
+//                                                    successHandler = null
+//                                                )
+//                                            },
                                             onFormModifyClick = { formId ->
                                                 if(state.project?.owner?.id == userId) {
                                                     formId?.let(navigateToModifyForm)
@@ -379,7 +380,7 @@ fun DetailScreen(
                                 border = BorderStroke(0.dp, Color.Transparent)
                             ) {
                                 if (state.project?.owner?.id == userId) {
-                                    navigateToModify()
+                                    navigateToModifyProject(state.project!!.id)
                                 } else alertType = AlertType.CREATE_NEW_PROJECT
                             }
                         }
@@ -447,13 +448,12 @@ fun DetailTab(
 }
 
 @Composable
-@OptIn(ExperimentalFoundationApi::class)
 fun StageTab(
     modifier: Modifier = Modifier,
     status: UiStatus,
     error: String? = null,
     stages: List<Stage>,
-    onRefreshClick: () -> Unit,
+    //onRefreshClick: () -> Unit,
     onStageClick: (String) -> Unit,
 ) {
     LazyColumn(
@@ -461,20 +461,20 @@ fun StageTab(
             .padding(all = 10.dp)
             .fillMaxWidth(),
     ) {
-        stickyHeader {
-            Row(
-                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
-            ) {
-                IconButton(onClick = onRefreshClick) {
-                    Icon(
-                        modifier = Modifier.fillMaxSize(.5f),
-                        painter = painterResource(id = R.drawable.return_arrow),
-                        contentDescription = "load new forms",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-        }
+//        stickyHeader {
+//            Row(
+//                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
+//            ) {
+//                IconButton(onClick = onRefreshClick) {
+//                    Icon(
+//                        modifier = Modifier.fillMaxSize(.5f),
+//                        painter = painterResource(id = R.drawable.return_arrow),
+//                        contentDescription = "load new forms",
+//                        tint = MaterialTheme.colorScheme.primary
+//                    )
+//                }
+//            }
+//        }
         when (status) {
             UiStatus.LOADING -> item {
                 LoadingScreen(text = stringResource(id = R.string.loading))
@@ -501,13 +501,12 @@ fun StageTab(
 
 
 @Composable
-@OptIn(ExperimentalFoundationApi::class)
 fun FormTab(
     modifier: Modifier = Modifier,
     status: UiStatus,
     error: String? = null,
     forms: List<Form>,
-    onRefreshClick: () -> Unit,
+    //onRefreshClick: () -> Unit,
     onFormModifyClick: (String) -> Unit,
     onFormDeleteClicked: (String) -> Unit
 ) {
@@ -515,20 +514,20 @@ fun FormTab(
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(10.dp)
     ) {
-        stickyHeader {
-            Row(
-                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
-            ) {
-                IconButton(onClick = onRefreshClick) {
-                    Icon(
-                        modifier = Modifier.fillMaxSize(.5f),
-                        painter = painterResource(id = R.drawable.return_arrow),
-                        contentDescription = "load new forms",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-        }
+//        stickyHeader {
+//            Row(
+//                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
+//            ) {
+//                IconButton(onClick = onRefreshClick) {
+//                    Icon(
+//                        modifier = Modifier.fillMaxSize(.5f),
+//                        painter = painterResource(id = R.drawable.return_arrow),
+//                        contentDescription = "load new forms",
+//                        tint = MaterialTheme.colorScheme.primary
+//                    )
+//                }
+//            }
+//        }
         when (status) {
             UiStatus.LOADING -> item {
                 LoadingScreen(text = stringResource(id = R.string.loading))

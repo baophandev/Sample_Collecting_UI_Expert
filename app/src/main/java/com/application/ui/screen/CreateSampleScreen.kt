@@ -5,15 +5,15 @@ import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
@@ -89,65 +89,68 @@ fun CreateSampleScreen(
                 scaffoldState = scaffoldState,
                 sheetPeekHeight = 600.dp,
                 sheetContent = {
-                    Column(
+                    LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 15.dp)
-                            .verticalScroll(state = rememberScrollState()),
+                            .padding(horizontal = 15.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Top
                     ) {
-                        state.fields.forEachIndexed { index, data ->
+                        itemsIndexed(
+                            items = state.answers,
+                            key = { index, _ -> index }
+                        ) { index, data ->
+                            Spacer(modifier = Modifier.size(4.dp))
+                            BlockField(
+                                fieldName = data.field.name,
+                                onValueChange = { newValue ->
+                                    viewModel.updateAnswer(index, newValue)
+                                }
+                            )
+                            Spacer(modifier = Modifier.size(4.dp))
+                        }
+
+                        item {
                             Row(
-                                modifier = Modifier.padding(bottom = 8.dp)
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                BlockField(
-                                    fieldName = data.name,
-                                    onValueChange = {
-//                                        state.fields[index] = data.copy(second = it)
-                                        TODO("Change field value")
-                                    }
-                                )
+                                IconButton(
+                                    modifier = Modifier
+                                        .padding(0.dp)
+                                        .size(50.dp),
+                                    onClick = { TODO("Add a dynamic field") }
+                                ) {
+                                    Icon(
+                                        modifier = Modifier.fillMaxSize(),
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "Add flex field",
+                                        tint = colorResource(id = R.color.main_green)
+                                    )
+                                }
                             }
                         }
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconButton(
-                                modifier = Modifier
-                                    .padding(0.dp)
-                                    .size(50.dp),
-                                onClick = { TODO("Add a dynamic field") }
-                            ) {
-                                Icon(
-                                    modifier = Modifier.fillMaxSize(),
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Add flex field",
-                                    tint = colorResource(id = R.color.main_green)
-                                )
-                            }
-                        }
-                        state.dynamicFields.forEachIndexed { index, data ->
-                            Row(
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            ) {
-                                DynamicField(
-                                    fieldName = data.name,
-                                    onFieldNameChange = { fieldName ->
-                                        TODO("Change a dynamic field name")
-                                    },
-                                    fieldValue = data.value,
-                                    onFieldValueChange = { fieldValue ->
-                                        TODO("Change a dynamic field value")
-                                    },
-                                    onDeleteClicked = {
-                                        TODO("Remove a dynamic field")
-                                    }
-                                )
-                            }
+                        itemsIndexed(
+                            items = state.dynamicFields,
+                            key = { _, field -> field.id }
+                        ) { index, data ->
+                            Spacer(modifier = Modifier.size(4.dp))
+                            DynamicField(
+                                fieldName = data.name,
+                                onFieldNameChange = { fieldName ->
+                                    viewModel.updateDynamicFieldName(index, fieldName)
+                                },
+                                fieldValue = data.value,
+                                onFieldValueChange = { fieldValue ->
+                                    viewModel.updateDynamicFieldValue(index, fieldValue)
+                                },
+                                onDeleteClicked = {
+                                    viewModel.deleteDynamicField(index)
+                                }
+                            )
+                            Spacer(modifier = Modifier.size(4.dp))
                         }
                     }
                 },

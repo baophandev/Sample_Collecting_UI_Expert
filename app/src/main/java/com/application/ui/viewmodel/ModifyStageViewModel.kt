@@ -3,18 +3,17 @@ package com.application.ui.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.application.android.utility.state.ResourceState
-import com.application.data.entity.Stage
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.application.android.utility.state.ResourceState
 import com.application.constant.UiStatus
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Form
 import com.application.data.paging.FormPagingSource
-import com.application.data.paging.ProjectPagingSource
 import com.application.data.repository.FormRepository
+import com.application.data.repository.ProjectRepository
 import com.application.data.repository.StageRepository
 import com.application.ui.state.ModifyStageUiState
 import com.application.ui.viewmodel.HomeViewModel.Companion.TAG
@@ -25,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -33,6 +33,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ModifyStageViewModel @Inject constructor(
     private val stageRepository: StageRepository,
+    private val formRepository: FormRepository,
+    private val projectRepository: ProjectRepository,
     private val projectService: IProjectService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(ModifyStageUiState())
@@ -40,13 +42,26 @@ class ModifyStageViewModel @Inject constructor(
 
     lateinit var flow: Flow<PagingData<Form>>
 
-    fun loadStage(projectId:String, stageId: String) {
+    fun loadStage(projectId: String, stageId: String) {
         _state.update { it.copy(status = UiStatus.LOADING, isUpdated = false) }
         viewModelScope.launch(Dispatchers.IO) {
             stageRepository.getStage(stageId).collectLatest { resourceState ->
                 when (resourceState) {
-                    is ResourceState.Success -> _state.update {
-                        it.copy(status = UiStatus.SUCCESS, stage = resourceState.data)
+                    is ResourceState.Success -> {
+                        val stage = resourceState.data
+                        if (stage.formId != null) {
+                            val formResourceState = formRepository.getForm(stage.formId).last()
+                            if (formResourceState is ResourceState.Success)
+                                _state.update {
+                                    it.copy(
+                                        status = UiStatus.SUCCESS,
+                                        stage = stage,
+                                        selectedForm = formResourceState.data
+                                    )
+                                }
+                            else _state.update { it.copy(status = UiStatus.ERROR) }
+                        } else
+                            _state.update { it.copy(status = UiStatus.SUCCESS, stage = stage) }
                     }
 
                     is ResourceState.Error -> _state.update {
@@ -101,14 +116,14 @@ class ModifyStageViewModel @Inject constructor(
         }
     }
 
-    fun updateFormId(formId: String) {
-        val currentStage = state.value.stage
-        _state.update { it.copy(stage = currentStage?.copy(formId = formId), isUpdated = true) }
+    fun updateFormId(form: Form) {
+        _state.update { it.copy(selectedForm = form, isUpdated = true) }
     }
 
     fun submit(successHandler: (Boolean) -> Unit) {
         if (validate() || state.value.stage == null || !state.value.isUpdated) return
         val currentStage = state.value.stage!!
+        val formId = state.value.selectedForm?.id
 
         viewModelScope.launch(Dispatchers.IO) {
             stageRepository.updateStage(
@@ -117,7 +132,7 @@ class ModifyStageViewModel @Inject constructor(
                 description = currentStage.description,
                 startDate = currentStage.startDate,
                 endDate = currentStage.endDate,
-                formId = currentStage.formId,
+                formId = formId,
                 projectOwnerId = currentStage.projectOwnerId
             )
                 .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
@@ -137,6 +152,7 @@ class ModifyStageViewModel @Inject constructor(
                 }
         }
     }
+
     private fun validate(): Boolean {
         val currentProject = state.value.stage
         val startDate = currentProject?.startDate

@@ -345,7 +345,8 @@ fun PostsInWorkersQuestionScreen(postsWorkersQuestionScreenInformation: List<Pos
 fun WorkersQuestionScreen(
     navigateToHome: (String?) -> Unit,
     navigateToWorkersQuestionScreen: () -> Unit,
-    navigateToExpertChatScreen: () -> Unit
+    navigateToExpertChatScreen: () -> Unit,
+    navigateToPostAnswerScreen: () -> Unit
 ) {
     Scaffold(
         topBar = { WorkerQuestionScreenTopBar() },
