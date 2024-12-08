@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -165,6 +166,29 @@ class DetailViewModel @Inject constructor(
         return state.value.stages.any { it.formId == formId }
     }
 
+    fun updateProjectInHome(successHandler: (Boolean) -> Unit) {
+        val currentProject = state.value.project!!
+        val projectId = currentProject.id
+
+        viewModelScope.launch(Dispatchers.IO) {
+            projectRepository.getProject(projectId)
+                .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
+                .collectLatest { resourceState ->
+                    when (resourceState) {
+                        is ResourceState.Error -> _state.update {
+                            it.copy(status = UiStatus.ERROR, error = resourceState.resId)
+                        }
+
+                        is ResourceState.Success -> {
+                            _state.update { it.copy(status = UiStatus.SUCCESS) }
+                            viewModelScope.launch {
+                                successHandler(true)
+                            }
+                        }
+                    }
+                }
+        }
+    }
 
     companion object {
         const val TAG = "DetailViewModel"

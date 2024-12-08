@@ -105,9 +105,9 @@ fun CreateFormScreen(
 
                     Row(
                         modifier = Modifier
-                            .padding(end = 10.dp)
+                            .padding(end = 5.dp)
                             .fillMaxWidth(.95f)
-                            .height(60.dp), // Adjust parent width as needed
+                            .height(50.dp), // Adjust parent width as needed
                         horizontalArrangement = Arrangement.End  // Align elements to the right
                     ) {
                         IconButton(
@@ -127,7 +127,7 @@ fun CreateFormScreen(
                     LazyColumn(
                         modifier = Modifier
                             .padding(10.dp)
-                            .fillMaxWidth(.95f)
+                            .fillMaxWidth()
                             .fillMaxHeight(.9f),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {

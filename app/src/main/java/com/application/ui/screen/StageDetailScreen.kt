@@ -69,10 +69,10 @@ fun StageDetailScreen(
     stageId: String,
     reloadSignal: ReloadSignal,
     onReloadSuccessfully: (Boolean) -> Unit,
+    popBackToDetail: (Boolean) -> Unit,
     deletedHandler: (Boolean) -> Unit,
     navigateToModifyStage: () -> Unit,
     navigateToCapture: () -> Unit,
-    navigateToDetail: () -> Unit,
     navigateToSampleDetail: (String) -> Unit
 ) {
     val context = LocalContext.current
@@ -95,6 +95,7 @@ fun StageDetailScreen(
             ReloadSignal.RELOAD_STAGE ->
                 viewModel.loadStage(
                     stageId = stageId,
+                    skipCached = true,
                     onComplete = onReloadSuccessfully
                 )
 
@@ -178,7 +179,9 @@ fun StageDetailScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             TopNavigationBar(
-                                backAction = navigateToDetail
+                                backAction = {
+                                    viewModel.updateStageInDetail(successHandler = popBackToDetail)
+                                }
                             ) {
                                 if (viewModel.isProjectOwner()) {
                                     DropdownMenuItem(

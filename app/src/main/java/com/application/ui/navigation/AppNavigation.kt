@@ -180,10 +180,14 @@ fun AppNavigationGraph(
                             .updateState(state.copy(reloadSignal = ReloadSignal.RELOAD_STAGE))
                         popBackToDetail()
                     },
+                    popBackToDetail = { isUpdated ->
+                        if (isUpdated) viewModel
+                            .updateState(state.copy(reloadSignal = ReloadSignal.RELOAD_STAGE))
+                        popBackToDetail()
+                    },
                     stageId = stageId,
                     navigateToModifyStage = navigateToModifyStage,
                     navigateToCapture = navigateToCapture,
-                    navigateToDetail = popBackToDetail,
                     navigateToSampleDetail = navigateToSampleDetail
 
                 )
