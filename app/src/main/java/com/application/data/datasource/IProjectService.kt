@@ -8,6 +8,7 @@ import com.application.data.entity.request.CreateFormRequest
 import com.application.data.entity.request.CreateProjectRequest
 import com.application.data.entity.request.CreateSampleRequest
 import com.application.data.entity.request.CreateStageRequest
+import com.application.data.entity.request.UpdateDynamicFieldRequest
 import com.application.data.entity.request.UpdateFieldRequest
 import com.application.data.entity.request.UpdateFormRequest
 import com.application.data.entity.request.UpdateProjectRequest
@@ -37,7 +38,6 @@ interface IProjectService {
     ): Boolean
 
     suspend fun deleteProject(projectId: String): Boolean
-
 
     //Stage of Project
     suspend fun createStage(body: CreateStageRequest): String
@@ -72,21 +72,20 @@ interface IProjectService {
     suspend fun deleteForm(formId: String): Boolean
 
     //Field of Form
-    suspend fun createField(formId: String, body: CreateFieldRequest): String
-    suspend fun createDynamicField(sampleId: String, body: CreateFieldRequest): String
     suspend fun getAllFields(formId: String): List<FieldResponse>
-
+    suspend fun createField(formId: String, body: CreateFieldRequest): String
+    suspend fun deleteField(fieldId: String): Boolean
     suspend fun getField(formId: String): FieldResponse
     suspend fun updateField(
         fieldId: String,
         updateRequestData: UpdateFieldRequest
     ): Boolean
 
-    suspend fun deleteField(fieldId: String): Boolean
+    suspend fun createDynamicField(sampleId: String, body: CreateFieldRequest): String
     suspend fun deleteDynamicField(fieldId: String): Boolean
-    suspend fun updateFieldDynamic(
+    suspend fun updateDynamicField(
         fieldId: String,
-        updateRequestData: UpdateFieldRequest
+        body: UpdateDynamicFieldRequest
     ): Boolean
 
     // Sample of Stage
@@ -97,11 +96,11 @@ interface IProjectService {
         stageId: String,
         pageNumber: Int = 0,
         pageSize: Int = 6
-    ): List<SampleResponse>
+    ): PagingResponse<SampleResponse>
 
     suspend fun getAllSamplesOfProject(
         projectId: String,
         pageNumber: Int = 0,
         pageSize: Int = 6
-    ): List<SampleResponse>
+    ): PagingResponse<SampleResponse>
 }

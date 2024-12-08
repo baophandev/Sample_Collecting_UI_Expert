@@ -4,5 +4,4 @@ data class DynamicField(
     val id: String,
     val name: String,
     val value: String,
-    val numberOrder: Int,
 )

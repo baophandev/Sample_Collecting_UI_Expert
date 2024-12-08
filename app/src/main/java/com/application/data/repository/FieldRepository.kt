@@ -25,9 +25,8 @@ class FieldRepository(
      */
     fun getAllFields(formId: String): Flow<ResourceState<List<Field>>> {
         return flow<ResourceState<List<Field>>> {
-//            val fields = projectService.getAllField(formId, pageNumber, pageSize)
-//                .content.map(this@FieldRepository::mapResponseToField)           
             val fields = projectService.getAllFields(formId)
+                .sortedBy { it.numberOrder }
                 .map(this@FieldRepository::mapResponseToField)
             cachedFields.putAll(fields.map { Pair(it.id, it) })
             emit(ResourceState.Success(fields))
@@ -118,7 +117,7 @@ class FieldRepository(
         return Field(
             id = response.id,
             numberOrder = response.numberOrder,
-            name = response.name ?: " ",
+            name = response.name,
             formId = response.formId
         )
     }

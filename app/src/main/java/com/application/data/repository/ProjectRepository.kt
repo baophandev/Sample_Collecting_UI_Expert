@@ -2,9 +2,8 @@ package com.application.data.repository
 
 import android.net.Uri
 import android.util.Log
+import com.application.android.user_library.repository.UserRepository
 import com.application.android.utility.state.ResourceState
-import com.application.constant.ProjectQueryType
-import com.application.constant.ProjectStatus
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Project
 import com.application.data.entity.request.CreateProjectRequest
@@ -15,7 +14,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.last
-import com.application.android.user_library.repository.UserRepository
 
 class ProjectRepository(
     private val projectService: IProjectService,
@@ -34,19 +32,20 @@ class ProjectRepository(
         description: String? = null,
         startDate: String? = null,
         endDate: String? = null,
-        ownerId: String,
         memberIds: List<String>? = null
     ): Flow<ResourceState<String>> {
-        var body = CreateProjectRequest(
-            name = name,
-            description = description,
-            startDate = startDate,
-            endDate = endDate,
-            ownerId = ownerId,
-            memberIds = memberIds
-        )
-
         return flow<ResourceState<String>> {
+            val ownerId = userRepository.loggedUser?.id
+                ?: throw Exception("Cannot get logged user ID.")
+            var body = CreateProjectRequest(
+                name = name,
+                description = description,
+                startDate = startDate,
+                endDate = endDate,
+                ownerId = ownerId,
+                memberIds = memberIds
+            )
+
             thumbnail?.let {
                 val attachmentState = attachmentRepository.storeAttachment(it).last()
                 if (attachmentState is ResourceState.Success)
@@ -63,33 +62,6 @@ class ProjectRepository(
         }.catch { exception ->
             Log.e(TAG, exception.message, exception)
             emit(ResourceState.Error(message = "Cannot create a new project"))
-        }
-    }
-
-    /**
-     * Get all projects of a user.
-     *
-     * If project owner information cannot be fetched from server, default user information will be used.
-     * ```
-     * val defaultUser = User(id = "unknown", username = "unknown", name = "Unknown User")
-     * ```
-     */
-    fun getAllProjects(
-        userId: String,
-        query: ProjectQueryType = ProjectQueryType.ALL,
-        status: ProjectStatus = ProjectStatus.NORMAL,
-        pageNumber: Int = 0,
-        pageSize: Int = 6
-    ): Flow<ResourceState<List<Project>>> {
-        return flow<ResourceState<List<Project>>> {
-            val projects =
-                projectService.getAllProjects(userId, query, status, pageNumber, pageSize)
-                    .content.map { mapResponseToProject(it) }
-            cachedProjects.putAll(projects.map { Pair(it.id, it) })
-            emit(ResourceState.Success(projects))
-        }.catch {
-            Log.e(TAG, it.message, it)
-            emit(ResourceState.Error(message = "Cannot get projects"))
         }
     }
 
@@ -143,7 +115,7 @@ class ProjectRepository(
     private suspend fun mapResponseToProject(response: ProjectResponse): Project {
         val ownerState = userRepository.getUser(response.ownerId).last()
         val owner = if (ownerState is ResourceState.Success)
-            ownerState.data else throw Error("Cannot get project owner data.")
+            ownerState.data else throw Exception("Cannot get project owner data.")
         val atmState = if (response.thumbnailId != null)
             attachmentRepository.getAttachment(response.thumbnailId).last() else null
         val thumbnailUrl = if (atmState is ResourceState.Success)
@@ -169,18 +141,6 @@ class ProjectRepository(
         }.catch { exception ->
             Log.e(TAG, exception.message, exception)
             emit(ResourceState.Error(message = "Cannot delete project"))
-        }
-    }
-
-    fun isProjectOwner(userId: String, projectId: String): Flow<ResourceState<Boolean>> {
-        return flow {
-            when (val resourceState = getProject(projectId).last()) {
-                is ResourceState.Error ->
-                    emit(ResourceState.Error(message = "Cannot get the project to check"))
-
-                is ResourceState.Success ->
-                    emit(ResourceState.Success(resourceState.data.owner.id == userId))
-            }
         }
     }
 

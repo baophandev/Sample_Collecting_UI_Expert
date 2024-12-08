@@ -48,7 +48,7 @@ class CreateProjectViewModel @Inject constructor(
         _state.update { it.copy(error = null) }
     }
 
-    fun submit(userId: String, successHandler: (String) -> Unit) {
+    fun submit(successHandler: (String) -> Unit) {
         if (!validateFields()) return
 
         _state.update { it.copy(loading = true) }
@@ -78,7 +78,6 @@ class CreateProjectViewModel @Inject constructor(
                 startDate = currentState.startDate,
                 endDate = currentState.endDate,
                 memberIds = currentState.memberIds,
-                ownerId = userId,
             ).collectLatest(collectAction)
         }
     }

@@ -38,14 +38,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.application.R
+import com.application.android.utility.validate.RegexValidation
 import com.application.constant.UiStatus
 import com.application.ui.component.BotNavigationBar
 import com.application.ui.component.CustomButton
 import com.application.ui.component.CustomDatePicker
 import com.application.ui.component.CustomTextField
 import com.application.ui.component.FieldToList
-import com.application.ui.component.LoadingScreen
-import com.application.ui.component.RegexValidation
 import com.application.ui.component.TopBar
 import com.application.ui.viewmodel.CreateStageViewModel
 

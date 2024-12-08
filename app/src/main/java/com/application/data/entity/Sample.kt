@@ -5,7 +5,7 @@ import java.sql.Timestamp
 
 data class Sample(
     val id: String,
-    val image: Uri? = null,
+    val image: Uri,
     val position: String? = null,
     val createdAt: Timestamp,
     val projectId: String,

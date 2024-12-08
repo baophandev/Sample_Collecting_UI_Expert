@@ -112,5 +112,7 @@
         thấy hôm nay lúa nó đốm và vàng quá, giúp em trị bệnh
         này với ạ
     </string>
+    <string name="login_info_not_blank">Login information cannot be blank</string>
+    <string name="enter_username">Email or phone number</string>
 
 </resources>

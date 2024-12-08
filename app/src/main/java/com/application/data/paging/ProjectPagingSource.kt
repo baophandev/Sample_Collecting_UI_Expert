@@ -62,7 +62,7 @@ class ProjectPagingSource(
     private suspend fun mapResponseToProject(response: ProjectResponse): Project {
         val ownerState = userRepository.getUser(response.ownerId).last()
         val owner = if (ownerState is ResourceState.Success)
-            ownerState.data else throw Error("Cannot get project owner data.")
+            ownerState.data else throw Exception("Cannot get project owner data.")
         val atmState = if (response.thumbnailId != null)
             attachmentRepository.getAttachment(response.thumbnailId).last() else null
         val thumbnailUrl = if (atmState is ResourceState.Success)

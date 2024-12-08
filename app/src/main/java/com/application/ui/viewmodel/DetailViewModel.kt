@@ -2,6 +2,7 @@ package com.application.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.application.android.user_library.repository.UserRepository
 import com.application.android.utility.state.ResourceState
 import com.application.constant.UiStatus
 import com.application.data.repository.FormRepository
@@ -22,11 +23,19 @@ class DetailViewModel @Inject constructor(
     private val projectRepository: ProjectRepository,
     private val stageRepository: StageRepository,
     private val formRepository: FormRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     // luu vao day
     private val _state = MutableStateFlow(DetailUiState())
     val state = _state.asStateFlow()
+
+    fun isProjectOwner(): Boolean {
+        val ownerId = state.value.project?.owner?.id
+        val currentLoggedUserId = userRepository.loggedUser?.id
+
+        return ownerId?.equals(currentLoggedUserId) == true
+    }
 
     fun loadProject(
         projectId: String,

@@ -30,22 +30,21 @@ import androidx.compose.ui.unit.sp
 import com.application.R
 
 @Composable
-fun PasswordField(modifier: Modifier = Modifier,
-                  text: String) {
-    var value by remember {
-        mutableStateOf("")
-    }
+fun PasswordField(
+    modifier: Modifier = Modifier,
+    content: String,
+    placeHolderText: String = "",
+    onContentChange: (String) -> Unit
+) {
     var showPass by remember {
         mutableStateOf(false)
     }
     TextField(
         singleLine = true,
-        value = value,
-        onValueChange = { newText ->
-            value = newText
-        },
+        value = content,
+        onValueChange = onContentChange,
         placeholder = {
-            Text(text =text, color = Color.Gray)
+            Text(text = placeHolderText, color = Color.Gray)
         },
         suffix = {
             IconButton(
@@ -85,5 +84,5 @@ fun PasswordField(modifier: Modifier = Modifier,
 @Preview
 @Composable
 private fun PasswordFieldPreview() {
-    PasswordField(text = stringResource(id = R.string.enter_password))
+    PasswordField(content = stringResource(id = R.string.enter_password)) {}
 }

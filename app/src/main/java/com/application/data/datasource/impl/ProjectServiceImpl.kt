@@ -10,6 +10,7 @@ import com.application.data.entity.request.CreateFormRequest
 import com.application.data.entity.request.CreateProjectRequest
 import com.application.data.entity.request.CreateSampleRequest
 import com.application.data.entity.request.CreateStageRequest
+import com.application.data.entity.request.UpdateDynamicFieldRequest
 import com.application.data.entity.request.UpdateFieldRequest
 import com.application.data.entity.request.UpdateFormRequest
 import com.application.data.entity.request.UpdateProjectRequest
@@ -163,22 +164,19 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
 
 
     //Field
-    override suspend fun createField(formId: String, body: CreateFieldRequest): String {
-        return client.post("field/$formId") {
+    override suspend fun createField(formId: String, body: CreateFieldRequest): String =
+        client.post("field/$formId") {
             setBody(body)
         }.body()
-    }
 
-    override suspend fun createDynamicField(sampleId: String, body: CreateFieldRequest): String {
-        return client.post("field/$sampleId/dynamic") {
+    override suspend fun createDynamicField(sampleId: String, body: CreateFieldRequest): String =
+        client.post("field/$sampleId/dynamic") {
             setBody(body)
         }.body()
-    }
 
-    override suspend fun getAllFields(formId: String): List<FieldResponse> {
-        return client.get(urlString = "field/$formId/form")
+    override suspend fun getAllFields(formId: String): List<FieldResponse> =
+        client.get(urlString = "field/$formId/form")
             .body()
-    }
 
     override suspend fun getField(formId: String): FieldResponse {
         return client.get(urlString = "field/$formId").body()
@@ -187,60 +185,56 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
     override suspend fun updateField(
         fieldId: String,
         updateRequestData: UpdateFieldRequest
-    ): Boolean {
-        val response = client.patch(urlString = "field/$fieldId") {
+    ): Boolean = client
+        .patch(urlString = "field/$fieldId") {
             contentType(ContentType.Application.Json)
             setBody(updateRequestData)
         }
-        return response.status == HttpStatusCode.NoContent
-    }
+        .status == HttpStatusCode.NoContent
 
-    override suspend fun deleteField(fieldId: String): Boolean {
-        val response = client.delete(urlString = "field/$fieldId")
-        return response.status == HttpStatusCode.NoContent
-    }
+    override suspend fun deleteField(fieldId: String): Boolean = client
+        .delete(urlString = "field/$fieldId")
+        .status == HttpStatusCode.NoContent
 
-    override suspend fun deleteDynamicField(fieldId: String): Boolean {
-        val response = client.delete(urlString = "field/$fieldId/dynamic")
-        return response.status == HttpStatusCode.NoContent
-    }
+    override suspend fun deleteDynamicField(fieldId: String): Boolean = client
+        .delete(urlString = "field/$fieldId/dynamic")
+        .status == HttpStatusCode.NoContent
 
-    override suspend fun updateFieldDynamic(
+    override suspend fun updateDynamicField(
         fieldId: String,
-        updateRequestData: UpdateFieldRequest
-    ): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    //Sample
-    override suspend fun createSample(body: CreateSampleRequest): String {
-        return client.post("sample") {
+        body: UpdateDynamicFieldRequest
+    ): Boolean = client
+        .patch("field/$fieldId/dynamic") {
             setBody(body)
         }.body()
-    }
 
-    override suspend fun getSample(sampleId: String): SampleResponse {
-        return client.get(urlString = "sample/$sampleId")
-            .body()
-    }
+    //Sample
+    override suspend fun createSample(body: CreateSampleRequest): String = client
+        .post("sample") {
+            setBody(body)
+        }.body()
 
-    override suspend fun deleteSample(sampleId: String): Boolean {
-        TODO("Not yet implemented")
-    }
+    override suspend fun getSample(sampleId: String): SampleResponse = client
+        .get(urlString = "sample/$sampleId")
+        .body()
+
+    override suspend fun deleteSample(sampleId: String): Boolean = client
+        .delete(urlString = "sample/$sampleId")
+        .status == HttpStatusCode.NoContent
 
     override suspend fun getAllSamplesOfStage(
         stageId: String,
         pageNumber: Int,
         pageSize: Int
-    ): List<SampleResponse> {
-        TODO("Not yet implemented")
-    }
+    ): PagingResponse<SampleResponse> = client
+        .get(urlString = "sample/$stageId/stage")
+        .body()
 
     override suspend fun getAllSamplesOfProject(
         projectId: String,
         pageNumber: Int,
         pageSize: Int
-    ): List<SampleResponse> {
-        TODO("Not yet implemented")
-    }
+    ): PagingResponse<SampleResponse> = client
+        .get(urlString = "sample/$projectId/project")
+        .body()
 }

@@ -50,7 +50,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -59,11 +58,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.application.R
 import com.application.ui.component.FullScreenImage
 import com.application.ui.component.PhotoBottomSheetContent
-import com.application.ui.navigation.Routes
 import com.application.ui.viewmodel.CaptureViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -74,7 +72,6 @@ import java.util.Locale
 @Composable
 fun CaptureScreen(
     viewModel: CaptureViewModel = hiltViewModel(),
-    savedStateHandle: SavedStateHandle,
     popBackToStage: () -> Unit,
     navigateToCreateSample: (Pair<String, Uri>) -> Unit
 ) {
@@ -98,16 +95,12 @@ fun CaptureScreen(
     var capturing by remember { mutableStateOf(false) }
     var sheetPeakHeight by remember { mutableStateOf(0.dp) }
 
-    savedStateHandle.remove<String>(Routes.SAMPLE_STACK_KEY)?.let { imageName ->
-        sampleImages.removeIf { it.first == imageName }
-    }
-
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = sheetPeakHeight,
         sheetContent = {
             PhotoBottomSheetContent(
-                uriList = sampleImages.map { it.second },
+                uris = sampleImages,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(bottom = 20.dp),
@@ -121,17 +114,21 @@ fun CaptureScreen(
                         activeImageIdx = it
                     }
                 },
-                onSelectImages = { isSelecting ->
+                onPhotosSelected = { isSelecting ->
                     if (isSelecting &&
-                        scaffoldState.bottomSheetState.currentValue != SheetValue.Expanded) {
+                        scaffoldState.bottomSheetState.currentValue != SheetValue.Expanded
+                    ) {
                         sheetPeakHeight = 200.dp
                         scope.launch { scaffoldState.bottomSheetState.expand() }
                     }
                 },
-                onDeleteImages = { removeList ->
-                    removeList.forEach { uri ->
-                        if (deleteImage(context, uri))
-                            sampleImages.removeIf { it.second == uri }
+                onPhotosDeleted = { removeList ->
+                    removeList.forEach { id ->
+                        sampleImages.find { it.first == id }
+                            ?.let { pair ->
+                                if (deleteImage(context, pair.second))
+                                    sampleImages.remove(pair)
+                            }
                     }
                 }
             )
@@ -345,7 +342,7 @@ fun deleteImage(context: Context, imageUri: Uri): Boolean {
 }
 
 @Composable
-fun CameraPreview(
+private fun CameraPreview(
     controller: LifecycleCameraController,
     modifier: Modifier = Modifier
 ) {
@@ -362,7 +359,7 @@ fun CameraPreview(
     )
 }
 
-fun takePhoto(
+private fun takePhoto(
     context: Context,
     controller: LifecycleCameraController,
     onPhotoTaken: (Uri) -> Unit

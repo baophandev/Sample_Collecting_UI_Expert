@@ -2,6 +2,7 @@ package com.application.data.repository
 
 import android.net.Uri
 import android.util.Log
+import com.application.android.utility.client.response.PagingResponse
 import com.application.android.utility.state.ResourceState
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Answer
@@ -31,32 +32,34 @@ class SampleRepository(
      * Create a new sample.
      */
     fun createSample(
-        attachmentUri: Uri? = null,
+        attachmentUri: Uri,
         position: String,
-        projectOwnerId: String,
         stageId: String,
-        answers: List<UpsertAnswerRequest>,
-        dynamicFields: List<CreateDynamicFieldRequest>,
+        answers: List<Answer>,
+        dynamicFields: List<DynamicField>,
     ): Flow<ResourceState<String>> {
-
         var body = CreateSampleRequest(
             position = position,
-            projectOwnerId = projectOwnerId,
             stageId = stageId,
-            answers = answers,
-            dynamicFields = dynamicFields
+            answers = answers.map {
+                UpsertAnswerRequest(fieldId = it.field.id, value = it.content)
+            },
+            dynamicFields = dynamicFields.mapIndexed { index, field ->
+                CreateDynamicFieldRequest(
+                    name = field.name,
+                    value = field.value,
+                    numberOrder = index
+                )
+            }
         )
 
         return flow<ResourceState<String>> {
-            attachmentUri?.let {
-                val attachmentState = attachmentRepository.storeAttachment(it).last()
-                if (attachmentState is ResourceState.Success)
-                    body = body.copy(attachmentId = attachmentState.data)
-                else throw Exception("Storing attachment got an exception.")
-            }
+            val attachmentState = attachmentRepository.storeAttachment(attachmentUri).last()
+            if (attachmentState is ResourceState.Success)
+                body = body.copy(attachmentId = attachmentState.data)
+            else throw Exception("Storing attachment got an exception.")
 
             val sampleId = projectService.createSample(body)
-
             val newSample = getSample(sampleId).last()
             if (newSample is ResourceState.Success)
                 cachedSamples[sampleId] = newSample.data
@@ -85,68 +88,64 @@ class SampleRepository(
         }
     }
 
+    fun deleteSample(sampleId: String): Flow<ResourceState<Boolean>> {
+        return flow<ResourceState<Boolean>> {
+            val response = projectService.deleteSample(sampleId)
+            emit(ResourceState.Success(response))
+        }.catch {
+            Log.e(TAG, it.message, it)
+            emit(ResourceState.Error(message = "Cannot get sample"))
+        }
+    }
+
     /**
      * Get all samples of a stage by stageId.
      */
-    fun getAllSamplesOfStage(
+    suspend fun getAllSamplesOfStage(
         stageId: String,
         pageNumber: Int = 0,
         pageSize: Int = 6
-    ): Flow<ResourceState<List<Sample>>> {
-        return flow<ResourceState<List<Sample>>> {
-            val samples =
-                projectService.getAllSamplesOfStage(stageId, pageNumber, pageSize)
-                    .map { mapResponseToSample(it) }
-            cachedSamples.putAll(samples.map { Pair(it.id, it) })
-            emit(ResourceState.Success(samples))
-        }.catch {
-            Log.e(TAG, it.message, it)
-            emit(ResourceState.Error(message = "Cannot all samples of stage"))
-        }
-    }
-
-    /**
-     * Get all samples of a project by projectId.
-     */
-    fun getAllSamplesOfProject(
-        projectId: String,
-        pageNumber: Int = 0,
-        pageSize: Int = 6
-    ): Flow<ResourceState<List<Sample>>> {
-        return flow<ResourceState<List<Sample>>> {
-            val samples =
-                projectService.getAllSamplesOfProject(projectId, pageNumber, pageSize)
-                    .map { mapResponseToSample(it) }
-            cachedSamples.putAll(samples.map { Pair(it.id, it) })
-            emit(ResourceState.Success(samples))
-        }.catch {
-            Log.e(TAG, it.message, it)
-            emit(ResourceState.Error(message = "Cannot all samples of project"))
-        }
+    ): Result<PagingResponse<Sample>> {
+        return runCatching {
+            val response = projectService.getAllSamplesOfStage(stageId, pageNumber, pageSize)
+            val samples = response.content.map { mapResponseToSample(it) }
+            PagingResponse(
+                totalPages = response.totalPages,
+                totalElements = response.totalElements,
+                number = response.number,
+                size = response.size,
+                numberOfElements = response.numberOfElements,
+                first = response.first,
+                last = response.last,
+                content = samples
+            )
+        }.onFailure { Log.e(TAG, it.message, it) }
     }
 
     private suspend fun mapResponseToSample(response: SampleResponse): Sample {
-        val atmState = if (response.attachmentId != null)
-            attachmentRepository.getAttachment(response.attachmentId).last() else null
-        val attachment = if (atmState is ResourceState.Success)
-            atmState.data.url else null
-        val image = if (attachment != null) Uri.parse(attachment) else null
+        val atmState = attachmentRepository.getAttachment(response.attachmentId).last()
+        val image = if (atmState is ResourceState.Success)
+            Uri.parse(atmState.data.url)
+        else throw Exception("Cannot get a sample image.")
 
-        val answers = response.answers.map {
-            val resourceState = fieldRepository.getField(it.field.id).last()
-            val field = if (resourceState is ResourceState.Success)
-                resourceState.data else Field.ERROR_FIELD
-            Answer(content = it.value, field = field)
-        }
+        val answers = response.answers
+            .sortedBy { it.field.numberOrder }
+            .map {
+                val resourceState = fieldRepository.getField(it.field.id).last()
+                val field = if (resourceState is ResourceState.Success)
+                    resourceState.data else Field.ERROR_FIELD
+                Answer(content = it.value, field = field)
+            }
 
-        val dynamicFields = response.dynamicFields.map {
-            DynamicField(
-                id = it.id,
-                name = it.name,
-                value = it.value,
-                numberOrder = it.numberOrder,
-            )
-        }
+        val dynamicFields = response.dynamicFields
+            .sortedBy { it.numberOrder }
+            .map {
+                DynamicField(
+                    id = it.id,
+                    name = it.name,
+                    value = it.value,
+                )
+            }
 
         return Sample(
             id = response.id,

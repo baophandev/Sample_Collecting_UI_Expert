@@ -1,7 +1,6 @@
 package com.application.ui.screen
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +23,6 @@ import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
@@ -59,13 +57,12 @@ import com.application.data.entity.Form
 import com.application.data.entity.Stage
 import com.application.ui.component.CustomButton
 import com.application.ui.component.FormContainer
-import com.application.ui.component.LoadingScreen
 import com.application.ui.component.StageContainer
 import com.application.ui.component.TopNavigationBar
 import com.application.ui.viewmodel.DetailViewModel
 
-internal enum class DetailScreenSwitchState { DETAIL, STAGES, FORMS }
-internal enum class AlertType { CREATE_NEW_PROJECT, DELETE, ADD_FORM, NONE, CANNOT_DELETE_FORM }
+private enum class DetailScreenSwitchState { DETAIL, STAGES, FORMS }
+private enum class AlertType { CREATE_NEW_PROJECT, DELETE, ADD_FORM, NONE, CANNOT_DELETE_FORM }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,7 +71,6 @@ fun DetailScreen(
     reloadSignal: ReloadSignal,
     onReloadSuccessfully: (Boolean) -> Unit,
     projectId: String,
-    userId: String,
     navigateToHome: () -> Unit,
     navigateToModifyProject: (String) -> Unit,
     navigateToStageDetail: (String) -> Unit,
@@ -287,12 +283,11 @@ fun DetailScreen(
 //                                                )
 //                                            },
                                             onFormModifyClick = { formId ->
-                                                if(state.project?.owner?.id == userId) {
-                                                    formId?.let(navigateToModifyForm)
-                                                }
+                                                if (viewModel.isProjectOwner())
+                                                    navigateToModifyForm(formId)
                                             },
                                             onFormDeleteClicked = { formId ->
-                                                if (formId != null && !viewModel.isFormUsed(formId)) {
+                                                if (!viewModel.isFormUsed(formId)) {
                                                     viewModel.deleteForm(formId = formId)
                                                 } else {
                                                     alertType = AlertType.CANNOT_DELETE_FORM
@@ -379,9 +374,9 @@ fun DetailScreen(
                                 background = MaterialTheme.colorScheme.primary,
                                 border = BorderStroke(0.dp, Color.Transparent)
                             ) {
-                                if (state.project?.owner?.id == userId) {
+                                if (viewModel.isProjectOwner())
                                     navigateToModifyProject(state.project!!.id)
-                                } else alertType = AlertType.CREATE_NEW_PROJECT
+                                else alertType = AlertType.CREATE_NEW_PROJECT
                             }
                         }
 
@@ -392,13 +387,10 @@ fun DetailScreen(
                                 background = MaterialTheme.colorScheme.primary,
                                 border = BorderStroke(0.dp, Color.Transparent),
                                 action = {
-                                    if (state.project?.owner?.id == userId) {
-                                        if (state.forms.isEmpty()) {
-                                            alertType = AlertType.ADD_FORM
-                                        } else navigateToAddStage()
-                                    } else {
-                                        alertType = AlertType.CREATE_NEW_PROJECT
-                                    }
+                                    if (viewModel.isProjectOwner()) {
+                                        if (state.forms.isEmpty()) alertType = AlertType.ADD_FORM
+                                        else navigateToAddStage()
+                                    } else alertType = AlertType.CREATE_NEW_PROJECT
                                 }
 
                             )
@@ -411,11 +403,8 @@ fun DetailScreen(
                                 background = MaterialTheme.colorScheme.primary,
                                 border = BorderStroke(0.dp, Color.Transparent),
                                 action = {
-                                    if (state.project?.owner?.id == userId) {
-                                        navigateToAddForm()
-                                    } else {
-                                        alertType = AlertType.CREATE_NEW_PROJECT
-                                    }
+                                    if (viewModel.isProjectOwner()) navigateToAddForm()
+                                    else alertType = AlertType.CREATE_NEW_PROJECT
                                 })
                         }
                     }
@@ -428,7 +417,7 @@ fun DetailScreen(
 }
 
 @Composable
-fun DetailTab(
+private fun DetailTab(
     modifier: Modifier = Modifier, projectDescription: String? = null
 ) {
     Text(
@@ -448,7 +437,7 @@ fun DetailTab(
 }
 
 @Composable
-fun StageTab(
+private fun StageTab(
     modifier: Modifier = Modifier,
     status: UiStatus,
     error: String? = null,
@@ -501,14 +490,14 @@ fun StageTab(
 
 
 @Composable
-fun FormTab(
+private fun FormTab(
     modifier: Modifier = Modifier,
     status: UiStatus,
     error: String? = null,
     forms: List<Form>,
     //onRefreshClick: () -> Unit,
-    onFormModifyClick: (String) -> Unit,
-    onFormDeleteClicked: (String) -> Unit
+    onFormModifyClick: ((String) -> Unit)?,
+    onFormDeleteClicked: ((String) -> Unit)?
 ) {
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
@@ -541,10 +530,12 @@ fun FormTab(
                         .padding(horizontal = 10.dp)
                         .fillMaxWidth(),
                     onModifyClicked = {
-                        onFormModifyClick(form.id)
+                        if (onFormModifyClick != null)
+                            onFormModifyClick(form.id)
                     },
                     onDeleteClicked = {
-                        onFormDeleteClicked(form.id)
+                        if (onFormDeleteClicked != null)
+                            onFormDeleteClicked(form.id)
                     }
                 )
             }

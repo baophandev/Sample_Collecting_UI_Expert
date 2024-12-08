@@ -82,15 +82,15 @@ class ModifyFormViewModel @Inject constructor(
         _state.update { it.copy(form = currentForm?.copy(title = title), isFormUpdated = true) }
     }
 
-    fun updateDescription(description: String) {
-        val currentForm = state.value.form
-        _state.update {
-            it.copy(
-                form = currentForm?.copy(description = description),
-                isFormUpdated = true
-            )
-        }
-    }
+//    fun updateDescription(description: String) {
+//        val currentForm = state.value.form
+//        _state.update {
+//            it.copy(
+//                form = currentForm?.copy(description = description),
+//                isFormUpdated = true
+//            )
+//        }
+//    }
 
     fun addNewField() {
         state.value.form?.let { currentForm ->

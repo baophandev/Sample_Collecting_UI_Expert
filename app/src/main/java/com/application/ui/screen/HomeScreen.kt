@@ -181,6 +181,8 @@ fun HomeScreen(
                     key = lazyPagingItems.itemKey { it.id }
                 ) { index ->
                     val project = lazyPagingItems[index]
+                    val ownerName = "${project?.owner?.firstName} ${project?.owner?.lastName}"
+
                     FieldProject(
                         modifier = Modifier.clickable {
                             project?.let { navigateToDetailProject(project.id) }
@@ -188,7 +190,7 @@ fun HomeScreen(
                         thumbnail = project?.thumbnail,
                         name = project?.name,
                         description = project?.description,
-                        owner = project?.owner?.name
+                        owner = ownerName
                     )
                     Spacer(modifier = Modifier.size(15.dp))
                 }

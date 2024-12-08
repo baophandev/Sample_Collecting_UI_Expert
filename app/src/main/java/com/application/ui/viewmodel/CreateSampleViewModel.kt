@@ -7,7 +7,9 @@ import com.application.R
 import com.application.android.utility.state.ResourceState
 import com.application.constant.UiStatus
 import com.application.data.entity.Answer
+import com.application.data.entity.DynamicField
 import com.application.data.repository.FieldRepository
+import com.application.data.repository.SampleRepository
 import com.application.data.repository.StageRepository
 import com.application.ui.state.CreateSampleUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +26,8 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateSampleViewModel @Inject constructor(
     private val stageRepository: StageRepository,
-    private val fieldRepository: FieldRepository
+    private val fieldRepository: FieldRepository,
+    private val sampleRepository: SampleRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CreateSampleUiState())
@@ -66,56 +69,107 @@ class CreateSampleViewModel @Inject constructor(
     }
 
     fun gotError() {
-        _state.update { it.copy(error = null) }
-    }
-
-    fun updateDataOfField(data: String) {
-        _state.update { it.copy() }
+        _state.update { it.copy(status = UiStatus.SUCCESS, error = null) }
     }
 
     fun submitSample(
         stageId: String,
         sampleImage: Pair<String, Uri>,
         result: (String) -> Unit,
-        isCancelled: () -> Unit,
     ) {
+        val currentState = state.value
         if (!validate()) {
             _state.update { it.copy(error = R.string.fields_not_validate) }
             return
         }
 
-        // collect fields
-        val fields = mutableMapOf<String, String>()
-
-
         viewModelScope.launch(Dispatchers.IO) {
+            sampleRepository.createSample(
+                stageId = stageId,
+                attachmentUri = sampleImage.second,
+                position = "",
+                answers = currentState.answers,
+                dynamicFields = currentState.dynamicFields
+            )
+                .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
+                .collectLatest { resourceState ->
+                    when (resourceState) {
+                        is ResourceState.Error -> _state.update {
+                            it.copy(status = UiStatus.ERROR, error = resourceState.resId)
+                        }
+
+                        is ResourceState.Success -> {
+                            _state.update { it.copy(status = UiStatus.SUCCESS) }
+                            viewModelScope.launch { result(resourceState.data) }
+                        }
+                    }
+                }
         }
     }
 
     private fun validate(): Boolean {
-//        return state.value.fields.all { it..isNotBlank() }
-        return true
+        val currentState = state.value
+        val answersValidatorResult = currentState.answers.all { it.content.isNotBlank() }
+        val dynamicFieldsValidatorResult =
+            currentState.dynamicFields.all { it.name.isNotBlank() && it.value.isNotBlank() }
+
+        return answersValidatorResult && dynamicFieldsValidatorResult
     }
 
     fun updateAnswer(index: Int, newValue: String) {
-        val currentAnswers = state.value.answers.toMutableList()
-        if (index >= currentAnswers.size) return
+        val updatedFields = updateFieldHelper(
+            supplier = state.value.answers,
+            index = index
+        ) { it.copy(content = newValue) }
+        _state.update { it.copy(answers = updatedFields) }
+    }
 
-        val newAnswer = currentAnswers[index].copy(content = newValue)
-        currentAnswers.removeAt(index)
-        currentAnswers.add(index, newAnswer)
-        _state.update { it.copy(answers = currentAnswers) }
+    fun addDynamicField() {
+        val updatedFields = state.value.dynamicFields.toMutableList()
+        val currentSize = updatedFields.size
+        val newField = DynamicField(
+            id = "${System.currentTimeMillis()}-${currentSize}",
+            name = "",
+            value = "",
+        )
+        updatedFields.add(newField)
+        _state.update { it.copy(dynamicFields = updatedFields) }
     }
 
     fun updateDynamicFieldName(index: Int, fieldName: String) {
-        TODO("Not yet implemented")
+        val updatedFields = updateFieldHelper(
+            supplier = state.value.dynamicFields,
+            index = index
+        ) { it.copy(name = fieldName) }
+        _state.update { it.copy(dynamicFields = updatedFields) }
     }
 
     fun updateDynamicFieldValue(index: Int, fieldValue: String) {
-        TODO("Not yet implemented")
+        val updatedFields = updateFieldHelper(
+            supplier = state.value.dynamicFields,
+            index = index
+        ) { it.copy(value = fieldValue) }
+        _state.update { it.copy(dynamicFields = updatedFields) }
+    }
+
+    private fun <T> updateFieldHelper(
+        index: Int,
+        supplier: List<T>,
+        transformer: (T) -> T
+    ): List<T> {
+        val mutableApplyList = supplier.toMutableList()
+        mutableApplyList.getOrNull(index)?.let { obj ->
+            val newObj = transformer(obj)
+            mutableApplyList.removeAt(index)
+            mutableApplyList.add(index, newObj)
+        }
+        return mutableApplyList
     }
 
     fun deleteDynamicField(index: Int) {
-        TODO("Not yet implemented")
+        val updatedFields = state.value.dynamicFields.toMutableList()
+        updatedFields.removeAt(index)
+        _state.update { it.copy(dynamicFields = updatedFields) }
     }
+
 }

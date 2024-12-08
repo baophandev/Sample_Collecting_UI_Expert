@@ -1,7 +1,6 @@
 package com.application.ui.screen
 
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -53,7 +52,6 @@ import com.application.constant.UiStatus
 import com.application.ui.component.BlockField
 import com.application.ui.component.CustomButton
 import com.application.ui.component.DynamicField
-import com.application.ui.component.LoadingScreen
 import com.application.ui.viewmodel.CreateSampleViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,12 +61,9 @@ fun CreateSampleScreen(
     stageId: String,
     newSample: Pair<String, Uri>,
     navigateToCapture: (String?) -> Unit,
-    navigateToHome: () -> Unit
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
-
-    val cannotCreateSample = stringResource(id = R.string.create_sample_cancel)
 
     val snackBarHostState = remember { SnackbarHostState() }
     val scaffoldState = rememberBottomSheetScaffoldState(
@@ -83,7 +78,18 @@ fun CreateSampleScreen(
     when (state.status) {
         UiStatus.INIT -> viewModel.loadForm(stageId)
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
-        UiStatus.ERROR -> TODO()
+        UiStatus.ERROR -> {
+            val error = stringResource(id = state.error ?: R.string.unknown_error)
+            LaunchedEffect(state.error) {
+                val result = snackBarHostState.showSnackbar(
+                    message = error,
+                    withDismissAction = true,
+                    duration = SnackbarDuration.Short
+                )
+                if (result == SnackbarResult.Dismissed)
+                    viewModel.gotError()
+            }
+        }
         UiStatus.SUCCESS -> Box {
             BottomSheetScaffold(
                 scaffoldState = scaffoldState,
@@ -120,7 +126,7 @@ fun CreateSampleScreen(
                                     modifier = Modifier
                                         .padding(0.dp)
                                         .size(50.dp),
-                                    onClick = { TODO("Add a dynamic field") }
+                                    onClick = viewModel::addDynamicField
                                 ) {
                                     Icon(
                                         modifier = Modifier.fillMaxSize(),
@@ -223,27 +229,10 @@ fun CreateSampleScreen(
                         viewModel.submitSample(
                             stageId = stageId,
                             sampleImage = newSample,
-                            result = navigateToCapture,
-                            isCancelled = {
-                                Toast.makeText(context, cannotCreateSample, Toast.LENGTH_SHORT)
-                                    .show()
-                                navigateToHome()
-                            }
+                            result = navigateToCapture
                         )
                     }
                 )
-            }
-
-            if (state.error != null) {
-                val error = stringResource(id = state.error!!)
-                LaunchedEffect(key1 = "showSnackBar") {
-                    val result = snackBarHostState.showSnackbar(
-                        message = error,
-                        withDismissAction = true,
-                        duration = SnackbarDuration.Short
-                    )
-                    if (result == SnackbarResult.Dismissed) viewModel.gotError()
-                }
             }
         }
     }

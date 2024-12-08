@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="login_info_not_blank">Thông tin đăng nhập không được bỏ trống</string>
     <string name="login_success">Bạn đã đăng nhập!</string>
     <string name="login_cancel">Quá trình đăng nhập được hủy bởi người dùng!</string>
     <string name="login_error">Đăng nhập bị lỗi!</string>
@@ -112,4 +113,5 @@
         thấy hôm nay lúa nó đốm và vàng quá, giúp em trị bệnh
         này với ạ
     </string>
+    <string name="enter_username">Email hoặc số điện thoại</string>
 </resources>

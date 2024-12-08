@@ -47,13 +47,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
+import com.application.android.utility.validate.RegexValidation
 import com.application.constant.UiStatus
 import com.application.ui.component.BotNavigationBar
 import com.application.ui.component.CustomDatePicker
 import com.application.ui.component.CustomTextField
 import com.application.ui.component.FieldToList
-import com.application.ui.component.LoadingScreen
-import com.application.ui.component.RegexValidation
 import com.application.ui.component.TopBar
 import com.application.ui.viewmodel.ModifyProjectViewModel
 

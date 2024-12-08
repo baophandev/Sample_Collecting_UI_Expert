@@ -4,10 +4,10 @@ import android.util.Log
 import com.application.android.utility.state.ResourceState
 import com.application.android.user_library.datasource.IUserService
 import com.application.android.user_library.entity.Domain
-import com.application.data.entity.LoginCertificate
-import com.application.data.entity.User
+import com.application.android.user_library.entity.LoginCertificate
 import com.application.android.user_library.entity.response.DomainResponse
 import com.application.android.user_library.entity.response.UserResponse
+import com.application.android.user_library.entity.User
 import io.github.nefilim.kjwt.JWSRSA256Algorithm
 import io.github.nefilim.kjwt.JWT
 import kotlinx.coroutines.flow.Flow
@@ -48,7 +48,7 @@ class UserRepository(
 
             val userId = JWT.decodeT(_currentLoginCertificate.accessToken, JWSRSA256Algorithm)
                 .map { it.subject().orNull() }
-                .orNull() ?: throw Error("Cannot decode JWT token to get user ID.")
+                .orNull() ?: throw Exception("Cannot decode JWT token to get user ID.")
             val userResponse = service.getUser(userId)
             _currentUser = mapResponseToUser(userResponse)
 

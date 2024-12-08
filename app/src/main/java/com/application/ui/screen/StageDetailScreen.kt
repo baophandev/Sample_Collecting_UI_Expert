@@ -1,13 +1,7 @@
 package com.application.ui.screen
 
-import android.net.Uri
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,9 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
@@ -35,6 +27,7 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,33 +47,33 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
 import com.application.constant.ReloadSignal
 import com.application.constant.UiStatus
+import com.application.data.entity.Sample
 import com.application.ui.component.CustomButton
-import com.application.ui.component.FullScreenImage
-import com.application.ui.component.LoadingScreen
-import com.application.ui.component.NameAndValueField
 import com.application.ui.component.PhotoBottomSheetContent
 import com.application.ui.component.TopNavigationBar
 import com.application.ui.viewmodel.StageDetailViewModel
 
-internal enum class StageSwitchState { DETAIL, PHOTOS }
+private enum class StageTab { DETAIL, PHOTOS }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StageDetailScreen(
     viewModel: StageDetailViewModel = hiltViewModel(),
     stageId: String,
-    thumbnailUri: Uri? = null,
     reloadSignal: ReloadSignal,
     onReloadSuccessfully: (Boolean) -> Unit,
     deletedHandler: (Boolean) -> Unit,
     navigateToModifyStage: () -> Unit,
     navigateToCapture: () -> Unit,
-    navigateToDetail: (Boolean) -> Unit
+    navigateToDetail: () -> Unit,
+    navigateToSampleDetail: (String) -> Unit
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
@@ -93,11 +86,9 @@ fun StageDetailScreen(
             skipHiddenState = true
         )
     )
-    var switch by remember { mutableStateOf(StageSwitchState.DETAIL) }
-    var showSampleData by remember { mutableStateOf(false) }
+    var currentTab by remember { mutableStateOf(StageTab.DETAIL) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showAddPhoto by remember { mutableStateOf(true) }
-    var activeImageIdx by remember { mutableStateOf<Int?>(null) }
 
     if (reloadSignal != ReloadSignal.NONE) {
         when (reloadSignal) {
@@ -111,155 +102,61 @@ fun StageDetailScreen(
         }
     }
 
-    if (showDeleteDialog) {
-        AlertDialog(
-            title = {
-                Text(text = stringResource(id = R.string.delete_stage))
-            },
-            text = {
-                Text(text = stringResource(id = R.string.delete_stage_description))
-            },
-            onDismissRequest = { showDeleteDialog = false },
-            confirmButton = {
-                CustomButton(
-                    text = stringResource(id = R.string.delete_this_project),
-                    textSize = 14.sp,
-                    background = colorResource(id = R.color.red),
-                    border = BorderStroke(0.dp, Color.Transparent)
-                ) {
-                    state.stage?.projectOwnerId?.let {
-                        viewModel.deleteStage(
-                            projectOwnerId = it,
-                            stageId = stageId,
-                            successHandler = deletedHandler
-                        )
-                    }
-                }
-            },
-            dismissButton = {
-                CustomButton(
-                    text = stringResource(id = R.string.cancel),
-                    textSize = 14.sp,
-                    textColor = Color.Black,
-                    background = Color.White,
-                    border = BorderStroke(0.dp, Color.Transparent)
-                ) { showDeleteDialog = false }
+    DeleteStageAlertDialog(
+        show = showDeleteDialog,
+        onDismissRequest = { showDeleteDialog = false },
+        onConfirmButtonClick = {
+            state.stage?.projectOwnerId?.let {
+                viewModel.deleteStage(
+                    projectOwnerId = it,
+                    stageId = stageId,
+                    successHandler = deletedHandler
+                )
             }
-        )
-    }
+        }
+    )
 
     when (state.status) {
         UiStatus.INIT -> viewModel.loadStage(stageId)
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
         UiStatus.SUCCESS -> {
+            val sampleLazyPagingItems = viewModel.flow.collectAsLazyPagingItems()
+
             Box {
                 BottomSheetScaffold(
                     scaffoldState = scaffoldState,
-                    sheetPeekHeight = if (activeImageIdx == null) 600.dp else 0.dp,
+                    sheetPeekHeight = 600.dp,
                     sheetContent = {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 10.dp),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            CustomButton(
-                                text = stringResource(id = R.string.detail),
-                                textSize = 16.sp,
-                                textColor = if (switch == StageSwitchState.DETAIL)
-                                    Color.White else Color.Black,
-                                background = if (switch == StageSwitchState.DETAIL)
-                                    MaterialTheme.colorScheme.primary else Color.White,
-                                border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                                action = { switch = StageSwitchState.DETAIL }
-                            )
-                            CustomButton(
-                                text = stringResource(id = R.string.photos),
-                                textSize = 16.sp,
-                                textColor = if (switch == StageSwitchState.PHOTOS)
-                                    Color.White else Color.Black,
-                                background = if (switch == StageSwitchState.PHOTOS)
-                                    MaterialTheme.colorScheme.primary else Color.White,
-                                border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                                action = { switch = StageSwitchState.PHOTOS }
-                            )
-                        }
+                        TabButtons(tab = currentTab) { newTab -> currentTab = newTab }
 
-                        when (switch) {
-                            StageSwitchState.DETAIL -> {
-                                Column(
-                                    modifier = Modifier.padding(
-                                        horizontal = 15.dp,
-                                        vertical = 5.dp
-                                    ),
-                                    verticalArrangement = Arrangement.Top
-                                ) {
-                                    Text(
-                                        text = stringResource(id = R.string.detail),
-                                        fontSize = 20.sp,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.W700
-                                    )
-                                    Text(
-                                        modifier = Modifier.padding(horizontal = 10.dp),
-                                        overflow = TextOverflow.Ellipsis,
-                                        text = state.stage?.description
-                                            ?: stringResource(id = R.string.default_project_description),
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.W400
-                                    )
-                                }
-                            }
+                        when (currentTab) {
+                            StageTab.DETAIL -> DetailTab(
+                                description = state.stage?.description
+                            )
 
-                            StageSwitchState.PHOTOS -> {
-                                Column(
-                                    modifier = Modifier
-                                        .padding(horizontal = 15.dp, vertical = 5.dp)
-                                        .fillMaxSize()
-                                ) {
-                                    PhotoBottomSheetContent(
-                                        uriList = state.imageUris.map { pair -> pair.second },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .fillMaxHeight(if (state.imageUris.isEmpty()) .2f else .9f),
-                                        onPhotoPress = { imageIdx ->
-                                            if (imageIdx < state.imageUris.size) {
-                                                activeImageIdx = imageIdx
-                                                val sampleId = state.imageUris[imageIdx].first
-                                                viewModel.loadSampleData(
-                                                    projectId = stageId,
-                                                    stageId = stageId,
-                                                    sampleId = sampleId
-                                                )
-                                            }
-                                        },
-                                        onSelectImages = if (state.isProjectOwner) { isSelecting ->
-                                            showAddPhoto = !isSelecting
-                                        } else null,
-                                        onDeleteImages = if (state.isProjectOwner) { removeList ->
-                                            removeList.forEach { uri ->
-                                                state.imageUris.find { it.second == uri }
-                                                    ?.let { sample ->
-//                                                        viewModel.deleteSample(
-//                                                            stageId,
-//                                                            stage.first,
-//                                                            sample.first
-//                                                        )
-                                                        state.imageUris.remove(sample)
-                                                    }
-                                            }
-                                        } else null
-                                    )
+                            StageTab.PHOTOS -> PhotoTab(
+                                isProjectOwner = viewModel.isProjectOwner(),
+                                pagingItems = sampleLazyPagingItems,
+                                onPhotoPress = { imageIdx ->
+                                    sampleLazyPagingItems[imageIdx]?.let { sample ->
+//                                        activeImageIdx = imageIdx
+//                                        viewModel.loadSampleData(sampleId = sample.id)
+                                        navigateToSampleDetail(sample.id)
+                                    }
+                                },
+                                onImagesSelected = { isSelecting -> showAddPhoto = !isSelecting },
+                                onImagesDeleted = { deletedIds ->
+                                    deletedIds.forEach(viewModel::deleteSample)
                                 }
-                            }
+                            )
                         }
                     }
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        if (thumbnailUri != null) {
+                        if (state.thumbnail != null)
                             AsyncImage(
                                 model = ImageRequest.Builder(context)
-                                    .data(thumbnailUri)
+                                    .data(state.thumbnail)
                                     .build(),
                                 modifier = Modifier
                                     .height(300.dp)
@@ -267,7 +164,7 @@ fun StageDetailScreen(
                                 contentDescription = "Thumbnail",
                                 contentScale = ContentScale.Crop
                             )
-                        } else {
+                        else
                             Image(
                                 modifier = Modifier
                                     .height(300.dp)
@@ -276,15 +173,14 @@ fun StageDetailScreen(
                                 contentDescription = "Default Thumbnail",
                                 contentScale = ContentScale.FillBounds
                             )
-                        }
                         Column(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             TopNavigationBar(
-                                backAction = { navigateToDetail(false) }
+                                backAction = navigateToDetail
                             ) {
-                                if (state.isProjectOwner) {
+                                if (viewModel.isProjectOwner()) {
                                     DropdownMenuItem(
                                         leadingIcon = {
                                             Icon(
@@ -320,116 +216,167 @@ fun StageDetailScreen(
                         .padding(bottom = 20.dp),
                     contentAlignment = Alignment.BottomCenter
                 ) {
-                    when (switch) {
-                        StageSwitchState.DETAIL -> {
-                            if (state.isProjectOwner) {
-                                CustomButton(
-                                    modifier = Modifier.fillMaxWidth(.7f),
-                                    text = stringResource(id = R.string.modify),
-                                    textSize = 16.sp,
-                                    background = MaterialTheme.colorScheme.primary,
-                                    border = BorderStroke(0.dp, Color.Transparent),
-                                    action = navigateToModifyStage
-                                )
-                            }
+                    when (currentTab) {
+                        StageTab.DETAIL -> if (viewModel.isProjectOwner()) {
+                            CustomButton(
+                                modifier = Modifier.fillMaxWidth(.7f),
+                                text = stringResource(id = R.string.modify),
+                                textSize = 16.sp,
+                                background = MaterialTheme.colorScheme.primary,
+                                border = BorderStroke(0.dp, Color.Transparent),
+                                action = navigateToModifyStage
+                            )
                         }
 
-                        StageSwitchState.PHOTOS -> {
-                            if (showAddPhoto) {
-                                CustomButton(
-                                    modifier = Modifier.fillMaxWidth(.7f),
-                                    text = stringResource(id = R.string.add_photo),
-                                    textSize = 16.sp,
-                                    background = MaterialTheme.colorScheme.primary,
-                                    border = BorderStroke(0.dp, Color.Transparent),
-                                    action = navigateToCapture
-                                )
-                            }
+                        StageTab.PHOTOS -> if (showAddPhoto) {
+                            CustomButton(
+                                modifier = Modifier.fillMaxWidth(.7f),
+                                text = stringResource(id = R.string.add_photo),
+                                textSize = 16.sp,
+                                background = MaterialTheme.colorScheme.primary,
+                                border = BorderStroke(0.dp, Color.Transparent),
+                                action = navigateToCapture
+                            )
                         }
-                    }
-
-                    if (activeImageIdx != null) {
-                        if (activeImageIdx!! < state.imageUris.size) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(Color.White)
-                            ) {
-                                FullScreenImage(
-                                    uri = state.imageUris[activeImageIdx!!].second,
-                                    onDismiss = { activeImageIdx = null },
-                                    onTapGesture = { showSampleData = !showSampleData }
-                                )
-                            }
-                            state.sample?.let { sample ->
-                                AnimatedVisibility(
-                                    visible = (showSampleData),
-                                    enter = fadeIn(animationSpec = tween(400)),
-                                    exit = fadeOut(animationSpec = tween(400))
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(Color(0, 0, 0, 153)),
-                                        contentAlignment = Alignment.BottomStart
-                                    ) {
-                                        Column(modifier = Modifier.padding(vertical = 10.dp)) {
-//                                            NameAndValueField(
-//                                                modifier = Modifier
-//                                                    .padding(horizontal = 15.dp),
-//                                                fieldName = stringResource(id = R.string.written_by),
-//                                                fieldNameSize = 18.sp,
-//                                                fieldValue = sample.writtenBy!!,
-//                                                fieldValueSize = 18.sp
-//                                            )
-                                            LazyColumn(
-                                                modifier = Modifier
-                                                    .padding(horizontal = 15.dp)
-                                                    .fillMaxWidth()
-                                                    .wrapContentHeight(),
-                                                horizontalAlignment = Alignment.Start,
-                                                verticalArrangement = Arrangement.Bottom
-                                            ) {
-                                                items(sample.answers) { answer ->
-                                                    Spacer(modifier = Modifier.size(10.dp))
-                                                    NameAndValueField(
-                                                        fieldName = answer.field.name + ": ",
-                                                        fieldNameSize = 18.sp,
-                                                        fieldValue = answer.content,
-                                                        fieldValueSize = 18.sp
-                                                    )
-                                                }
-                                            }
-                                            sample.dynamicFields?.let { dynamicFields ->
-                                                LazyColumn(
-                                                    modifier = Modifier
-                                                        .padding(horizontal = 15.dp)
-                                                        .fillMaxWidth()
-                                                        .wrapContentHeight(),
-                                                    horizontalAlignment = Alignment.Start,
-                                                    verticalArrangement = Arrangement.Bottom
-                                                ) {
-                                                    items(dynamicFields) { field ->
-                                                        Spacer(modifier = Modifier.size(10.dp))
-                                                        NameAndValueField(
-                                                            fieldName = field.name + ": ",
-                                                            fieldNameSize = 18.sp,
-                                                            fieldValue = field.value,
-                                                            fieldValueSize = 18.sp
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        } else activeImageIdx = null
                     }
                 }
             }
         }
 
-        UiStatus.ERROR -> {}
+        UiStatus.ERROR -> TODO("Implement ERROR state")
+    }
+}
+
+@Composable
+private fun DeleteStageAlertDialog(
+    show: Boolean,
+    onDismissRequest: () -> Unit,
+    onConfirmButtonClick: () -> Unit
+) {
+    if (show) {
+        AlertDialog(
+            title = {
+                Text(text = stringResource(id = R.string.delete_stage))
+            },
+            text = {
+                Text(text = stringResource(id = R.string.delete_stage_description))
+            },
+            onDismissRequest = onDismissRequest,
+            confirmButton = {
+                CustomButton(
+                    text = stringResource(id = R.string.delete_this_project),
+                    textSize = 14.sp,
+                    background = colorResource(id = R.color.red),
+                    border = BorderStroke(0.dp, Color.Transparent),
+                    action = onConfirmButtonClick
+                )
+            },
+            dismissButton = {
+                CustomButton(
+                    text = stringResource(id = R.string.cancel),
+                    textSize = 14.sp,
+                    textColor = Color.Black,
+                    background = Color.White,
+                    border = BorderStroke(0.dp, Color.Transparent),
+                    action = onDismissRequest
+                )
+            }
+        )
+    }
+}
+
+@Composable
+private fun TabButtons(
+    modifier: Modifier = Modifier,
+    tab: StageTab,
+    onTabChange: (StageTab) -> Unit
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        CustomButton(
+            text = stringResource(id = R.string.detail),
+            textSize = 16.sp,
+            textColor = if (tab == StageTab.DETAIL)
+                Color.White else Color.Black,
+            background = if (tab == StageTab.DETAIL)
+                MaterialTheme.colorScheme.primary else Color.White,
+            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+            action = { onTabChange(StageTab.DETAIL) }
+        )
+        CustomButton(
+            text = stringResource(id = R.string.photos),
+            textSize = 16.sp,
+            textColor = if (tab == StageTab.PHOTOS)
+                Color.White else Color.Black,
+            background = if (tab == StageTab.PHOTOS)
+                MaterialTheme.colorScheme.primary else Color.White,
+            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+            action = { onTabChange(StageTab.PHOTOS) }
+        )
+    }
+}
+
+@Composable
+private fun PhotoTab(
+    isProjectOwner: Boolean,
+    pagingItems: LazyPagingItems<Sample>,
+    onPhotoPress: (Int) -> Unit,
+    onImagesSelected: (Boolean) -> Unit,
+    onImagesDeleted: (List<String>) -> Unit
+) {
+    val state = rememberLazyStaggeredGridState()
+    val items = pagingItems.itemSnapshotList.items
+
+    LaunchedEffect(state.isScrollInProgress) {
+
+    }
+
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 15.dp, vertical = 5.dp)
+            .fillMaxSize()
+    ) {
+        PhotoBottomSheetContent(
+            uris = items.map { Pair(it.id, it.image) },
+            state = state,
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(if (items.isEmpty()) .2f else .9f),
+            onPhotoPress = onPhotoPress,
+            onPhotosSelected = if (isProjectOwner) onImagesSelected else null,
+            onPhotosDeleted = if (isProjectOwner) onImagesDeleted else null
+        )
+    }
+}
+
+@Composable
+private fun DetailTab(
+    modifier: Modifier = Modifier,
+    description: String? = null
+) {
+    Column(
+        modifier = modifier.padding(
+            horizontal = 15.dp,
+            vertical = 5.dp
+        ),
+        verticalArrangement = Arrangement.Top
+    ) {
+        Text(
+            text = stringResource(id = R.string.detail),
+            fontSize = 20.sp,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.W700
+        )
+        Text(
+            modifier = Modifier.padding(horizontal = 10.dp),
+            overflow = TextOverflow.Ellipsis,
+            text = description ?: stringResource(id = R.string.default_project_description),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.W400
+        )
     }
 }

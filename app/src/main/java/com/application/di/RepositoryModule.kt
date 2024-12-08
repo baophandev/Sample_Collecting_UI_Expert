@@ -10,6 +10,7 @@ import com.application.data.repository.AttachmentRepository
 import com.application.data.repository.FieldRepository
 import com.application.data.repository.FormRepository
 import com.application.data.repository.ProjectRepository
+import com.application.data.repository.SampleRepository
 import com.application.data.repository.StageRepository
 import dagger.Module
 import dagger.Provides
@@ -57,6 +58,20 @@ class RepositoryModule {
         fieldRepository: FieldRepository
     ): FormRepository {
         return FormRepository(projectService, fieldRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSampleRepository(
+        projectService: IProjectService,
+        attachmentRepository: AttachmentRepository,
+        fieldRepository: FieldRepository
+    ): SampleRepository {
+        return SampleRepository(
+            projectService = projectService,
+            attachmentRepository = attachmentRepository,
+            fieldRepository = fieldRepository
+        )
     }
 
     @Provides

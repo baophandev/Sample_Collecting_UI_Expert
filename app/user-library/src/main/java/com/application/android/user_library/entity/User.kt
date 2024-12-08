@@ -1,4 +1,4 @@
-package com.application.data.entity
+package com.application.android.user_library.entity
 
 data class User(
     val id: String,
