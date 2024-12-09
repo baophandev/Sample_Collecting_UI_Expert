@@ -37,39 +37,47 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.application.R
-import com.application.data.entity.Form
+import com.application.constant.UiStatus
 import com.application.ui.component.BotNavigationBar
 import com.application.ui.component.CustomButton
 import com.application.ui.component.CustomTextField
 import com.application.ui.component.FormField
-import com.application.ui.component.LoadingScreen
 import com.application.ui.component.TopBar
 import com.application.ui.viewmodel.ModifyFormViewModel
 
 @Composable
 fun ModifyFormScreen(
     viewModel: ModifyFormViewModel = hiltViewModel(),
-    projectId: String,
-    form: Pair<String, Form>,
-    navigateToLogin: () -> Unit,
-    navigateToHome: () -> Unit,
-    navigateToDetail: () -> Unit
+    formId: String,
+    popBackToLogin: () -> Unit,
+    popBackToHome: () -> Unit,
+    popBackToDetail: (Boolean) -> Unit,
+    navigateToWorkersQuestionScreen: () -> Unit,
+    navigateToExpertChatScreen: () -> Unit
 ) {
+
     val state by viewModel.state.collectAsState()
-    if (state.init) viewModel.setModifiedForm(form.second)
-    else if (state.loading) LoadingScreen(text = stringResource(id = R.string.loading))
-    else{
-        Scaffold(
-            modifier = Modifier.padding(horizontal = 15.dp, vertical = 5.dp),
+
+    when (state.status) {
+        UiStatus.INIT -> {
+            viewModel.loadModifiedForm(formId)
+            viewModel.loadAllModifiedFields(formId)
+        }
+
+        UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
+        UiStatus.SUCCESS -> Scaffold(
             topBar = {
-                TopBar(title = R.string.modify_form, signOutClicked = navigateToLogin)
+                TopBar(title = R.string.modify_form, signOutClicked = popBackToLogin)
             },
             bottomBar = {
-                BotNavigationBar {
+                BotNavigationBar(
+                    onWorkersQuestionClick = navigateToWorkersQuestionScreen,
+                    onExpertChatsClick = navigateToExpertChatScreen
+                ) {
                     IconButton(
                         modifier = Modifier.size(50.dp),
 
-                        onClick = navigateToHome
+                        onClick = popBackToHome
                     ) {
                         Icon(
                             modifier = Modifier.fillMaxSize(.60f),
@@ -87,20 +95,21 @@ fun ModifyFormScreen(
                     .padding(padding),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceAround
-            )
-            {
-                CustomTextField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp),
-                    placeholder = { Text(text = stringResource(id = R.string.add_title)) },
-                    singleLine = true,
-                    value = state.name,
-                    onValueChange = viewModel::updateTitle
-                )
+            ) {
+                state.form?.let {
+                    CustomTextField(
+                        modifier = Modifier
+                            .fillMaxWidth(.95f)
+                            .height(60.dp),
+                        placeholder = { Text(text = stringResource(id = R.string.add_title)) },
+                        singleLine = true,
+                        value = it.title,
+                        onValueChange = viewModel::updateTitle
+                    )
+                }
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(.95f)
                         .padding(vertical = 10.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
@@ -108,9 +117,9 @@ fun ModifyFormScreen(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(RoundedCornerShape(10.dp)),
-                        onClick = { state.fields.add("") },
+                        onClick = { viewModel.addNewField() },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = colorResource(id = R.color.modBtn_color),
+                            containerColor = colorResource(id = R.color.main_green),
                             contentColor = colorResource(id = R.color.black)
                         ),
                         contentPadding = PaddingValues(0.dp)
@@ -126,7 +135,7 @@ fun ModifyFormScreen(
                 LazyColumn(
                     modifier = Modifier
                         .padding(vertical = 5.dp)
-                        .fillMaxWidth()
+                        .fillMaxWidth(.95f)
                         .height(490.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
@@ -136,18 +145,20 @@ fun ModifyFormScreen(
                         FormField(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
-                                .background(colorResource(id = R.color.gray_100)),
-                            fieldName = data,
-                            onFieldNameChange = { state.fields[index] = it },
-                            onDeleteClicked = { state.fields.remove(data) }
+                                .background(colorResource(id = R.color.white)),
+                            fieldName = data.name,
+                            onFieldNameChange = { viewModel.updateFieldName(index, it) },
+                            onDeleteClicked = { viewModel.deleteField(index) }
                         )
                     }
                 }
 
-                if (state.fields.size > 0) {
+                if (state.isFormUpdated || state.addedFieldIds.isNotEmpty() ||
+                    state.updatedFieldIds.isNotEmpty() || state.deletedFieldIds.isNotEmpty()
+                ) {
                     CustomButton(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxWidth(.95f)
                             .padding(horizontal = 25.dp, vertical = 10.dp)
                             .height(50.dp),
                         text = stringResource(id = R.string.save_button),
@@ -155,11 +166,13 @@ fun ModifyFormScreen(
                         background = colorResource(id = R.color.main_green),
                         border = BorderStroke(0.dp, Color.Transparent),
                         action = {
-                            viewModel.submit(form, projectId, navigateToDetail)
+                            viewModel.submit(successHandler = popBackToDetail)
                         }
                     )
                 }
             }
         }
+
+        UiStatus.ERROR -> TODO()
     }
 }

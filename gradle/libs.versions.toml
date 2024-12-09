@@ -14,12 +14,20 @@ ktor = "2.3.12"
 
 rxandroid = "3.0.2"
 rxjava = "2.2.21"
+slf4jAndroid = "1.7.36"
 stompprotocolandroid = "1.6.6"
 
 lifecycleRuntimeKtx = "2.8.6"
 material = "1.12.0"
 navigationCompose = "2.8.1"
 uiTooling = "1.7.2"
+paging = "3.3.2"
+agp = "8.5.1"
+kotlin = "1.9.21"
+junit = "4.13.2"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+kjwtCore = "0.9.0"
 
 [libraries]
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
@@ -28,6 +36,8 @@ androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx"
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+
+kjwt-core = { module = "io.github.nefilim.kjwt:kjwt-core", version.ref = "kjwtCore" }
 
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 androidx-compose-ui = { module = "androidx.compose.ui:ui" }
@@ -53,6 +63,8 @@ rxandroid = { module = "io.reactivex.rxjava3:rxandroid", version.ref = "rxandroi
 rxjava = { module = "io.reactivex.rxjava2:rxjava", version.ref = "rxjava" }
 stompprotocolandroid = { module = "com.github.NaikSoftware:StompProtocolAndroid", version.ref = "stompprotocolandroid" }
 
+slf4j-android = { module = "org.slf4j:slf4j-android", version.ref = "slf4jAndroid" }
+
 material = { module = "com.google.android.material:material", version.ref = "material" }
 
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
@@ -61,5 +73,13 @@ hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", ve
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigation" }
 
+androidx-paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
+androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+
 [plugins]
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 

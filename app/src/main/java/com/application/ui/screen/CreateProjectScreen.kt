@@ -19,6 +19,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -43,44 +44,30 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
-import com.application.data.entity.Project
+import com.application.android.utility.validate.RegexValidation
 import com.application.ui.component.BotNavigationBar
 import com.application.ui.component.CustomButton
 import com.application.ui.component.CustomDatePicker
 import com.application.ui.component.CustomSnackBarHost
 import com.application.ui.component.CustomTextField
 import com.application.ui.component.FieldToList
-import com.application.ui.component.LoadingScreen
-import com.application.ui.component.RegexValidation
 import com.application.ui.component.TopBar
 import com.application.ui.viewmodel.CreateProjectViewModel
 
 @Composable
 fun CreateProjectScreen(
     viewModel: CreateProjectViewModel = hiltViewModel(),
-    userId: String,
     navigateToLogin: () -> Unit,
-    navigateToHome: (Project?) -> Unit
+    navigateToHome: (String?) -> Unit,
+    navigateToWorkersQuestionScreen: () -> Unit,
+    navigateToExpertChatScreen: () -> Unit
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
     val pickPictureLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
-    ) { imageUri ->
-        if (imageUri != null) {
-            viewModel.updateThumbnail(imageUri)
-//            context.contentResolver
-//                .query(imageUri, null, null, null).use { cursor ->
-//                    val nameIndex = cursor?.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-//                    cursor?.moveToFirst()
-//                    nameIndex?.let {
-//                        val fileName = cursor.getString(it)
-//                        viewModel.updateThumbnail(imageUri)
-//                    }
-//                }
-        }
-    }
+    ) { imageUri -> imageUri?.let(viewModel::updateThumbnail) }
 
     if (state.error != null) {
         val error = stringResource(id = state.error!!)
@@ -122,7 +109,10 @@ fun CreateProjectScreen(
                 TopBar(title = R.string.create_project, signOutClicked = navigateToLogin)
             },
             bottomBar = {
-                BotNavigationBar {
+                BotNavigationBar (
+                    onWorkersQuestionClick = navigateToWorkersQuestionScreen,
+                    onExpertChatsClick = navigateToExpertChatScreen
+                ) {
                     IconButton(
                         modifier = Modifier.size(50.dp),
 
@@ -132,7 +122,7 @@ fun CreateProjectScreen(
                             modifier = Modifier.fillMaxSize(.60f),
                             painter = painterResource(id = R.drawable.ic_home),
                             contentDescription = null,
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.secondary
                         )
                     }
                 }
@@ -147,10 +137,10 @@ fun CreateProjectScreen(
             ) {
                 Card(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(.95f)
                         .height(180.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = colorResource(id = R.color.gray_100)
+                        containerColor = Color.LightGray
                     ),
                     onClick = { pickPictureLauncher.launch("image/*") }
                 ) {
@@ -182,7 +172,7 @@ fun CreateProjectScreen(
 
                 CustomTextField(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(.95f)
                         .height(60.dp),
                     placeholder = { Text(text = stringResource(id = R.string.add_title)) },
                     singleLine = true,
@@ -192,7 +182,7 @@ fun CreateProjectScreen(
 
                 CustomTextField(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(.95f)
                         .height(100.dp),
                     placeholder = { Text(text = stringResource(id = R.string.add_description)) },
                     value = state.description,
@@ -200,7 +190,7 @@ fun CreateProjectScreen(
                 )
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(.95f),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     CustomDatePicker(
@@ -221,16 +211,13 @@ fun CreateProjectScreen(
                 )
 
                 CustomButton(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(.95f),
                     text = stringResource(id = R.string.submit),
                     textSize = 20.sp,
                     background = colorResource(id = R.color.main_green),
                     border = BorderStroke(0.dp, Color.Transparent),
                     action = {
-                        viewModel.submit(
-                            userId = userId,
-                            successHandler = navigateToHome
-                        )
+                        viewModel.submit(successHandler = navigateToHome)
                     }
                 )
             }

@@ -2,10 +2,11 @@ package com.application.ui.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,28 +18,40 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.application.R
+import com.application.ui.component.BotNavigationBar
 import com.application.ui.component.ImageGallery
 
 //Mỗi post gồm List hình ảnh, tên người dùng, văn bản, đã được trả lời chưa
@@ -56,10 +69,10 @@ data class PostInWorkersQuestionScreen(
 )
 
 @Composable
-fun GeneratePostsInWorkersQuestionScreen(){
+fun GeneratePostsInWorkersQuestionScreen() {
     val postsWorkersQuestionScreen = listOf(
         PostInWorkersQuestionScreen(
-            listOf(R.drawable.ic_launcher_background,
+            listOf(
                 R.drawable.ic_launcher_background,
                 R.drawable.ic_launcher_background,
                 R.drawable.ic_launcher_background,
@@ -67,15 +80,19 @@ fun GeneratePostsInWorkersQuestionScreen(){
                 R.drawable.ic_launcher_background,
                 R.drawable.ic_launcher_background,
                 R.drawable.ic_launcher_background,
-                R.drawable.ic_launcher_background,),
+                R.drawable.ic_launcher_background,
+                R.drawable.ic_launcher_background,
+            ),
             "Nông dân X",
             "Tên mẫu one of Asia’s most popular travel destinations, has been badly git a a really long string to test the line",
             true,
         ),
         PostInWorkersQuestionScreen(
-            listOf(R.drawable.ic_launcher_background,
+            listOf(
                 R.drawable.ic_launcher_background,
-                R.drawable.ic_launcher_background,),
+                R.drawable.ic_launcher_background,
+                R.drawable.ic_launcher_background,
+            ),
             "Nông dân X",
             "Tên mẫu one of Asia’s most popular travel destinations, has been badly git",
             false,
@@ -86,73 +103,71 @@ fun GeneratePostsInWorkersQuestionScreen(){
 
 @Composable
 fun WorkerQuestionScreenTopBar() {
+    var value by remember {
+        mutableStateOf("")
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp)
-            .padding(top = 8.dp, start = 12.dp, end = 12.dp, bottom = 29.dp)
+            .background(Color.White)
+            .height(65.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
     ) {
+            BasicTextField(
+                modifier = Modifier
+                    .background(
+                        color = colorResource(id = R.color.main_green),
+                        shape = RoundedCornerShape(30.dp)
+                    )
+                    .fillMaxWidth(.8f)
+                    .fillMaxHeight(.5f),
+                value = value,
+                onValueChange = { newText ->
+                    value = newText
+                },
+                textStyle = TextStyle(
+                    textAlign = TextAlign.Start,
+                    color = colorResource(id = R.color.white)
+                ),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text
+                ),
+                decorationBox = { innerTextField ->
+                    Row(
+                        modifier = Modifier.padding(start = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            Modifier.weight(1f),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            if (value.isEmpty()) {
+                                Text(
+                                    text = stringResource(id = R.string.search_title),
+                                    style = LocalTextStyle.current.copy(
+                                        color = colorResource(id = R.color.white),
+                                        fontSize = 14.sp
+                                    )
+                                )
+                            }
+                            innerTextField()
+                        }
+                    }
+                },
+            )
         Column {
             IconButton(
                 onClick = { /*TODO*/ },
-                colors = IconButtonColors(
-                    Color(0xFF007E2F),
-                    Color(0xFF007E2F),
-                    Color(0xFF007E2F),
-                    Color(0xFF007E2F)
-                ),
-                modifier = Modifier
-                    .height(45.dp)
-                    .width(100.dp)
+                modifier = Modifier.size(50.dp)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.return_arrow),
-                    contentDescription = "view answer",
-                    contentScale = ContentScale.Crop,
-                    colorFilter = ColorFilter.tint(Color.White),
-                    modifier = Modifier
-                        .size(20.dp)
+                    painter = painterResource(id = R.drawable.notify_icon),
+                    contentDescription = "notify",
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                    modifier = Modifier.fillMaxSize(.5f),
                 )
             }
-        }
-        Column(
-            modifier = Modifier
-                .padding(start = 5.dp)
-        ) {
-            OutlinedTextField(
-                value = "",
-                onValueChange = { /*TODO*/ },
-                singleLine = true,
-                shape = RoundedCornerShape(20.dp),
-                colors = OutlinedTextFieldDefaults.colors().copy(
-                    unfocusedContainerColor = Color(0xFF007E2F),
-                    focusedContainerColor = Color(0xFF007E2F)
-                ),
-                placeholder = {
-                    Box(
-                        modifier = Modifier
-                            .padding(
-                                start = 20.dp,
-                                end = 10.dp,
-                            )
-                    ) {
-                        Text(
-                            text = "Tìm kiếm...",
-                            color = Color.White,
-                            style = TextStyle(
-                                fontSize = 11.8.sp,
-                                fontWeight = FontWeight.Bold,
-                                lineHeight = 28.sp,
-                            ),
-                        )
-                    }
-                },
-
-                modifier = Modifier
-                    .width(330.dp)
-                    .height(45.dp)
-                    .border(3.dp, Color(0xFF007E2F), RoundedCornerShape(20.dp))
-            )
         }
     }
 }
@@ -179,7 +194,12 @@ fun truncateString(s: String): String {
 }
 
 @Composable
-fun CardTemplateInWorkerQuestionScreen(imgRes: List<Int>, userName: String, postText: String, resolved: Boolean) {
+fun CardTemplateInWorkerQuestionScreen(
+    imgRes: List<Int>,
+    userName: String,
+    postText: String,
+    resolved: Boolean
+) {
     val questionString = truncateString(postText)
     Card(
         colors = CardColors(Color.White, Color.White, Color.White, Color.White),
@@ -282,7 +302,7 @@ fun CardTemplateInWorkerQuestionScreen(imgRes: List<Int>, userName: String, post
                             ),
                         )
                     }
-                    Row (
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                     ) {
@@ -303,7 +323,7 @@ fun CardTemplateInWorkerQuestionScreen(imgRes: List<Int>, userName: String, post
 }
 
 @Composable
-fun PostsInWorkersQuestionScreen(postsWorkersQuestionScreenInformation: List<PostInWorkersQuestionScreen>){
+fun PostsInWorkersQuestionScreen(postsWorkersQuestionScreenInformation: List<PostInWorkersQuestionScreen>) {
     LazyColumn(
         modifier = Modifier
             .height(750.dp)
@@ -322,9 +342,33 @@ fun PostsInWorkersQuestionScreen(postsWorkersQuestionScreenInformation: List<Pos
 }
 
 @Composable
-fun WorkersQuestionScreen() {
+fun WorkersQuestionScreen(
+    navigateToHome: (String?) -> Unit,
+    navigateToWorkersQuestionScreen: () -> Unit,
+    navigateToExpertChatScreen: () -> Unit,
+    navigateToPostAnswerScreen: () -> Unit
+) {
     Scaffold(
-        topBar = { WorkerQuestionScreenTopBar() }
+        topBar = { WorkerQuestionScreenTopBar() },
+        bottomBar = {
+            BotNavigationBar(
+                onWorkersQuestionClick = navigateToWorkersQuestionScreen,
+                onExpertChatsClick = navigateToExpertChatScreen
+            ) {
+                IconButton(
+                    modifier = Modifier.size(50.dp),
+                    onClick = { navigateToHome(null) }
+                ) {
+                    Icon(
+                        modifier = Modifier.fillMaxSize(.75f),
+                        painter = painterResource(id = R.drawable.ic_home),
+                        contentDescription = "Home",
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
+        }
+
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -339,8 +383,3 @@ fun WorkersQuestionScreen() {
 
 }
 
-@Preview(heightDp = 800, widthDp = 400, showBackground = true)
-@Composable
-fun WorkersQuestionScreenPreview() {
-    WorkersQuestionScreen()
-}

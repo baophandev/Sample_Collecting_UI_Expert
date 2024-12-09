@@ -87,6 +87,9 @@
     <string name="stage_not_exist">This stage does not exist</string>
     <string name="create_sample_cancel">Cannot create sample because this project does not exist</string>
     <string name="not_in_stage">You are not a member of this stage</string>
+    <string name="cannot_delete_form">Cannot delete form</string>
+    <string name="cannot_delete_form_description">Cannot delete because form is in use</string>
+    <string name="cannot_delete_form_submit">Exit</string>
 
     <string name="login_button">Đăng nhập</string>
     <string name="register_button">Đăng ký</string>
@@ -102,4 +105,14 @@
     <string name="male">Nam</string>
     <string name="female">Nữ</string>default_date
     <string name="have_account">Bạn đã có tài khoản?</string>
+    <string name="message_placeholder">Tin nhắn</string>
+    <string name="see_details">Xem chi tiết</string>
+    <string name="caption_question">
+        Hôm trước em thấy nó bị đạo ôn nên em phun thuốc sao
+        thấy hôm nay lúa nó đốm và vàng quá, giúp em trị bệnh
+        này với ạ
+    </string>
+    <string name="login_info_not_blank">Login information cannot be blank</string>
+    <string name="enter_username">Email or phone number</string>
+
 </resources>

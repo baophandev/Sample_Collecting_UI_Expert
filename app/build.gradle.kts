@@ -74,11 +74,14 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.ui.tooling)
 
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.paging.compose)
+
     implementation(libs.material)
 
     implementation(libs.coil.compose)
 
-
+    implementation(libs.slf4j.android)
     implementation(libs.gson)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.logging)
@@ -87,10 +90,9 @@ dependencies {
     implementation(libs.ktor.serialization.gson)
     implementation(libs.rxjava)
     implementation(libs.rxandroid)
-    implementation(libs.stompprotocolandroid)
 
-    implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
+    implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(libs.androidx.camera.core)
@@ -99,6 +101,9 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.camera.extensions)
 
+    implementation(project(":app:utility"))
+    implementation(project(":app:chat-library"))
+    implementation(project(":app:user-library"))
 }
 
 kapt {

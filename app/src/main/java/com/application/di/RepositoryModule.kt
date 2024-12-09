@@ -1,14 +1,21 @@
 package com.application.di
 
+import android.content.Context
+import com.application.android.user_library.datasource.IUserService
+import com.application.android.user_library.repository.UserRepository
+import com.application.android.utility.file.FileReader
 import com.application.data.datasource.IAttachmentService
 import com.application.data.datasource.IProjectService
-import com.application.data.datasource.IUserService
 import com.application.data.repository.AttachmentRepository
+import com.application.data.repository.FieldRepository
+import com.application.data.repository.FormRepository
 import com.application.data.repository.ProjectRepository
-import com.application.data.repository.UserRepository
+import com.application.data.repository.SampleRepository
+import com.application.data.repository.StageRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -34,8 +41,47 @@ class RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideAttachmentRepository(attachmentService: IAttachmentService): AttachmentRepository {
-        return AttachmentRepository(attachmentService)
+    fun provideStageRepository(projectService: IProjectService): StageRepository {
+        return StageRepository(projectService)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFieldRepository(projectService: IProjectService): FieldRepository {
+        return FieldRepository(projectService)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFormRepository(
+        projectService: IProjectService,
+        fieldRepository: FieldRepository
+    ): FormRepository {
+        return FormRepository(projectService, fieldRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSampleRepository(
+        projectService: IProjectService,
+        attachmentRepository: AttachmentRepository,
+        fieldRepository: FieldRepository
+    ): SampleRepository {
+        return SampleRepository(
+            projectService = projectService,
+            attachmentRepository = attachmentRepository,
+            fieldRepository = fieldRepository
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideAttachmentRepository(
+        @ApplicationContext context: Context,
+        attachmentService: IAttachmentService
+    ): AttachmentRepository {
+        val fileReader = FileReader(context)
+        return AttachmentRepository(fileReader, attachmentService)
     }
 
 }

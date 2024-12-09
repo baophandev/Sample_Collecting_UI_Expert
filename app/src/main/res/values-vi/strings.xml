@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="login_info_not_blank">Thông tin đăng nhập không được bỏ trống</string>
     <string name="login_success">Bạn đã đăng nhập!</string>
     <string name="login_cancel">Quá trình đăng nhập được hủy bởi người dùng!</string>
     <string name="login_error">Đăng nhập bị lỗi!</string>
@@ -87,6 +88,9 @@
     <string name="stage_not_exist">Đợt đang làm việc không còn tồn tại</string>
     <string name="create_sample_cancel">Không thể tạo mẫu bởi vì dự án đang làm việc không tồn tại</string>
     <string name="not_in_stage">Bạn không phải thành viên của đợt này</string>
+    <string name="cannot_delete_form">Không thể xóa biểu mẫu</string>
+    <string name="cannot_delete_form_description">Không thể xóa vì biểu mẫu đang được sử dụng</string>
+    <string name="cannot_delete_form_submit">Thoát</string>
 
     <string name="login_button">Đăng nhập</string>
     <string name="register_button">Đăng ký</string>
@@ -102,4 +106,12 @@
     <string name="male">Nam</string>
     <string name="female">Nữ</string>default_date
     <string name="have_account">Bạn đã có tài khoản?</string>
+    <string name="message_placeholder">Tin nhắn</string>
+    <string name="see_details">Xem chi tiết</string>
+    <string name="caption_question">
+        Hôm trước em thấy nó bị đạo ôn nên em phun thuốc sao
+        thấy hôm nay lúa nó đốm và vàng quá, giúp em trị bệnh
+        này với ạ
+    </string>
+    <string name="enter_username">Email hoặc số điện thoại</string>
 </resources>

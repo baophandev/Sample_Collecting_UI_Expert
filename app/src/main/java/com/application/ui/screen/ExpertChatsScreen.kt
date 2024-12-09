@@ -32,13 +32,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.application.R
+import com.application.ui.component.ExpertChatTopNavigationBar
 import com.application.ui.component.UserConversationBar
-
-//Mỗi cuộc trò chuyện cần thông tin về người dùng (avatar, name)
-//và nội dung trò chuyện (tin nhắn cuối, thời gian gửi, đã đọc chưa)
-
-//Truyền data qua fun GenerateUserDataConversation
-
 
 data class UserDataConversation(
     val userAvatar: Int,
@@ -48,8 +43,71 @@ data class UserDataConversation(
     val read: Boolean,
 )
 
+//@Composable
+//private fun ExpertChatsSearchBar() {
+//    Row(
+//        verticalAlignment = Alignment.CenterVertically,
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .background(Color(0xFF6CCD84))
+//            .padding(start = 12.dp, top = 8.dp, bottom = 8.dp)
+//    ) {
+//        TextField(
+//            value = "",
+//            onValueChange = { /*TODO*/ },
+//            singleLine = true,
+//            shape = RoundedCornerShape(20.dp),
+//            leadingIcon = {
+//                Icon(
+//                    imageVector = Icons.Filled.Search,
+//                    contentDescription = "Search Icon",
+//                    tint = Color.White,
+//                    modifier = Modifier
+//                        .fillMaxHeight()
+//                )
+//            },
+//            colors = OutlinedTextFieldDefaults.colors().copy(
+//                unfocusedContainerColor = Color(0xFF6CCD84),
+//                focusedContainerColor = Color(0xFF6CCD84),
+//                focusedIndicatorColor = Color(0xFF6CCD84),
+//                unfocusedIndicatorColor = Color(0xFF6CCD84),
+//            ),
+//            placeholder = {
+//                Text(
+//                    text = "Tìm kiếm...",
+//                    color = Color.White,
+//                    style = TextStyle(
+//                        fontSize = 14.sp,
+//                        fontWeight = FontWeight.Medium,
+//                    ),
+//                )
+//            },
+//            modifier = Modifier
+//                .width(330.dp)
+//                .height(45.dp)
+//        )
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//        ) {
+//            IconButton(onClick = { /*TODO*/ }) {
+//                Icon(
+//                    imageVector = Icons.Default.Notifications,
+//                    contentDescription = "Notifications",
+//                    tint = Color.White,
+//                    modifier = Modifier
+//                        .fillMaxHeight()
+//                )
+//            }
+//        }
+//    }
+//}
+
 @Composable
-private fun GenerateUserDataConversation() {
+fun ExpertChatsScreen(
+    navigateToHome: () -> Unit,
+    navigateToChat: () -> Unit,
+) {
     val conversations = listOf(
         UserDataConversation(
             R.drawable.ic_launcher_background,
@@ -87,74 +145,10 @@ private fun GenerateUserDataConversation() {
             false
         ),
     )
-    ExpertChatsScreen(conversations)
-}
 
-@Composable
-private fun ExpertChatsSearchBar() {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF6CCD84))
-            .padding(start = 12.dp, top = 8.dp, bottom = 8.dp)
-    ) {
-        TextField(
-            value = "",
-            onValueChange = { /*TODO*/ },
-            singleLine = true,
-            shape = RoundedCornerShape(20.dp),
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.Search,
-                    contentDescription = "Search Icon",
-                    tint = Color.White,
-                    modifier = Modifier
-                        .fillMaxHeight()
-                )
-            },
-            colors = OutlinedTextFieldDefaults.colors().copy(
-                unfocusedContainerColor = Color(0xFF6CCD84),
-                focusedContainerColor = Color(0xFF6CCD84),
-                focusedIndicatorColor = Color(0xFF6CCD84),
-                unfocusedIndicatorColor = Color(0xFF6CCD84),
-            ),
-            placeholder = {
-                Text(
-                    text = "Tìm kiếm...",
-                    color = Color.White,
-                    style = TextStyle(
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                    ),
-                )
-            },
-            modifier = Modifier
-                .width(330.dp)
-                .height(45.dp)
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            IconButton(onClick = { /*TODO*/ }) {
-                Icon(
-                    imageVector = Icons.Default.Notifications,
-                    contentDescription = "Notifications",
-                    tint = Color.White,
-                    modifier = Modifier
-                        .fillMaxHeight()
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ExpertChatsScreen(conversations: List<UserDataConversation>) {
     Scaffold(
         topBar = {
-            ExpertChatsSearchBar()
+            ExpertChatTopNavigationBar(route = navigateToHome )
         }
     ) { innerPadding ->
         Box(
@@ -175,6 +169,7 @@ fun ExpertChatsScreen(conversations: List<UserDataConversation>) {
                         userLastMessage = conversation.userLastMessage,
                         messageSentTime = conversation.messageSentTime,
                         read = conversation.read,
+                        onUserConversationClick = navigateToChat
                     )
                 }
             }
@@ -183,10 +178,5 @@ fun ExpertChatsScreen(conversations: List<UserDataConversation>) {
 }
 
 
-@Preview(heightDp = 800, widthDp = 400, showBackground = true)
-@Composable
-fun ExpertChatsScreenPreview() {
-    GenerateUserDataConversation()
-}
 
 

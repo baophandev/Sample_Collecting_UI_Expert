@@ -1,9 +1,13 @@
 package com.application.ui.state
 
 import androidx.annotation.StringRes
+import com.application.constant.UiStatus
 
 data class LoginUiState(
-    val loading: Boolean = false,
-    @StringRes val cancel: Int? = null,
-    @StringRes val error: Int? = null
+    val status: UiStatus = UiStatus.INIT,
+    val username: String = "",
+    val password: String = "",
+    @StringRes val error: Int? = null,
+    @StringRes val cancel: Int? = null
 )
+

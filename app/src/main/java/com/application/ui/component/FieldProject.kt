@@ -11,10 +11,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -40,21 +42,22 @@ fun FieldProject(
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = colorResource(id = R.color.light_gray)
+            containerColor = MaterialTheme.colorScheme.secondary,
+            contentColor = Color.Black
         ),
         elevation = CardDefaults.elevatedCardElevation(
             defaultElevation = 5.dp,
             pressedElevation = 10.dp
         ),
-        shape = RoundedCornerShape(30.dp)
+        shape = RoundedCornerShape(10.dp)
     ) {
         Card(
             modifier = Modifier
-                .fillMaxWidth(.9f)
+                .fillMaxWidth(.95f)
                 .height(200.dp)
-                .padding(start = 15.dp, end = 15.dp, top = 15.dp)
+                .padding(start = 5.dp, end = 5.dp, top = 15.dp)
                 .align(Alignment.CenterHorizontally),
-            shape = RoundedCornerShape(30.dp)
+            shape = RoundedCornerShape(10.dp)
         ) {
             if (thumbnail != null) {
                 AsyncImage(
@@ -77,7 +80,7 @@ fun FieldProject(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 30.dp, end = 30.dp, top = 5.dp, bottom = 10.dp),
+                .padding(start = 25.dp, end = 25.dp, top = 5.dp, bottom = 5.dp),
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
             Text(
@@ -87,7 +90,7 @@ fun FieldProject(
                 fontWeight = FontWeight.W500
             )
             Text(text = owner ?: "Owner", fontSize = 16.sp)
-            Text(text = description ?: "No description", fontSize = 18.sp)
+            Text(text = description ?: "No description", fontSize = 16.sp)
         }
     }
 

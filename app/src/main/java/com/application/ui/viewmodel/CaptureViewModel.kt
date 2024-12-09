@@ -8,6 +8,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class CaptureViewModel @Inject constructor() : ViewModel() {
+class CaptureViewModel @Inject constructor(
+//    savedStateHandle: SavedStateHandle
+) : ViewModel() {
     val sampleImages: SnapshotStateList<Pair<String, Uri>> = mutableStateListOf()
+
+//    init {
+//        savedStateHandle.remove<String>(Routes.SAMPLE_STACK_KEY)?.let { imageName ->
+//            sampleImages.removeIf { it.first == imageName }
+//        }
+//    }
 }

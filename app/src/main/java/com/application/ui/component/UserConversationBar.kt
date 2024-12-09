@@ -3,6 +3,7 @@ package com.application.ui.component
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -46,6 +47,7 @@ fun UserConversationBar(
     userLastMessage: String,
     messageSentTime: String,
     read: Boolean,
+    onUserConversationClick: () -> Unit
 ) {
     val shortenUserName = truncateStringChat(userName, 17, 4)
     val shortenMessage = truncateStringChat(userLastMessage)
@@ -54,6 +56,7 @@ fun UserConversationBar(
             .fillMaxWidth()
             .height(80.dp)
             .background(Color.White)
+            .clickable(onClick = onUserConversationClick)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

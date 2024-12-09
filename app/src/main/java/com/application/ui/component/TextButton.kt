@@ -13,7 +13,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 
 @Composable
@@ -32,10 +31,11 @@ fun TextButton(
     softWrap: Boolean = true,
     maxLines: Int = Int.MAX_VALUE,
     minLines: Int = 1,
-    colors: ButtonColors = ButtonDefaults.buttonColors(containerColor = Color(45, 198, 83))
+    colors: ButtonColors = ButtonDefaults.buttonColors(containerColor = Color(45, 198, 83)),
+    onClick: () -> Unit,
 ) {
     Button(
-        onClick = { /*TODO*/ },
+        onClick = onClick,
         modifier = modifier,
         colors = colors
     ) {

@@ -22,9 +22,9 @@ class MainActivity : AppCompatActivity() {
         if (!hasRequiredPermission()) {
             ActivityCompat.requestPermissions(this, PERMISSIONS, 0)
         }
-
+        changeLanguage(VI_LANG_TAG)
         setContent {
-            SampleCollectingApplicationTheme {
+            SampleCollectingApplicationTheme(dynamicColor = false) {
                 Surface {
                     AppEntryPoint()
                 }

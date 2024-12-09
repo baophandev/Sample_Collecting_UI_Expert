@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -21,9 +22,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -45,6 +48,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,26 +57,26 @@ import coil.request.ImageRequest
 import com.application.R
 
 /**
- * @param onPhotoPress this callback passes a element index which are pressed
- * @param onDeleteImages this callback passes a removing element index of uriList
+ * @param uris a list contains pairs of image id and image uri.
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
+@OptIn(ExperimentalFoundationApi::class)
 fun PhotoBottomSheetContent(
-    uriList: List<Uri>,
     modifier: Modifier = Modifier,
+    state: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
+    uris: List<Pair<String, Uri?>>,
     emptyTextAlignment: Alignment = Alignment.Center,
     onPhotoPress: (Int) -> Unit,
-    onDeleteImages: ((List<Uri>) -> Unit)? = null,
-    onSelectImages: ((Boolean) -> Unit)? = null
+    onPhotosSelected: ((Boolean) -> Unit)? = null,
+    onPhotosDeleted: ((List<String>) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
 
     var showSelectionMenu by remember { mutableStateOf(false) }
-    val selectedImages = remember { mutableStateListOf<Uri>() }
+    val selectedImageIds = remember { mutableStateListOf<String>() }
 
-    if (uriList.isEmpty()) {
+    if (uris.isEmpty()) {
         Box(
             modifier = modifier,
             contentAlignment = emptyTextAlignment
@@ -86,40 +90,59 @@ fun PhotoBottomSheetContent(
         Box {
             LazyVerticalStaggeredGrid(
                 modifier = modifier,
+                state = state,
                 columns = StaggeredGridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
                 verticalItemSpacing = 16.dp,
                 contentPadding = PaddingValues(16.dp)
             ) {
-                itemsIndexed(uriList) { idx, uri ->
-                    Box {
-                        AsyncImage(
-                            model = ImageRequest.Builder(context).data(uri).build(),
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(10.dp))
-                                .combinedClickable(
-                                    onClick = {
-                                        if (!showSelectionMenu || onDeleteImages == null) {
-                                            onPhotoPress(idx)
-                                        } else {
-                                            if (selectedImages.contains(uri))
-                                                selectedImages.remove(uri)
-                                            else selectedImages.add(uri)
-                                        }
-                                    },
-                                    onLongClick = {
-                                        onSelectImages?.let {
-                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            showSelectionMenu = true
-                                            onSelectImages(true)
-                                            selectedImages.add(uri)
-                                        }
-                                    }
-                                ),
-                            contentDescription = null
-                        )
+                itemsIndexed(
+                    items = uris,
+                    key = { _, (id, _) -> id }
+                ) { idx, (id, uri) ->
+                    val onImageClick: () -> Unit = {
+                        if (!showSelectionMenu || onPhotosDeleted == null)
+                            onPhotoPress(idx)
+                        else {
+                            if (selectedImageIds.contains(id))
+                                selectedImageIds.remove(id)
+                            else selectedImageIds.add(id)
+                        }
+                    }
+                    val onImageLongClick: () -> Unit = {
+                        onPhotosSelected?.let {
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            showSelectionMenu = true
+                            onPhotosSelected(true)
+                            selectedImageIds.add(id)
+                        }
+                    }
 
-                        if (selectedImages.contains(uri)) {
+                    Box {
+                        if (uri != null)
+                            AsyncImage(
+                                model = ImageRequest.Builder(context).data(uri).build(),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .combinedClickable(
+                                        onClick = onImageClick,
+                                        onLongClick = onImageLongClick
+                                    ),
+                                contentDescription = null
+                            )
+                        else
+                            Image(
+                                painter = painterResource(id = R.drawable.sample_default),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .combinedClickable(
+                                        onClick = onImageClick,
+                                        onLongClick = onImageLongClick
+                                    ),
+                                contentDescription = null
+                            )
+
+                        if (selectedImageIds.contains(id)) {
                             Box(
                                 modifier = Modifier
                                     .size(50.dp)
@@ -142,7 +165,7 @@ fun PhotoBottomSheetContent(
                 }
             }
 
-            onDeleteImages?.let { callback ->
+            onPhotosDeleted?.let { callback ->
                 AnimatedVisibility(
                     visible = showSelectionMenu,
                     enter = slideInVertically(
@@ -173,8 +196,8 @@ fun PhotoBottomSheetContent(
                                     .size(width = 100.dp, height = 50.dp)
                                     .clickable {
                                         showSelectionMenu = false
-                                        onSelectImages?.run { onSelectImages(false) }
-                                        selectedImages.clear()
+                                        onPhotosSelected?.run { onPhotosSelected(false) }
+                                        selectedImageIds.clear()
                                     },
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
@@ -194,8 +217,8 @@ fun PhotoBottomSheetContent(
                                     .size(width = 100.dp, height = 50.dp)
                                     .clickable {
                                         showSelectionMenu = false
-                                        callback(selectedImages.toList())
-                                        selectedImages.clear()
+                                        callback(selectedImageIds.toList())
+                                        selectedImageIds.clear()
                                     },
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {

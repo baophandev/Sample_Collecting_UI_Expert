@@ -1,19 +1,18 @@
 package com.application.ui.screen
 
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
@@ -49,28 +48,22 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
+import com.application.constant.UiStatus
 import com.application.ui.component.BlockField
 import com.application.ui.component.CustomButton
-import com.application.ui.component.FlexField
-import com.application.ui.component.LoadingScreen
+import com.application.ui.component.DynamicField
 import com.application.ui.viewmodel.CreateSampleViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateSampleScreen(
     viewModel: CreateSampleViewModel = hiltViewModel(),
-    isProjectOwner: Boolean,
-    projectId: String,
     stageId: String,
-    sampleImage: Pair<String, Uri>,
-    formFields: List<String>? = null,
+    newSample: Pair<String, Uri>,
     navigateToCapture: (String?) -> Unit,
-    navigateToHome: () -> Unit
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
-
-    val cannotCreateSample = stringResource(id = R.string.create_sample_cancel)
 
     val snackBarHostState = remember { SnackbarHostState() }
     val scaffoldState = rememberBottomSheetScaffoldState(
@@ -82,73 +75,88 @@ fun CreateSampleScreen(
         )
     )
 
-    if (state.blockFields.isEmpty() && formFields != null)
-        formFields.forEach { state.blockFields.add(Pair(it, "")) }
-    else if (state.loading) LoadingScreen(text = stringResource(id = R.string.saving_sample))
-    else {
-        Box {
+    when (state.status) {
+        UiStatus.INIT -> viewModel.loadForm(stageId)
+        UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
+        UiStatus.ERROR -> {
+            val error = stringResource(id = state.error ?: R.string.unknown_error)
+            LaunchedEffect(state.error) {
+                val result = snackBarHostState.showSnackbar(
+                    message = error,
+                    withDismissAction = true,
+                    duration = SnackbarDuration.Short
+                )
+                if (result == SnackbarResult.Dismissed)
+                    viewModel.gotError()
+            }
+        }
+        UiStatus.SUCCESS -> Box {
             BottomSheetScaffold(
                 scaffoldState = scaffoldState,
                 sheetPeekHeight = 600.dp,
                 sheetContent = {
-                    Column(
+                    LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 15.dp)
-                            .verticalScroll(state = rememberScrollState()),
+                            .padding(horizontal = 15.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Top
                     ) {
-                        state.blockFields.forEachIndexed { index, data ->
+                        itemsIndexed(
+                            items = state.answers,
+                            key = { index, _ -> index }
+                        ) { index, data ->
+                            Spacer(modifier = Modifier.size(4.dp))
+                            BlockField(
+                                fieldName = data.field.name,
+                                onValueChange = { newValue ->
+                                    viewModel.updateAnswer(index, newValue)
+                                }
+                            )
+                            Spacer(modifier = Modifier.size(4.dp))
+                        }
+
+                        item {
                             Row(
-                                modifier = Modifier.padding(bottom = 8.dp)
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                BlockField(
-                                    fieldName = data.first,
-                                    onValueChange = {
-                                        state.blockFields[index] = data.copy(second = it)
-                                    }
-                                )
+                                IconButton(
+                                    modifier = Modifier
+                                        .padding(0.dp)
+                                        .size(50.dp),
+                                    onClick = viewModel::addDynamicField
+                                ) {
+                                    Icon(
+                                        modifier = Modifier.fillMaxSize(),
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "Add flex field",
+                                        tint = colorResource(id = R.color.main_green)
+                                    )
+                                }
                             }
                         }
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconButton(
-                                modifier = Modifier
-                                    .padding(0.dp)
-                                    .size(50.dp),
-                                onClick = { state.flexFields.add(Pair("", "")) }
-                            ) {
-                                Icon(
-                                    modifier = Modifier.fillMaxSize(),
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Add flex field",
-                                    tint = colorResource(id = R.color.main_green)
-                                )
-                            }
-                        }
-                        state.flexFields.forEachIndexed { index, data ->
-                            Row(
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            ) {
-                                FlexField(
-                                    fieldName = data.first,
-                                    onFieldNameChange = { fieldName ->
-                                        state.flexFields[index] = data.copy(first = fieldName)
-                                    },
-                                    fieldValue = data.second,
-                                    onFieldValueChange = { fieldValue ->
-                                        state.flexFields[index] = data.copy(second = fieldValue)
-                                    },
-                                    onDeleteClicked = {
-                                        state.flexFields.removeAt(index)
-                                    }
-                                )
-                            }
+                        itemsIndexed(
+                            items = state.dynamicFields,
+                            key = { _, field -> field.id }
+                        ) { index, data ->
+                            Spacer(modifier = Modifier.size(4.dp))
+                            DynamicField(
+                                fieldName = data.name,
+                                onFieldNameChange = { fieldName ->
+                                    viewModel.updateDynamicFieldName(index, fieldName)
+                                },
+                                fieldValue = data.value,
+                                onFieldValueChange = { fieldValue ->
+                                    viewModel.updateDynamicFieldValue(index, fieldValue)
+                                },
+                                onDeleteClicked = {
+                                    viewModel.deleteDynamicField(index)
+                                }
+                            )
+                            Spacer(modifier = Modifier.size(4.dp))
                         }
                     }
                 },
@@ -178,7 +186,7 @@ fun CreateSampleScreen(
             ) { _ ->
                 Box(modifier = Modifier.fillMaxSize()) {
                     AsyncImage(
-                        model = ImageRequest.Builder(context).data(sampleImage.second).build(),
+                        model = ImageRequest.Builder(context).data(newSample.second).build(),
                         contentDescription = "Sample Image",
                         modifier = Modifier
                             .fillMaxWidth()
@@ -219,31 +227,12 @@ fun CreateSampleScreen(
                     border = BorderStroke(0.dp, Color.Transparent),
                     action = {
                         viewModel.submitSample(
-                            isProjectOwner = isProjectOwner,
-                            projectId = projectId,
                             stageId = stageId,
-                            sampleImage = sampleImage,
-                            result = navigateToCapture,
-                            isCancelled = {
-                                Toast.makeText(context, cannotCreateSample, Toast.LENGTH_SHORT)
-                                    .show()
-                                navigateToHome()
-                            }
+                            sampleImage = newSample,
+                            result = navigateToCapture
                         )
                     }
                 )
-            }
-
-            if (state.error != null) {
-                val error = stringResource(id = state.error!!)
-                LaunchedEffect(key1 = "showSnackBar") {
-                    val result = snackBarHostState.showSnackbar(
-                        message = error,
-                        withDismissAction = true,
-                        duration = SnackbarDuration.Short
-                    )
-                    if (result == SnackbarResult.Dismissed) viewModel.gotError()
-                }
             }
         }
     }

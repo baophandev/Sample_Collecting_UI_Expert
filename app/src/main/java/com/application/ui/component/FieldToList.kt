@@ -1,6 +1,7 @@
 package com.application.ui.component
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -57,7 +60,7 @@ fun FieldToList(
     ) {
         CustomTextField(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(.95f)
                 .height(textFieldHeight),
             singleLine = true,
             placeholder = { Text(text = stringResource(id = R.string.add_member_email)) },
@@ -80,13 +83,15 @@ fun FieldToList(
 
         LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .fillMaxWidth(.95f)
                 .height(listHeight)
                 .border(
                     width = 2.dp,
                     color = Color.LightGray,
                     shape = RoundedCornerShape(20.dp)
-                ),
+                )
+                .background(color = MaterialTheme.colorScheme.secondary),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally,
             contentPadding = PaddingValues(horizontal = 10.dp)

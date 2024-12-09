@@ -3,102 +3,126 @@ package com.application.ui.viewmodel
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.application.data.entity.Project
+import com.application.android.utility.state.ResourceState
+import com.application.constant.UiStatus
+import com.application.data.repository.ProjectRepository
 import com.application.ui.state.ModifyProjectUiState
-import com.application.util.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ModifyProjectViewModel @Inject constructor(
+    private val repository: ProjectRepository
 ) : ViewModel() {
-    private val _state = MutableStateFlow(ModifyProjectUiState(init = true))
+    private val _state = MutableStateFlow(ModifyProjectUiState())
     val state = _state.asStateFlow()
 
-    fun setModifiedProject(project: Project, thumbnailUri: Uri? = null) {
-//        project.data.memberIds?.values?.let { memberIds ->
-//            val currentMemberIds = state.value.memberIds.toMutableList()
-//            currentMemberIds.addAll(memberIds)
-//            _state.update { it.copy(memberIds = currentMemberIds.toList()) }
-//        }
-//
-//        _state.update {
-//            it.copy(
-//                init = false,
-//                title = project.data.title ?: "",
-//                description = project.data.description ?: "",
-//                startDate = project.data.startDate,
-//                endDate = project.data.endDate,
-//                thumbnailPath = if (thumbnailUri != null) {
-//                    Pair(project.data.thumbnailPath!!, thumbnailUri)
-//                } else null
-//            )
-//        }
+    fun loadProject(projectId: String) {
+        _state.update { it.copy(status = UiStatus.LOADING, isUpdated = false) }
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.getProject(projectId).collectLatest { resourceState ->
+                when (resourceState) {
+                    is ResourceState.Success -> _state.update {
+                        it.copy(status = UiStatus.SUCCESS, project = resourceState.data)
+                    }
+
+                    is ResourceState.Error -> _state.update {
+                        it.copy(status = UiStatus.ERROR, error = resourceState.resId)
+                    }
+                }
+            }
+        }
     }
 
-    fun updateThumbnail(thumbnail: Pair<String, Uri>) {
-        _state.update { it.copy(thumbnailPath = thumbnail) }
+    fun updateThumbnail(thumbnail: Uri) {
+        val currentProject = state.value.project
+        _state.update {
+            it.copy(
+                project = currentProject?.copy(thumbnail = thumbnail),
+                isUpdated = true,
+                isThumbnailUpdated = true
+            )
+        }
     }
 
-    fun updateTitle(title: String) {
-        _state.update { it.copy(title = title) }
+    fun updateProjectName(name: String) {
+        val currentProject = state.value.project
+        _state.update { it.copy(project = currentProject?.copy(name = name), isUpdated = true) }
     }
 
     fun updateDescription(description: String) {
-        _state.update { it.copy(description = description) }
+        val currentProject = state.value.project
+        _state.update {
+            it.copy(
+                project = currentProject?.copy(description = description),
+                isUpdated = true
+            )
+        }
     }
 
     fun updateDate(date: String, isStartDate: Boolean) {
-        if (isStartDate) _state.update { it.copy(startDate = date) }
-        else _state.update { it.copy(endDate = date) }
+        val currentProject = state.value.project
+        if (isStartDate) _state.update {
+            it.copy(
+                project = currentProject?.copy(startDate = date),
+                isUpdated = true
+            )
+        }
+        else _state.update {
+            it.copy(
+                project = currentProject?.copy(endDate = date),
+                isUpdated = true
+            )
+        }
     }
 
-    fun submit(preProject: Project, successHandler: () -> Unit) {
-        if (!validate()) return
-
-        val currentState = state.value
-        val preData = preProject
-//        val modifiedThumbnail =
-//            if (currentState.thumbnailPath != null && currentState.thumbnailPath.first != preProject.data.thumbnailPath)
-//                currentState.thumbnailPath else null
-
-        val modifiedTitle = if (currentState.title != preData.name) currentState.title else null
-        val modifiedDescription =
-            if (currentState.description != preData.description) currentState.description else null
-        val modifiedStartDate =
-            if (currentState.startDate != preData.startDate) currentState.startDate else null
-        val modifiedEndDate =
-            if (currentState.endDate != preData.endDate) currentState.endDate else null
-        val modifiedMemberEmailList = state.value.memberIds.toList()
-
-        val collectAction: (ResourceState<Boolean>) -> Unit = { resourceState ->
-            when (resourceState) {
-                is ResourceState.Success -> {
-                    _state.update { it.copy(loading = false) }
-                    viewModelScope.launch { successHandler() }
-                }
-
-                is ResourceState.Error -> _state.update {
-                    it.copy(loading = false, error = resourceState.resId)
-                }
-
-            }
-        }
+    fun submit(successHandler: (Boolean) -> Unit) {
+        if (validate() || state.value.project == null || !state.value.isUpdated) return
+        val currentProject = state.value.project!!
 
         viewModelScope.launch(Dispatchers.IO) {
+            repository.updateProject(
+                projectId = currentProject.id,
+                thumbnail = if (state.value.isThumbnailUpdated) currentProject.thumbnail else null,
+                name = currentProject.name,
+                description = currentProject.description,
+                startDate = currentProject.startDate,
+                endDate = currentProject.endDate
+            )
+                .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
+                .collectLatest { resourceState ->
+                    when (resourceState) {
+                        is ResourceState.Error -> _state.update {
+                            it.copy(status = UiStatus.ERROR, error = resourceState.resId)
+                        }
+
+                        is ResourceState.Success -> {
+                            _state.update { it.copy(status = UiStatus.SUCCESS) }
+                            viewModelScope.launch {
+                                successHandler(resourceState.data)
+                            }
+                        }
+                    }
+                }
         }
     }
 
     private fun validate(): Boolean {
-        val currentState = state.value
-        return !((currentState.startDate != null &&
-                currentState.endDate != null &&
-                currentState.startDate > currentState.endDate) ||
-                currentState.title.isBlank())
+        val currentProject = state.value.project
+        val startDate = currentProject?.startDate
+        val endDate = currentProject?.endDate
+
+        if (currentProject?.name == null ||
+            (startDate != null && endDate != null && startDate > endDate)
+        )
+            return false
+        return currentProject.name.isBlank()
     }
 }

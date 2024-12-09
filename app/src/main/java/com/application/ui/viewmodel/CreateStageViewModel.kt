@@ -3,27 +3,54 @@ package com.application.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.R
-import com.application.util.ResourceState
-import com.application.data.entity.Stage
-import com.application.ui.state.StageUiState
+import com.application.android.utility.state.ResourceState
+import com.application.constant.UiStatus
+import com.application.data.repository.FormRepository
+import com.application.data.repository.StageRepository
+import com.application.ui.state.CreateStageUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
 class CreateStageViewModel @Inject constructor(
+    private val stageRepository: StageRepository,
+    private val formRepository: FormRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(StageUiState())
+    private val _state = MutableStateFlow(CreateStageUiState())
     val state = _state.asStateFlow()
 
+    fun initialize(projectId: String) {
+        getAllForms(projectId)
+    }
+
+    private fun getAllForms(projectId: String) {
+        _state.update { it.copy(status = UiStatus.LOADING) }
+        viewModelScope.launch(Dispatchers.IO) {
+            formRepository.getAllForms(projectId).collectLatest { resourceState ->
+                when (resourceState) {
+                    is ResourceState.Success -> _state.update {
+                        it.copy(
+                            status = UiStatus.SUCCESS,
+                            forms = resourceState.data
+                        )
+                    }
+
+                    is ResourceState.Error -> _state.update { it.copy(status = UiStatus.ERROR) }
+                }
+            }
+        }
+    }
+
     fun updateName(title: String) {
-        _state.update { it.copy(title = title) }
+        _state.update { it.copy(name = title) }
     }
 
     fun updateDescription(description: String) {
@@ -38,53 +65,61 @@ class CreateStageViewModel @Inject constructor(
         }
     }
 
-    fun updateFormId(formId: String) {
-        _state.update { it.copy(formId = formId) }
+    fun selectForm(formIdx: Int) {
+        val form = state.value.forms[formIdx]
+        _state.update { it.copy(selectedForm = Pair(form.id, form.title)) }
     }
 
-    fun submitStage(projectId: String, successHandler: () -> Unit) {
+    fun submitStage(projectId: String, formId: String, successHandler: (Boolean) -> Unit) {
         if (!validateFields()) return
-
         val currentState = state.value
-        val stage = Stage(
-            id = "",
-            title = currentState.title,
-            description = currentState.description,
-            startDate = currentState.startDate,
-            endDate = currentState.endDate,
-            formId = currentState.formId,
-            projectId = ""
-        )
-        val collectAction: (ResourceState<Boolean>) -> Unit = { resourceState ->
+
+        val collectAction: (ResourceState<String>) -> Unit = { resourceState ->
             when (resourceState) {
                 is ResourceState.Error -> _state.update {
-                    it.copy(loading = false, error = resourceState.resId)
+                    it.copy(status = UiStatus.ERROR)
                 }
 
                 is ResourceState.Success -> {
-                    _state.update { it.copy(loading = false) }
-                    viewModelScope.launch { successHandler() }
+                    _state.update { it.copy(status = UiStatus.SUCCESS) }
+                    viewModelScope.launch { successHandler(true) }
                 }
-
-                else -> {}
             }
         }
 
         viewModelScope.launch(Dispatchers.IO) {
-
+            stageRepository.createStage(
+                name = currentState.name,
+                description = currentState.description,
+                startDate = currentState.startDate,
+                endDate = currentState.endDate,
+                formId = formId,
+                projectOwnerId = projectId
+            ).collectLatest(collectAction)
         }
     }
 
     private fun validateFields(): Boolean {
         val currentState = state.value
         return if (
-            currentState.title.isBlank() ||
+            currentState.name.isBlank() ||
             currentState.startDate == null ||
-            currentState.endDate == null) {
-            _state.update { it.copy(error = R.string.fields_not_validate) }
+            currentState.endDate == null
+        ) {
+            _state.update {
+                it.copy(
+                    status = UiStatus.ERROR,
+                    error = R.string.fields_not_validate.toString()
+                )
+            }
             false
         } else if (currentState.startDate > currentState.endDate) {
-            _state.update { it.copy(error = R.string.start_date_greater_than_end_date) }
+            _state.update {
+                it.copy(
+                    status = UiStatus.ERROR,
+                    error = R.string.start_date_greater_than_end_date.toString()
+                )
+            }
             false
         } else true
     }

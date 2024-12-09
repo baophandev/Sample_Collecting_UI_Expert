@@ -38,13 +38,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.application.R
+import com.application.android.utility.validate.RegexValidation
+import com.application.constant.UiStatus
 import com.application.ui.component.BotNavigationBar
 import com.application.ui.component.CustomButton
 import com.application.ui.component.CustomDatePicker
 import com.application.ui.component.CustomTextField
 import com.application.ui.component.FieldToList
-import com.application.ui.component.LoadingScreen
-import com.application.ui.component.RegexValidation
 import com.application.ui.component.TopBar
 import com.application.ui.viewmodel.CreateStageViewModel
 
@@ -53,148 +53,157 @@ import com.application.ui.viewmodel.CreateStageViewModel
 fun CreateStageScreen(
     viewModel: CreateStageViewModel = hiltViewModel(),
     projectId: String,
-    projectEmailMembers: List<String>?,
-    forms: Map<String, String>,
     navigateToLogin: () -> Unit,
     navigateToHome: () -> Unit,
-    navigateToDetail: () -> Unit
+    postCreatedHandler: (Boolean) -> Unit,
+    navigateToWorkersQuestionScreen: () -> Unit,
+    navigateToExpertChatScreen: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
 
-    if (state.loading) LoadingScreen(text = stringResource(id = R.string.creating_stage))
-    else {
-        Scaffold(
-            modifier = Modifier.padding(horizontal = 15.dp, vertical = 5.dp),
-            topBar = { TopBar(title = R.string.create_stage, signOutClicked = navigateToLogin) },
-            bottomBar = {
-                BotNavigationBar(modifier = Modifier.padding(vertical = 10.dp)) {
-                    IconButton(
-                        modifier = Modifier.size(50.dp),
-
-                        onClick = navigateToHome
+    when (state.status) {
+        UiStatus.INIT -> viewModel.initialize(projectId)
+        UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.creating_stage))
+        UiStatus.SUCCESS -> {
+            Scaffold(
+                modifier = Modifier,
+                topBar = { TopBar(title = R.string.create_stage, signOutClicked = navigateToLogin) },
+                bottomBar = {
+                    BotNavigationBar(
+                        modifier = Modifier.padding(vertical = 10.dp),
+                        onWorkersQuestionClick = navigateToWorkersQuestionScreen,
+                        onExpertChatsClick = navigateToExpertChatScreen
                     ) {
-                        Icon(
-                            modifier = Modifier.fillMaxSize(.6f),
-                            painter = painterResource(id = R.drawable.ic_home),
-                            contentDescription = null,
-                            tint = Color.White
-                        )
-                    }
-                }
-            }
-        ) { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceAround
-            ) {
-                CustomTextField(
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(text = stringResource(id = R.string.add_title)) },
-                    singleLine = true,
-                    value = state.title,
-                    onValueChange = viewModel::updateName
-                )
+                        IconButton(
+                            modifier = Modifier.size(50.dp),
 
-                CustomTextField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp),
-                    placeholder = { Text(text = "Add description") },
-                    value = state.description,
-                    onValueChange = viewModel::updateDescription
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    CustomDatePicker(
-                        fieldName = stringResource(id = R.string.start_date),
-                        modifier = Modifier.width(160.dp)
-                    ) { viewModel.updateDate(date = it, isStartDate = true) }
-                    CustomDatePicker(
-                        fieldName = stringResource(id = R.string.end_date),
-                        modifier = Modifier.width(160.dp)
-                    ) { viewModel.updateDate(date = it, isStartDate = false) }
-                }
-
-                Card(
-                    modifier = Modifier
-                        .height(60.dp)
-                        .fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp),
-                ) {
-                    var expanded by remember { mutableStateOf(false) }
-                    // We want to react on tap/press on TextField to show menu
-                    ExposedDropdownMenuBox(
-                        expanded = expanded,
-                        onExpandedChange = { expanded = it },
-                    ) {
-                        TextField(
-                            modifier = Modifier
-                                .menuAnchor(MenuAnchorType.PrimaryEditable)
-                                .fillMaxSize(),
-                            readOnly = true,
-                            value = forms[state.formId] ?: "",
-                            onValueChange = {},
-                            label = { Text(text = stringResource(id = R.string.form)) },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                            colors = ExposedDropdownMenuDefaults.textFieldColors(
-                                unfocusedIndicatorColor = Color.Transparent,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedContainerColor = colorResource(id = R.color.gray_100),
-                                focusedContainerColor = colorResource(id = R.color.gray_100)
-                            ),
-                        )
-                        ExposedDropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false },
-                            modifier = Modifier.fillMaxWidth(),
+                            onClick = navigateToHome
                         ) {
-                            forms.forEach { form ->
-                                DropdownMenuItem(
-                                    text = { Text(form.value) },
-                                    onClick = {
-                                        expanded = false
-                                        viewModel.updateFormId(form.key)
-                                    },
-                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                                )
-                            }
+                            Icon(
+                                modifier = Modifier.fillMaxSize(.6f),
+                                painter = painterResource(id = R.drawable.ic_home),
+                                contentDescription = null,
+                                tint = Color.White
+                            )
                         }
                     }
                 }
+            ) { padding ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceAround
+                ) {
+                    CustomTextField(
+                        modifier = Modifier.fillMaxWidth(.95f),
+                        placeholder = { Text(text = stringResource(id = R.string.add_title)) },
+                        singleLine = true,
+                        value = state.name,
+                        onValueChange = viewModel::updateName
+                    )
 
-                projectEmailMembers?.let {
+                    CustomTextField(
+                        modifier = Modifier
+                            .fillMaxWidth(.95f)
+                            .height(120.dp),
+                        placeholder = { Text(text = "Add description") },
+                        value = state.description,
+                        onValueChange = viewModel::updateDescription
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(.95f),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        CustomDatePicker(
+                            fieldName = stringResource(id = R.string.start_date),
+                            modifier = Modifier.width(160.dp)
+                        ) { viewModel.updateDate(date = it, isStartDate = true) }
+                        CustomDatePicker(
+                            fieldName = stringResource(id = R.string.end_date),
+                            modifier = Modifier.width(160.dp)
+                        ) { viewModel.updateDate(date = it, isStartDate = false) }
+                    }
+
+                    Card(
+                        modifier = Modifier
+                            .height(60.dp)
+                            .fillMaxWidth(.95f),
+                        shape = RoundedCornerShape(10.dp),
+                    ) {
+                        var expanded by remember { mutableStateOf(false) }
+                        // We want to react on tap/press on TextField to show menu
+                        ExposedDropdownMenuBox(
+                            expanded = expanded,
+                            onExpandedChange = { expanded = it },
+                        ) {
+                            TextField(
+                                modifier = Modifier
+                                    .menuAnchor(MenuAnchorType.PrimaryEditable)
+                                    .fillMaxSize(),
+                                readOnly = true,
+                                value = state.selectedForm?.second ?: "",
+                                onValueChange = {},
+                                label = { Text(text = stringResource(id = R.string.form)) },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                                colors = ExposedDropdownMenuDefaults.textFieldColors(
+                                    unfocusedIndicatorColor = Color.Transparent,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedContainerColor = colorResource(id = R.color.gray_100),
+                                    focusedContainerColor = colorResource(id = R.color.gray_100)
+                                ),
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                state.forms.forEachIndexed { idx, form ->
+                                    DropdownMenuItem(
+                                        text = { Text(form.title) },
+                                        onClick = {
+                                            expanded = false
+                                            viewModel.selectForm(idx)
+                                        },
+                                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     FieldToList(
                         fieldDataList = state.emailMembers,
                         textValidator = { email ->
                             email.contains(RegexValidation.EMAIL) &&
-                                    projectEmailMembers.contains(email)
+                                    state.emailMembers.contains(email)
                         },
                         listHeight = 180.dp,
                         onAddField = {},
                         onRemoveField = {}
                     )
-                }
 
-                CustomButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = "Submit",
-                    textSize = 20.sp,
-                    background = colorResource(id = R.color.main_green),
-                    border = BorderStroke(0.dp, Color.Transparent),
-                    action = {
-                        viewModel.submitStage(
-                            projectId = projectId,
-                            successHandler = navigateToDetail
-                        )
-                    }
-                )
+                    CustomButton(
+                        modifier = Modifier.fillMaxWidth(.95f),
+                        text = stringResource(id = R.string.submit),
+                        textSize = 20.sp,
+                        background = colorResource(id = R.color.main_green),
+                        border = BorderStroke(0.dp, Color.Transparent),
+                        action = {
+                            state.selectedForm?.let {
+                                viewModel.submitStage(
+                                    projectId = projectId,
+                                    formId = it.first,
+                                    successHandler = postCreatedHandler
+                                )
+                            }
+                        }
+                    )
+                }
             }
         }
+        UiStatus.ERROR -> navigateToHome()
     }
 }

@@ -21,7 +21,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,136 +37,148 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.application.R
+import com.application.constant.UiStatus
 import com.application.ui.component.BotNavigationBar
 import com.application.ui.component.CustomButton
 import com.application.ui.component.CustomTextField
 import com.application.ui.component.FormField
-import com.application.ui.component.LoadingScreen
 import com.application.ui.component.TopBar
-import com.application.ui.viewmodel.FormViewModel
+import com.application.ui.viewmodel.CreateFormViewModel
 
 @Composable
 fun CreateFormScreen(
-    formViewModel: FormViewModel = hiltViewModel(),
+    createFormViewModel: CreateFormViewModel = hiltViewModel(),
     projectId: String,
+    postCreatedHandler: (Boolean) -> Unit,
     navigateToLogin: () -> Unit,
     navigateToHome: () -> Unit,
-    navigateToDetail: () -> Unit,
+    navigateToWorkersQuestionScreen: () -> Unit,
+    navigateToExpertChatScreen: () -> Unit
 ) {
-    val state by formViewModel.state.collectAsState()
+    val state by createFormViewModel.state.collectAsState()
 
-    if (state.loading) LoadingScreen(text = stringResource(id = R.string.loading))
-    else {
-        Scaffold(
-            modifier = Modifier,
-            topBar = { TopBar(title = R.string.create_form, signOutClicked = navigateToLogin) },
-            bottomBar = {
-                BotNavigationBar {
-                    IconButton(
-                        modifier = Modifier.size(50.dp),
+    when (state.status) {
 
-                        onClick = navigateToHome
+        UiStatus.INIT -> createFormViewModel.initialize()
+
+        UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
+
+        UiStatus.SUCCESS -> {
+            Scaffold(
+                modifier = Modifier,
+                topBar = { TopBar(title = R.string.create_form, signOutClicked = navigateToLogin) },
+                bottomBar = {
+                    BotNavigationBar(
+                        onWorkersQuestionClick = navigateToWorkersQuestionScreen,
+                        onExpertChatsClick = navigateToExpertChatScreen
                     ) {
-                        Icon(
-                            modifier = Modifier.fillMaxSize(.60f),
-                            painter = painterResource(id = R.drawable.ic_home),
-                            contentDescription = null,
-                            tint = Color.White
-                        )
-                    }
-                }
-            }
-        ) { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                CustomTextField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(80.dp)
-                        .padding(vertical = 10.dp),
-                    placeholder = { Text(text = stringResource(id = R.string.add_title)) },
-                    singleLine = true,
-                    value = state.title,
-                    onValueChange = formViewModel::updateTitle
-                )
-
-                Row(
-                    modifier = Modifier
-                        .padding(end = 10.dp)
-                        .fillMaxWidth()
-                        .height(60.dp), // Adjust parent width as needed
-                    horizontalArrangement = Arrangement.End  // Align elements to the right
-                ) {
-                    IconButton(
-                        modifier = Modifier.size(40.dp),
-                        onClick = { state.fields.add("") },
-
-                    ) {
-                        Icon(
-                            modifier = Modifier.fillMaxSize(),
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add field",
-                            tint = colorResource(id = R.color.main_green)
-                        )
-                    }
-                }
-
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .fillMaxWidth()
-                        .fillMaxHeight(.9f),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    itemsIndexed(state.fields) { index, data ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(60.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = colorResource(id = R.color.gray_100)
-                            ),
-                            shape = RoundedCornerShape(10.dp),
+                        IconButton(
+                            modifier = Modifier.size(50.dp),
+                            onClick = navigateToHome
                         ) {
-                            FormField(
-                                fieldName = data,
-                                onFieldNameChange = { state.fields[index] = it },
-                                onDeleteClicked = { state.fields.removeAt(index) }
+                            Icon(
+                                modifier = Modifier.fillMaxSize(.60f),
+                                painter = painterResource(id = R.drawable.ic_home),
+                                contentDescription = null,
+                                tint = Color.White
                             )
                         }
-                        Spacer(modifier = Modifier.size(10.dp))
                     }
                 }
-
-                if (state.fields.size > 0) {
-                    Box(
+            ) { padding ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CustomTextField(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(bottom = 10.dp),
-                        contentAlignment = Alignment.BottomCenter
+                            .fillMaxWidth(.95f)
+                            .height(80.dp)
+                            .padding(vertical = 10.dp),
+                        placeholder = { Text(text = stringResource(id = R.string.add_title)) },
+                        singleLine = true,
+                        value = state.title,
+                        onValueChange = createFormViewModel::updateTitle
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .padding(end = 5.dp)
+                            .fillMaxWidth(.95f)
+                            .height(50.dp), // Adjust parent width as needed
+                        horizontalArrangement = Arrangement.End  // Align elements to the right
                     ) {
-                        CustomButton(
-                            modifier = Modifier
-                                .fillMaxWidth(.8f)
-                                .height(50.dp),
-                            text = stringResource(id = R.string.save_button),
-                            textSize = 16.sp,
-                            background = colorResource(id = R.color.main_green),
-                            border = BorderStroke(0.dp, Color.Transparent),
-                            action = {
-                                formViewModel.submitForm(
-                                    projectId = projectId,
-                                    successHandler = navigateToDetail
+                        IconButton(
+                            modifier = Modifier.size(40.dp),
+                            onClick = { state.fields.add("") },
+
+                            ) {
+                            Icon(
+                                modifier = Modifier.fillMaxSize(),
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Add field",
+                                tint = colorResource(id = R.color.main_green)
+                            )
+                        }
+                    }
+
+                    LazyColumn(
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth()
+                            .fillMaxHeight(.9f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        itemsIndexed(state.fields) { index, data ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(60.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.secondary
+                                ),
+                                shape = RoundedCornerShape(10.dp),
+                            ) {
+                                FormField(
+                                    fieldName = data,
+                                    onFieldNameChange = { state.fields[index] = it },
+                                    onDeleteClicked = { state.fields.removeAt(index) }
                                 )
                             }
-                        )
+                            Spacer(modifier = Modifier.size(10.dp))
+                        }
+                    }
+
+                    if (state.fields.size > 0) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(bottom = 10.dp),
+                            contentAlignment = Alignment.BottomCenter
+                        ) {
+                            CustomButton(
+                                modifier = Modifier
+                                    .fillMaxWidth(.8f)
+                                    .height(50.dp),
+                                text = stringResource(id = R.string.save_button),
+                                textSize = 16.sp,
+                                background = colorResource(id = R.color.main_green),
+                                border = BorderStroke(0.dp, Color.Transparent),
+                                action = {
+                                    createFormViewModel.submitForm(
+                                        projectId = projectId,
+                                        successHandler = postCreatedHandler
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
+        UiStatus.ERROR -> {}
     }
+
 }
