@@ -25,8 +25,10 @@ class UserRepository(
     private var _currentUser: User? = null
     private var _currentLoginCertificate: LoginCertificate? = null
 
-    val loggedUser: User? = _currentUser
-    val loggedCertificate: LoginCertificate? = _currentLoginCertificate
+    val loggedUser: User?
+        get() = _currentUser
+    val loggedCertificate: LoginCertificate?
+        get() = _currentLoginCertificate
 
     suspend fun login(
         username: String,

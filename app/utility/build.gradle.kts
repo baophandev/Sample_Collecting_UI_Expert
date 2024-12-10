@@ -9,8 +9,11 @@ android {
 
     defaultConfig {
         minSdk = 33
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        aarMetadata {
+            minCompileSdk = 34
+            minSdk = 33
+            version = "1.0.0"
+        }
         consumerProguardFiles("consumer-rules.pro")
     }
 
@@ -30,6 +33,7 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+    buildToolsVersion = "34.0.0"
 }
 
 dependencies {

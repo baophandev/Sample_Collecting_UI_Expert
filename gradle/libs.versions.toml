@@ -24,9 +24,6 @@ uiTooling = "1.7.2"
 paging = "3.3.2"
 agp = "8.5.1"
 kotlin = "1.9.21"
-junit = "4.13.2"
-junitVersion = "1.2.1"
-espressoCore = "3.6.1"
 kjwtCore = "0.9.0"
 
 [libraries]
@@ -75,9 +72,6 @@ androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-com
 
 androidx-paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
 androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "agp" }
