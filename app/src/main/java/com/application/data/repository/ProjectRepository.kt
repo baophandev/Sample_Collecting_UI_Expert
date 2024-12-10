@@ -2,6 +2,7 @@ package com.application.data.repository
 
 import android.net.Uri
 import android.util.Log
+import com.application.R
 import com.application.android.user_library.repository.UserRepository
 import com.application.android.utility.state.ResourceState
 import com.application.data.datasource.IProjectService
@@ -75,7 +76,12 @@ class ProjectRepository(
             emit(ResourceState.Success(project))
         }.catch {
             Log.e(TAG, it.message, it)
-            emit(ResourceState.Error(message = "Cannot get projects"))
+            emit(
+                ResourceState.Error(
+                    message = "Cannot get projects",
+                    resId = R.string.modify_project_error
+                )
+            )
         }
     }
 

@@ -246,7 +246,7 @@ fun StageDetailScreen(
             }
         }
 
-        UiStatus.ERROR -> TODO("Implement ERROR state")
+        UiStatus.ERROR -> {}
     }
 }
 

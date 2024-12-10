@@ -1,18 +1,19 @@
 package com.application.android.user_library.repository
 
 import android.util.Log
-import com.application.android.utility.state.ResourceState
 import com.application.android.user_library.datasource.IUserService
 import com.application.android.user_library.entity.Domain
 import com.application.android.user_library.entity.LoginCertificate
+import com.application.android.user_library.entity.User
 import com.application.android.user_library.entity.response.DomainResponse
 import com.application.android.user_library.entity.response.UserResponse
-import com.application.android.user_library.entity.User
+import com.application.android.utility.state.ResourceState
 import io.github.nefilim.kjwt.JWSRSA256Algorithm
 import io.github.nefilim.kjwt.JWT
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 
 class UserRepository(
     private val service: IUserService
@@ -52,6 +53,7 @@ class UserRepository(
             val userResponse = service.getUser(userId)
             _currentUser = mapResponseToUser(userResponse)
 
+            cachedUsers[userId] = _currentUser
             emit(ResourceState.Success(_currentLoginCertificate))
         }.catch { exception ->
             Log.e(TAG, exception.message, exception)
@@ -92,7 +94,10 @@ class UserRepository(
      *
      * Note: User information will be cached in memory.
      */
-    fun getUser(userId: String): Flow<ResourceState<User>> {
+    fun getUser(userId: String, skipCached: Boolean = false): Flow<ResourceState<User>> {
+        if (!skipCached && cachedUsers.containsKey(userId))
+            return flowOf(ResourceState.Success(cachedUsers[userId]!!))
+
         return flow<ResourceState<User>> {
             val userResponse = service.getUser(userId)
             val user = mapResponseToUser(userResponse)

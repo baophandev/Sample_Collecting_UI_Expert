@@ -15,7 +15,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -49,12 +48,6 @@ fun CustomTextField(
             keyboardType = KeyboardType.Email
         )
     )
-}
-
-@Preview
-@Composable
-private fun CustomTextFieldPreview() {
-    CustomTextField(content = "text") {}
 }
 
 @Composable

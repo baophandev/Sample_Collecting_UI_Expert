@@ -166,30 +166,6 @@ class DetailViewModel @Inject constructor(
         return state.value.stages.any { it.formId == formId }
     }
 
-    fun updateProjectInHome(successHandler: (Boolean) -> Unit) {
-        val currentProject = state.value.project!!
-        val projectId = currentProject.id
-
-        viewModelScope.launch(Dispatchers.IO) {
-            projectRepository.getProject(projectId)
-                .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
-                .collectLatest { resourceState ->
-                    when (resourceState) {
-                        is ResourceState.Error -> _state.update {
-                            it.copy(status = UiStatus.ERROR, error = resourceState.resId)
-                        }
-
-                        is ResourceState.Success -> {
-                            _state.update { it.copy(status = UiStatus.SUCCESS) }
-                            viewModelScope.launch {
-                                successHandler(true)
-                            }
-                        }
-                    }
-                }
-        }
-    }
-
     companion object {
         const val TAG = "DetailViewModel"
     }
