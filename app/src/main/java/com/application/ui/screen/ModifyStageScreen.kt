@@ -1,5 +1,6 @@
 package com.application.ui.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -22,9 +25,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -49,6 +57,7 @@ import com.application.constant.UiStatus
 import com.application.ui.component.BotNavigationBar
 import com.application.ui.component.CustomButton
 import com.application.ui.component.CustomDatePicker
+import com.application.ui.component.CustomSnackBarHost
 import com.application.ui.component.CustomTextField
 import com.application.ui.component.FieldToList
 import com.application.ui.component.TopBar
@@ -66,9 +75,24 @@ fun ModifyStageScreen(
     navigateToWorkersQuestionScreen: () -> Unit,
     navigateToExpertChatScreen: () -> Unit
 ) {
+    val context = LocalContext.current
     val state by viewModel.state.collectAsState()
-
+    val snackBarHostState = remember { SnackbarHostState() }
     var expanded by remember { mutableStateOf(false) }
+
+    if (state.error != null) {
+        val error = stringResource(id = state.error!!)
+        LaunchedEffect(key1 = state.error) {
+            val result = snackBarHostState.showSnackbar(
+                message = error,
+                withDismissAction = true,
+                duration = SnackbarDuration.Short
+            )
+            if (result == SnackbarResult.Dismissed) {
+                viewModel.gotError()
+            }
+        }
+    }
     when (state.status) {
         UiStatus.INIT -> {
             viewModel.loadStage(projectId, stageId)
@@ -79,6 +103,26 @@ fun ModifyStageScreen(
             val formLazyPagingItems = viewModel.flow.collectAsLazyPagingItems()
 
             Scaffold(
+                modifier = Modifier,
+                snackbarHost = {
+                    CustomSnackBarHost(
+                        snackBarHostState = snackBarHostState,
+                        dismissAction = {
+                            IconButton(
+                                modifier = Modifier
+                                    .padding(end = 10.dp)
+                                    .size(30.dp),
+                                onClick = viewModel::gotError
+                            ) {
+                                Icon(
+                                    modifier = Modifier.fillMaxSize(),
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = "Close"
+                                )
+                            }
+                        }
+                    )
+                },
                 topBar = {
                     TopBar(title = R.string.modify_stage, signOutClicked = popBackToLogin)
                 },
@@ -236,6 +280,6 @@ fun ModifyStageScreen(
             }
         }
 
-        UiStatus.ERROR -> {}
+        UiStatus.ERROR -> Toast.makeText(context, state.error!!, Toast.LENGTH_LONG).show()
     }
 }

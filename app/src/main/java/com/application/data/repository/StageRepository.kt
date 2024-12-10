@@ -1,6 +1,7 @@
 package com.application.data.repository
 
 import android.util.Log
+import com.application.R
 import com.application.android.utility.state.ResourceState
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Stage
@@ -94,7 +95,12 @@ class StageRepository(
             emit(ResourceState.Success(stage))
         }.catch { exception ->
             Log.e(TAG, exception.message, exception)
-            emit(ResourceState.Error(message = "Cannot get a stage"))
+            emit(
+                ResourceState.Error(
+                    message = "Cannot get a stage",
+                    resId = R.string.error_cannot_get_stage
+                )
+            )
         }
     }
 
@@ -130,7 +136,7 @@ class StageRepository(
     fun deleteStage(
         stageId: String
     ): Flow<ResourceState<Boolean>> {
-        return flow<ResourceState<Boolean>>{
+        return flow<ResourceState<Boolean>> {
             val deleteResult = projectService.deleteStage(stageId = stageId)
             if (deleteResult) emit(ResourceState.Success(true))
         }.catch { exception ->
