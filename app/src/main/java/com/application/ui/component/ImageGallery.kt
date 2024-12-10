@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,10 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.application.R
 
 @Composable
 fun OnePictureGallery(images: Int, maxWidth: Int, maxHeight: Int, backgroundColor: Color) {
@@ -206,22 +203,5 @@ fun ImageGallery(
             3 -> ThreePicturesGallery(images, maxWidth, maxHeight, backgroundColor)
             else -> FourOrMorePicturesGallery(images, maxWidth, maxHeight, backgroundColor)
         }
-    }
-}
-
-@Preview(heightDp = 800, widthDp = 400, showBackground = true)
-@Composable
-fun ImageGalleryPreview() {
-    MaterialTheme {
-        ImageGallery(
-            images = listOf(
-                R.drawable.ic_launcher_background,
-                R.drawable.ic_launcher_background,
-//                R.drawable.ic_launcher_background,
-//                R.drawable.ic_launcher_background,
-//                R.drawable.ic_launcher_background,
-//                R.drawable.ic_launcher_background,
-            )
-        )
     }
 }

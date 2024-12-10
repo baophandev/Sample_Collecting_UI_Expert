@@ -2,4 +2,5 @@
 <resources>
     <string name="male">Nam</string>
     <string name="female">Nữ</string>
+    <string name="error_scope_invalid">Tài khoản của bạn không được chấp nhận đối với ứng dụng này</string>
 </resources>

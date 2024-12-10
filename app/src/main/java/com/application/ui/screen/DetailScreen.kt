@@ -315,7 +315,7 @@ fun DetailScreen(
                                 modifier = Modifier
                                     .height(300.dp)
                                     .fillMaxWidth(),
-                                painter = painterResource(id = R.drawable.sample_default),
+                                painter = painterResource(id = R.drawable.ic_launcher_background),
                                 contentDescription = "Default Thumbnail",
                                 contentScale = ContentScale.Crop
                             )

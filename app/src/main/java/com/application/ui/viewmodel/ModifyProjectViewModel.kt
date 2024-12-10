@@ -3,6 +3,7 @@ package com.application.ui.viewmodel
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.application.R
 import com.application.android.utility.state.ResourceState
 import com.application.constant.UiStatus
 import com.application.data.repository.ProjectRepository
@@ -84,7 +85,7 @@ class ModifyProjectViewModel @Inject constructor(
     }
 
     fun submit(successHandler: (Boolean) -> Unit) {
-        if (validate() || state.value.project == null || !state.value.isUpdated) return
+        if (!validate() || state.value.project == null || !state.value.isUpdated) return
         val currentProject = state.value.project!!
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -100,7 +101,7 @@ class ModifyProjectViewModel @Inject constructor(
                 .collectLatest { resourceState ->
                     when (resourceState) {
                         is ResourceState.Error -> _state.update {
-                            it.copy(status = UiStatus.ERROR, error = resourceState.resId)
+                            it.copy(status = UiStatus.SUCCESS, error = resourceState.resId)
                         }
 
                         is ResourceState.Success -> {
@@ -114,6 +115,10 @@ class ModifyProjectViewModel @Inject constructor(
         }
     }
 
+    fun gotError() {
+        _state.update { it.copy(error = null) }
+    }
+
     private fun validate(): Boolean {
         val currentProject = state.value.project
         val startDate = currentProject?.startDate
@@ -121,8 +126,10 @@ class ModifyProjectViewModel @Inject constructor(
 
         if (currentProject?.name == null ||
             (startDate != null && endDate != null && startDate > endDate)
-        )
+        ) {
+            _state.update { it.copy(error = R.string.start_date_greater_than_end_date) }
             return false
-        return currentProject.name.isBlank()
+        }
+        return currentProject.name.isNotBlank()
     }
 }

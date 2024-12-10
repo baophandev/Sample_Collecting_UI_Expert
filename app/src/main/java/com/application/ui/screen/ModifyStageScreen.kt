@@ -236,8 +236,6 @@ fun ModifyStageScreen(
             }
         }
 
-        UiStatus.ERROR -> {
-            TODO()
-        }
+        UiStatus.ERROR -> {}
     }
 }

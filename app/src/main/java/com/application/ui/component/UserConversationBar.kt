@@ -26,8 +26,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-//import com.application.R
-//import androidx.compose.ui.tooling.preview.Preview
 
 private fun truncateStringChat(s: String, maxLength: Int = 25, maxWords: Int = 8): String {
     val words = s.split(" ")
@@ -145,8 +143,3 @@ fun UserConversationBar(
     }
 }
 
-//@Preview
-//@Composable
-//fun UserConversationBarPreview() {
-//    UserConversationBar(R.drawable.ic_launcher_background, "afklajf kafjwe kejk kj", "Tối thứ 3 họp", "1 phút trước", false)
-//}

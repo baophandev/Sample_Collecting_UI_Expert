@@ -2,35 +2,17 @@ package com.application.ui.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.application.R
 import com.application.ui.component.ExpertChatTopNavigationBar
 import com.application.ui.component.UserConversationBar
@@ -42,66 +24,6 @@ data class UserDataConversation(
     val messageSentTime: String,
     val read: Boolean,
 )
-
-//@Composable
-//private fun ExpertChatsSearchBar() {
-//    Row(
-//        verticalAlignment = Alignment.CenterVertically,
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .background(Color(0xFF6CCD84))
-//            .padding(start = 12.dp, top = 8.dp, bottom = 8.dp)
-//    ) {
-//        TextField(
-//            value = "",
-//            onValueChange = { /*TODO*/ },
-//            singleLine = true,
-//            shape = RoundedCornerShape(20.dp),
-//            leadingIcon = {
-//                Icon(
-//                    imageVector = Icons.Filled.Search,
-//                    contentDescription = "Search Icon",
-//                    tint = Color.White,
-//                    modifier = Modifier
-//                        .fillMaxHeight()
-//                )
-//            },
-//            colors = OutlinedTextFieldDefaults.colors().copy(
-//                unfocusedContainerColor = Color(0xFF6CCD84),
-//                focusedContainerColor = Color(0xFF6CCD84),
-//                focusedIndicatorColor = Color(0xFF6CCD84),
-//                unfocusedIndicatorColor = Color(0xFF6CCD84),
-//            ),
-//            placeholder = {
-//                Text(
-//                    text = "Tìm kiếm...",
-//                    color = Color.White,
-//                    style = TextStyle(
-//                        fontSize = 14.sp,
-//                        fontWeight = FontWeight.Medium,
-//                    ),
-//                )
-//            },
-//            modifier = Modifier
-//                .width(330.dp)
-//                .height(45.dp)
-//        )
-//        Row(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//        ) {
-//            IconButton(onClick = { /*TODO*/ }) {
-//                Icon(
-//                    imageVector = Icons.Default.Notifications,
-//                    contentDescription = "Notifications",
-//                    tint = Color.White,
-//                    modifier = Modifier
-//                        .fillMaxHeight()
-//                )
-//            }
-//        }
-//    }
-//}
 
 @Composable
 fun ExpertChatsScreen(

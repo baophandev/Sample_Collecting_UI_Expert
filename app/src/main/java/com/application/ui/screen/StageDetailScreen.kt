@@ -170,7 +170,7 @@ fun StageDetailScreen(
                                 modifier = Modifier
                                     .height(300.dp)
                                     .fillMaxWidth(),
-                                painter = painterResource(id = R.drawable.sample_default),
+                                painter = painterResource(id = R.drawable.ic_launcher_background),
                                 contentDescription = "Default Thumbnail",
                                 contentScale = ContentScale.FillBounds
                             )
@@ -246,7 +246,7 @@ fun StageDetailScreen(
             }
         }
 
-        UiStatus.ERROR -> TODO("Implement ERROR state")
+        UiStatus.ERROR -> {}
     }
 }
 
