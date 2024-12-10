@@ -92,8 +92,8 @@ fun CreateProjectScreen(
                     dismissAction = {
                         IconButton(
                             modifier = Modifier
-                                .padding(0.dp)
-                                .size(50.dp),
+                                .padding(end = 10.dp)
+                                .size(30.dp),
                             onClick = viewModel::gotError
                         ) {
                             Icon(
@@ -206,8 +206,8 @@ fun CreateProjectScreen(
                 FieldToList(
                     fieldDataList = state.memberIds,
                     textValidator = { email -> email.contains(RegexValidation.EMAIL) },
-                    onAddField = {},
-                    onRemoveField = {}
+                    onAddField = { newMemberId -> viewModel.updateMemberId(newMemberId) },
+                    onRemoveField = { index -> viewModel.removeMemberId(index) }
                 )
 
                 CustomButton(
