@@ -69,7 +69,7 @@ fun FieldProject(
                 )
             } else {
                 Image(
-                    painter = painterResource(id = R.drawable.sample_default),
+                    painter = painterResource(id = R.drawable.ic_launcher_background),
                     modifier = Modifier.fillMaxSize(),
                     contentDescription = "Thumbnail",
                     contentScale = ContentScale.FillBounds

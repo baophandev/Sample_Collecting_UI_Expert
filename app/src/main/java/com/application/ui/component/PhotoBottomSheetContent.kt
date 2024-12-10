@@ -132,7 +132,7 @@ fun PhotoBottomSheetContent(
                             )
                         else
                             Image(
-                                painter = painterResource(id = R.drawable.sample_default),
+                                painter = painterResource(id = R.drawable.ic_launcher_background),
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(10.dp))
                                     .combinedClickable(

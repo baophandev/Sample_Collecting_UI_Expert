@@ -1,8 +1,8 @@
 package com.application.android.user_library.datasource
 
 import com.application.android.user_library.entity.response.DomainResponse
-import com.application.android.user_library.entity.response.UserResponse
 import com.application.android.user_library.entity.response.LoginResponse
+import com.application.android.user_library.entity.response.UserResponse
 
 interface IUserService {
     suspend fun login(

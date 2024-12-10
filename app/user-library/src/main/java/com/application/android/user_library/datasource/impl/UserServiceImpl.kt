@@ -1,12 +1,12 @@
 package com.application.android.user_library.datasource.impl
 
-import com.application.data.datasource.AbstractClient
 import com.application.android.user_library.datasource.IUserService
 import com.application.android.user_library.entity.request.UserLoginRequest
 import com.application.android.user_library.entity.request.UserRegisterRequest
 import com.application.android.user_library.entity.response.DomainResponse
 import com.application.android.user_library.entity.response.LoginResponse
 import com.application.android.user_library.entity.response.UserResponse
+import com.application.data.datasource.AbstractClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.post
