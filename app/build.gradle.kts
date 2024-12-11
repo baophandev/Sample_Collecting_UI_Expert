@@ -1,11 +1,8 @@
-@file:Suppress("UnstableApiUsage")
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
-    id("kotlin-parcelize")
 }
 
 android {
@@ -88,8 +85,6 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.gson)
-    implementation(libs.rxjava)
-    implementation(libs.rxandroid)
 
     kapt(libs.hilt.android.compiler)
     implementation(libs.hilt.android)
@@ -101,9 +96,7 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.camera.extensions)
 
-    implementation(project(":app:utility"))
-    implementation(project(":app:chat-library"))
-    implementation(project(":app:user-library"))
+    implementation(libs.sc.library)
 }
 
 kapt {

@@ -189,7 +189,6 @@ fun FourOrMorePicturesGallery(
 
 @Composable
 fun ImageGallery(
-    modifier: Modifier = Modifier,
     images: List<Int>,
     maxWidth: Int = 352,
     maxHeight: Int = 187,

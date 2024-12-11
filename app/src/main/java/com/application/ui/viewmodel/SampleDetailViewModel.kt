@@ -2,10 +2,10 @@ package com.application.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.application.android.utility.state.ResourceState
 import com.application.constant.UiStatus
 import com.application.data.repository.SampleRepository
 import com.application.ui.state.SampleDetailUiState
+import com.sc.library.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

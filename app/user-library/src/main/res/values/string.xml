@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="male">Male</string>
-    <string name="female">Female</string>
-    <string name="error_scope_invalid">Your account is not acceptable to this application</string>
-</resources>

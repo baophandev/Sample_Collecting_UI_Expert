@@ -1,7 +1,7 @@
 package com.application.data.entity
 
 import android.net.Uri
-import com.application.android.user_library.entity.User
+import com.sc.library.user.entity.User
 
 data class Project(
     val id: String,

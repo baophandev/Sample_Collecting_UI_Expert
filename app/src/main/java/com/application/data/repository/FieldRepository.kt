@@ -1,7 +1,6 @@
 package com.application.data.repository
 
 import android.util.Log
-import com.application.android.utility.state.ResourceState
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Field
 import com.application.data.entity.request.CreateFieldRequest
@@ -11,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import com.application.data.repository.ProjectRepository.Companion.TAG
+import com.sc.library.utility.state.ResourceState
 import kotlinx.coroutines.flow.flowOf
 
 class FieldRepository(

@@ -1,13 +1,13 @@
 package com.application.data.repository
 
 import android.util.Log
-import com.application.android.utility.state.ResourceState
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Stage
 import com.application.data.entity.request.CreateStageRequest
 import com.application.data.entity.request.UpdateStageRequest
 import com.application.data.entity.response.StageResponse
 import com.application.data.repository.ProjectRepository.Companion.TAG
+import com.sc.library.utility.state.ResourceState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
@@ -105,9 +105,8 @@ class StageRepository(
         startDate: String? = null,
         endDate: String? = null,
         formId: String? = null,
-        projectOwnerId: String,
     ): Flow<ResourceState<Boolean>> {
-        var updateRequest = UpdateStageRequest(
+        val updateRequest = UpdateStageRequest(
             name = name,
             description = description,
             startDate = startDate,

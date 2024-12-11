@@ -64,11 +64,6 @@ data class PostInWorkersQuestionScreen(
 )
 
 @Composable
-fun GeneratePostsInWorkersQuestionScreen(navigateToPostAnswerScreen: () -> Unit) {
-
-}
-
-@Composable
 fun WorkerQuestionScreenTopBar() {
     var value by remember {
         mutableStateOf("")

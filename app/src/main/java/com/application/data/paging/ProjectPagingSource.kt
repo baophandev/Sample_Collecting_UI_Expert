@@ -4,12 +4,12 @@ import android.net.Uri
 import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.application.android.user_library.repository.UserRepository
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Project
 import com.application.data.entity.response.ProjectResponse
-import com.application.data.repository.AttachmentRepository
-import com.application.android.utility.state.ResourceState
+import com.sc.library.attachment.repository.AttachmentRepository
+import com.sc.library.user.repository.UserRepository
+import com.sc.library.utility.state.ResourceState
 import kotlinx.coroutines.flow.last
 
 class ProjectPagingSource(

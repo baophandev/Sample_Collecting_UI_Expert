@@ -2,8 +2,6 @@ package com.application.data.repository
 
 import android.net.Uri
 import android.util.Log
-import com.application.android.utility.client.response.PagingResponse
-import com.application.android.utility.state.ResourceState
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Answer
 import com.application.data.entity.DynamicField
@@ -14,6 +12,9 @@ import com.application.data.entity.request.CreateSampleRequest
 import com.application.data.entity.request.UpsertAnswerRequest
 import com.application.data.entity.response.SampleResponse
 import com.application.data.repository.ProjectRepository.Companion.TAG
+import com.sc.library.attachment.repository.AttachmentRepository
+import com.sc.library.utility.client.response.PagingResponse
+import com.sc.library.utility.state.ResourceState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow

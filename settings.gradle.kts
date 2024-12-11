@@ -9,6 +9,7 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
+        mavenLocal()
         mavenCentral()
         maven("https://www.jitpack.io")
     }
@@ -16,6 +17,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "Sample Collecting Application"
 include(":app")
-include(":app:chat-library")
-include(":app:utility")
-include(":app:user-library")

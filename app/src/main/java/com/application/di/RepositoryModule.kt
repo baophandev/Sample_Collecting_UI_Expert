@@ -1,17 +1,17 @@
 package com.application.di
 
 import android.content.Context
-import com.application.android.user_library.datasource.IUserService
-import com.application.android.user_library.repository.UserRepository
-import com.application.android.utility.file.FileReader
-import com.application.data.datasource.IAttachmentService
 import com.application.data.datasource.IProjectService
-import com.application.data.repository.AttachmentRepository
 import com.application.data.repository.FieldRepository
 import com.application.data.repository.FormRepository
 import com.application.data.repository.ProjectRepository
 import com.application.data.repository.SampleRepository
 import com.application.data.repository.StageRepository
+import com.sc.library.attachment.datasource.IAttachmentService
+import com.sc.library.attachment.repository.AttachmentRepository
+import com.sc.library.user.datasource.IUserService
+import com.sc.library.user.repository.UserRepository
+import com.sc.library.utility.file.FileReader
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

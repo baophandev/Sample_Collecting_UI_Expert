@@ -7,16 +7,15 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.application.android.utility.state.ResourceState
 import com.application.constant.UiStatus
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Form
 import com.application.data.paging.FormPagingSource
 import com.application.data.repository.FormRepository
-import com.application.data.repository.ProjectRepository
 import com.application.data.repository.StageRepository
 import com.application.ui.state.ModifyStageUiState
 import com.application.ui.viewmodel.HomeViewModel.Companion.TAG
+import com.sc.library.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -34,7 +33,6 @@ import javax.inject.Inject
 class ModifyStageViewModel @Inject constructor(
     private val stageRepository: StageRepository,
     private val formRepository: FormRepository,
-    private val projectRepository: ProjectRepository,
     private val projectService: IProjectService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(ModifyStageUiState())
@@ -133,7 +131,6 @@ class ModifyStageViewModel @Inject constructor(
                 startDate = currentStage.startDate,
                 endDate = currentStage.endDate,
                 formId = formId,
-                projectOwnerId = currentStage.projectOwnerId
             )
                 .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
                 .collectLatest { resourceState ->

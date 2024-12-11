@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.R
-import com.application.android.utility.state.ResourceState
 import com.application.constant.UiStatus
 import com.application.data.entity.Answer
 import com.application.data.entity.DynamicField
@@ -12,6 +11,7 @@ import com.application.data.repository.FieldRepository
 import com.application.data.repository.SampleRepository
 import com.application.data.repository.StageRepository
 import com.application.ui.state.CreateSampleUiState
+import com.sc.library.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

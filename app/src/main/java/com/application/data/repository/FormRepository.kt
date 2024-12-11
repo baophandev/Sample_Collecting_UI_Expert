@@ -7,7 +7,7 @@ import com.application.data.entity.request.CreateFormRequest
 import com.application.data.entity.request.UpdateFormRequest
 import com.application.data.entity.response.FormResponse
 import com.application.data.repository.ProjectRepository.Companion.TAG
-import com.application.android.utility.state.ResourceState
+import com.sc.library.utility.state.ResourceState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow

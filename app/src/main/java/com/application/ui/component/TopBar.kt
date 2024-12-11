@@ -55,7 +55,6 @@ fun TopBar(
 
     var currentSearchText by remember { mutableStateOf(searchTitle) }
     var showSignOutButton by remember { mutableStateOf(false) }
-    val signOut = stringResource(id = R.string.signed_out)
 
     Row(
         modifier = modifier
@@ -166,6 +165,7 @@ fun TopBar(
                     modifier = Modifier.size(width = 110.dp, height = 25.dp),
                     onClick = {
                         showSignOutButton = false
+                        signOutClicked()
                     },
                     text = {
                         Text(

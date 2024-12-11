@@ -3,13 +3,14 @@ package com.application.data.repository
 import android.net.Uri
 import android.util.Log
 import com.application.R
-import com.application.android.user_library.repository.UserRepository
-import com.application.android.utility.state.ResourceState
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Project
 import com.application.data.entity.request.CreateProjectRequest
 import com.application.data.entity.request.UpdateProjectRequest
 import com.application.data.entity.response.ProjectResponse
+import com.sc.library.attachment.repository.AttachmentRepository
+import com.sc.library.user.repository.UserRepository
+import com.sc.library.utility.state.ResourceState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow

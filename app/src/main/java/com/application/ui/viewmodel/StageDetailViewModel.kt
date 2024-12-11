@@ -6,8 +6,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.application.android.user_library.repository.UserRepository
-import com.application.android.utility.state.ResourceState
 import com.application.constant.UiStatus
 import com.application.data.entity.Sample
 import com.application.data.paging.SamplePagingSource
@@ -15,6 +13,8 @@ import com.application.data.repository.ProjectRepository
 import com.application.data.repository.SampleRepository
 import com.application.data.repository.StageRepository
 import com.application.ui.state.StageDetailUiState
+import com.sc.library.user.repository.UserRepository
+import com.sc.library.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -155,32 +155,6 @@ class StageDetailViewModel @Inject constructor(
                     }
                 }
             }
-        }
-    }
-
-    fun loadSampleData(sampleId: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            sampleRepository.getSample(sampleId)
-                .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
-                .collectLatest { resourceState ->
-                    when (resourceState) {
-                        is ResourceState.Error -> _state.update {
-                            it.copy(
-                                status = UiStatus.ERROR,
-                                error = resourceState.resId
-                            )
-                        }
-
-                        is ResourceState.Success -> {
-                            _state.update {
-                                it.copy(
-                                    status = UiStatus.SUCCESS,
-                                    sample = resourceState.data
-                                )
-                            }
-                        }
-                    }
-                }
         }
     }
 

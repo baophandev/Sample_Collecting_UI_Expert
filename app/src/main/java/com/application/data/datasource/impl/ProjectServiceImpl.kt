@@ -1,6 +1,5 @@
 package com.application.data.datasource.impl
 
-import com.application.android.utility.client.response.PagingResponse
 import com.application.constant.ProjectQueryType
 import com.application.constant.ProjectStatus
 import com.application.constant.ServiceHost
@@ -20,6 +19,8 @@ import com.application.data.entity.response.FormResponse
 import com.application.data.entity.response.ProjectResponse
 import com.application.data.entity.response.SampleResponse
 import com.application.data.entity.response.StageResponse
+import com.sc.library.utility.client.AbstractClient
+import com.sc.library.utility.client.response.PagingResponse
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -227,7 +228,14 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         pageNumber: Int,
         pageSize: Int
     ): PagingResponse<SampleResponse> = client
-        .get(urlString = "sample/$stageId/stage")
+        .get(urlString = "sample/$stageId/stage") {
+            url {
+                parameters {
+                    append("pageNumber", "$pageNumber")
+                    append("pageSize", "$pageSize")
+                }
+            }
+        }
         .body()
 
     override suspend fun getAllSamplesOfProject(
@@ -235,6 +243,13 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         pageNumber: Int,
         pageSize: Int
     ): PagingResponse<SampleResponse> = client
-        .get(urlString = "sample/$projectId/project")
+        .get(urlString = "sample/$projectId/project") {
+            url {
+                parameters {
+                    append("pageNumber", "$pageNumber")
+                    append("pageSize", "$pageSize")
+                }
+            }
+        }
         .body()
 }
