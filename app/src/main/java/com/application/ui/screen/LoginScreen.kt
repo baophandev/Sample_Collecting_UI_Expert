@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.application.R
+import com.application.constant.UiStatus
+import com.application.ui.component.CustomCircularProgressIndicator
 import com.application.ui.component.CustomTextField
 import com.application.ui.component.PasswordField
 import com.application.ui.component.TextButton
@@ -127,34 +129,15 @@ fun LoginScreen(
                         }
                     }
                 )
-
-                // Register (not used)
-//                HorizontalDivider(
-//                    color = Color(178, 183, 179, 255),
-//                    thickness = 1.dp,
-//                    modifier = Modifier.fillMaxWidth(.9f)
-//                )
-//                Row {
-//                    Text(text = stringResource(id = R.string.no_account))
-//                    Spacer(modifier = Modifier.size(5.dp))
-//                    Text(
-//                        text = stringResource(id = R.string.register_button),
-//                        color = Color(45, 198, 83, 255),
-//                        fontWeight = FontWeight.Bold,
-//                        modifier = Modifier.clickable { navigateToRegisterScreen() }
-//                    )
-//                }
-
             }
+        }
+        if (state.status == UiStatus.LOADING) {
+            CustomCircularProgressIndicator(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White.copy(alpha = 0.5f)),
+                text = stringResource(id = R.string.logging)
+            )
         }
     }
 }
-
-//@Preview(heightDp = 800, widthDp = 400, showBackground = true)
-//@Composable
-//fun LoginScreenPreview() {
-//    LoginScreen(
-//        navigateToWorkerHomePageScreen = { /* Do nothing for preview */ },
-//        navigateToRegisterScreen = { /* Do nothing for preview */ }
-//    )
-//}
