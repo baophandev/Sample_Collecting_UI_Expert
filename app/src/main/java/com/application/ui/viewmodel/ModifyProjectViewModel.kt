@@ -124,12 +124,17 @@ class ModifyProjectViewModel @Inject constructor(
         val startDate = currentProject?.startDate
         val endDate = currentProject?.endDate
 
-        if (currentProject?.name == null ||
-            (startDate != null && endDate != null && startDate > endDate)
-        ) {
-            _state.update { it.copy(error = R.string.start_date_greater_than_end_date) }
+        if (currentProject?.name?.isBlank() == true) {
+            _state.update { it.copy(error = R.string.error_empty_project_name) }
             return false
         }
-        return currentProject.name.isNotBlank()
+        else if (startDate == null || endDate == null) {
+            _state.update { it.copy(error = R.string.error_empty_startDate_endDate) }
+            return false
+        }
+        else if (startDate > endDate) {
+            _state.update { it.copy(error = R.string.error_start_date_greater_than_end_date) }
+            return false
+        } else return true
     }
 }

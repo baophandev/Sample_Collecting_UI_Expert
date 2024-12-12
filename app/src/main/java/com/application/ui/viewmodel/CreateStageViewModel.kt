@@ -76,7 +76,7 @@ class CreateStageViewModel @Inject constructor(
         val collectAction: (ResourceState<String>) -> Unit = { resourceState ->
             when (resourceState) {
                 is ResourceState.Error -> _state.update {
-                    it.copy(status = UiStatus.ERROR)
+                    it.copy(status = UiStatus.SUCCESS, error = resourceState.resId)
                 }
 
                 is ResourceState.Success -> {
@@ -98,28 +98,23 @@ class CreateStageViewModel @Inject constructor(
         }
     }
 
+    fun gotError() {
+        _state.update { it.copy(error = null) }
+    }
+
     private fun validateFields(): Boolean {
         val currentState = state.value
-        return if (
-            currentState.name.isBlank() ||
-            currentState.startDate == null ||
-            currentState.endDate == null
-        ) {
-            _state.update {
-                it.copy(
-                    status = UiStatus.ERROR,
-                    error = R.string.fields_not_validate.toString()
-                )
-            }
-            false
-        } else if (currentState.startDate > currentState.endDate) {
-            _state.update {
-                it.copy(
-                    status = UiStatus.ERROR,
-                    error = R.string.start_date_greater_than_end_date.toString()
-                )
-            }
-            false
-        } else true
+        if (currentState.name.isBlank()) {
+            _state.update { it.copy(error = R.string.error_empty_stage_name) }
+            return false
+        }
+        else if (currentState.startDate == null || currentState.endDate == null) {
+            _state.update { it.copy(error = R.string.error_empty_startDate_endDate) }
+            return false
+        }
+        else if (currentState.startDate > currentState.endDate) {
+            _state.update { it.copy(error = R.string.error_start_date_greater_than_end_date) }
+            return false
+        } else return true
     }
 }

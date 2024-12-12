@@ -1,11 +1,12 @@
 package com.application.ui.state
 
+import androidx.annotation.StringRes
 import com.application.constant.UiStatus
 import com.application.data.entity.Form
 
 data class CreateStageUiState(
     val status: UiStatus = UiStatus.INIT,
-    val error: String? = null,
+    @StringRes val error: Int? = null,
 
     val name: String = "",
     val description: String = "",

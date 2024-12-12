@@ -80,7 +80,7 @@ class ProjectRepository(
             emit(
                 ResourceState.Error(
                     message = "Cannot get projects",
-                    resId = R.string.modify_project_error
+                    resId = R.string.error_cannot_get_project
                 )
             )
         }

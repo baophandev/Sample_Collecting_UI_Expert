@@ -44,6 +44,21 @@ class CreateProjectViewModel @Inject constructor(
         }
     }
 
+    fun updateMemberId(memberId: String) {
+        _state.update {
+            if (!it.memberIds.contains(memberId)) {
+                it.copy(memberIds = it.memberIds + memberId)
+            } else it
+        }
+    }
+
+    fun removeMemberId(index: Int) {
+        val currentMemberList = state.value.memberIds.toMutableList()
+        currentMemberList.removeAt(index)
+        _state.update { it.copy(memberIds = currentMemberList)
+        }
+    }
+
     fun gotError() {
         _state.update { it.copy(error = null) }
     }
@@ -84,15 +99,17 @@ class CreateProjectViewModel @Inject constructor(
 
     private fun validateFields(): Boolean {
         val currentState = state.value
-        return if (currentState.name.isBlank()
-            || currentState.startDate == null
-            || currentState.endDate == null
-        ) {
-            _state.update { it.copy(error = R.string.fields_not_validate) }
-            false
-        } else if (currentState.startDate > currentState.endDate) {
-            _state.update { it.copy(error = R.string.start_date_greater_than_end_date) }
-            false
-        } else true
+        if (currentState.name.isBlank()) {
+            _state.update { it.copy(error = R.string.error_empty_project_name) }
+            return false
+        }
+        else if (currentState.startDate == null || currentState.endDate == null) {
+            _state.update { it.copy(error = R.string.error_empty_startDate_endDate) }
+            return false
+        }
+        else if (currentState.startDate > currentState.endDate) {
+            _state.update { it.copy(error = R.string.error_start_date_greater_than_end_date) }
+            return false
+        } else return true
     }
 }

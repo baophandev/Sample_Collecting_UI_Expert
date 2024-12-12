@@ -94,7 +94,7 @@ fun FieldToList(
                 .background(color = MaterialTheme.colorScheme.secondary),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally,
-            contentPadding = PaddingValues(horizontal = 10.dp)
+            contentPadding = PaddingValues(horizontal = 15.dp)
         ) {
             itemsIndexed(fieldDataList) { idx, data ->
                 Row(
@@ -109,7 +109,7 @@ fun FieldToList(
                     )
                     IconButton(onClick = { onRemoveField(idx) }) {
                         Icon(
-                            modifier = Modifier.size(35.dp),
+                            modifier = Modifier.size(25.dp),
                             imageVector = Icons.Default.Clear,
                             contentDescription = "Remove",
                             tint = colorResource(id = R.color.red)

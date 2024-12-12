@@ -7,11 +7,13 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.application.R
 import com.application.constant.UiStatus
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Form
 import com.application.data.paging.FormPagingSource
 import com.application.data.repository.FormRepository
+import com.application.data.repository.ProjectRepository
 import com.application.data.repository.StageRepository
 import com.application.ui.state.ModifyStageUiState
 import com.application.ui.viewmodel.HomeViewModel.Companion.TAG
@@ -119,7 +121,7 @@ class ModifyStageViewModel @Inject constructor(
     }
 
     fun submit(successHandler: (Boolean) -> Unit) {
-        if (validate() || state.value.stage == null || !state.value.isUpdated) return
+        if (!validate() || state.value.stage == null || !state.value.isUpdated) return
         val currentStage = state.value.stage!!
         val formId = state.value.selectedForm?.id
 
@@ -136,7 +138,7 @@ class ModifyStageViewModel @Inject constructor(
                 .collectLatest { resourceState ->
                     when (resourceState) {
                         is ResourceState.Error -> _state.update {
-                            it.copy(status = UiStatus.ERROR, error = resourceState.resId)
+                            it.copy(status = UiStatus.SUCCESS, error = resourceState.resId)
                         }
 
                         is ResourceState.Success -> {
@@ -150,15 +152,25 @@ class ModifyStageViewModel @Inject constructor(
         }
     }
 
-    private fun validate(): Boolean {
-        val currentProject = state.value.stage
-        val startDate = currentProject?.startDate
-        val endDate = currentProject?.endDate
+    fun gotError() {
+        _state.update { it.copy(error = null) }
+    }
 
-        if (currentProject?.name == null ||
-            (startDate != null && endDate != null && startDate > endDate)
-        )
+    private fun validate(): Boolean {
+        val currentStage = state.value.stage
+        val startDate = currentStage?.startDate
+        val endDate = currentStage?.endDate
+
+        if (currentStage?.name?.isBlank() == true) {
+            _state.update { it.copy(error = R.string.error_empty_stage_name) }
             return false
-        return currentProject.name.isBlank()
+        } else if (startDate == null || endDate == null) {
+            _state.update { it.copy(error = R.string.error_empty_startDate_endDate) }
+            return false
+        } else if (startDate > endDate) {
+            _state.update { it.copy(error = R.string.error_start_date_greater_than_end_date) }
+            return false
+        } else
+            return true
     }
 }

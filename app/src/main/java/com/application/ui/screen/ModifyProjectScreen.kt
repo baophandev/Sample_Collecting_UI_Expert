@@ -104,8 +104,8 @@ fun ModifyProjectScreen(
                     dismissAction = {
                         IconButton(
                             modifier = Modifier
-                                .padding(0.dp)
-                                .size(50.dp),
+                                .padding(end = 10.dp)
+                                .size(30.dp),
                             onClick = viewModel::gotError
                         ) {
                             Icon(
