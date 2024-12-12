@@ -2,6 +2,7 @@ package com.application.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.application.R
 import com.application.constant.UiStatus
 import com.application.data.entity.Field
 import com.application.data.entity.Form
@@ -137,7 +138,7 @@ class ModifyFormViewModel @Inject constructor(
 
     fun submit(successHandler: (Boolean) -> Unit) {
         val currentState = state.value
-        if (currentState.form == null) return
+        if (!validateFields() || currentState.form == null) return
 
         val currentForm = currentState.form
         val currentFields = currentState.fields
@@ -190,7 +191,7 @@ class ModifyFormViewModel @Inject constructor(
             when (resourceState) {
                 is ResourceState.Error -> _state.update {
                     it.copy(
-                        status = UiStatus.ERROR,
+                        status = UiStatus.SUCCESS,
                         error = resourceState.resId
                     )
                 }
@@ -219,7 +220,7 @@ class ModifyFormViewModel @Inject constructor(
                 when (resourceState) {
                     is ResourceState.Error -> _state.update {
                         it.copy(
-                            status = UiStatus.ERROR,
+                            status = UiStatus.SUCCESS,
                             error = resourceState.resId
                         )
                     }
@@ -248,7 +249,7 @@ class ModifyFormViewModel @Inject constructor(
                 when (resourceState) {
                     is ResourceState.Error -> _state.update {
                         it.copy(
-                            status = UiStatus.ERROR,
+                            status = UiStatus.SUCCESS,
                             error = resourceState.resId
                         )
                     }
@@ -274,7 +275,7 @@ class ModifyFormViewModel @Inject constructor(
                     when (resourceState) {
                         is ResourceState.Error -> _state.update {
                             it.copy(
-                                status = UiStatus.ERROR,
+                                status = UiStatus.SUCCESS,
                                 error = resourceState.resId
                             )
                         }
@@ -290,5 +291,25 @@ class ModifyFormViewModel @Inject constructor(
         }
     }
 
+    fun gotError() {
+        _state.update { it.copy(error = null) }
+    }
+
+    private fun validateFields(): Boolean {
+        val currentState = state.value
+        if (currentState.form?.title?.isBlank() == true) {
+            _state.update { it.copy(error = R.string.error_empty_form_name) }
+            return false
+        } else if (currentState.fields.isEmpty()) {
+            _state.update { it.copy(error = R.string.error_empty_field_of_form) }
+            return false
+        } else if (currentState.addedFieldIds.any { it.isBlank() } || currentState.fields.any { it.name.isBlank() }) {
+            _state.update { it.copy(error = R.string.error_empty_field_name) }
+            return false
+        } else return true
+    }
 }
+
+
+
 

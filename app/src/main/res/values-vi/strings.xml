@@ -87,6 +87,9 @@
 
     <string name="error_empty_project_name">Tên dự án không được để trống</string>
     <string name="error_empty_stage_name">Tên đợt không được để trống</string>
+    <string name="error_empty_form_name">Tên biểu mẫu không được để trống</string>
+    <string name="error_empty_field_name">Tên trường không được để trống</string>
+    <string name="error_empty_field_of_form">Một biểu mẫu phải tồn tại ít nhất một trường</string>
     <string name="error_empty_startDate_endDate">Ngày bắt đầu và ngày kết thúc không được để trống</string>
     <string name="error_start_date_greater_than_end_date">Ngày bắt đầu không thể lớn hơn ngày kết thúc</string>
     <string name="error_cannot_save_projectData">Không thể lưu dự án vào cơ sở dữ liệu</string>
@@ -97,6 +100,8 @@
     <string name="error_delete_stage">Xóa đợt gặp một số lỗi</string>
     <string name="error_cannot_get_stage">Lỗi khi tải dữ liệu của đợt từ server</string>
     <string name="error_cannot_get_project">Lỗi khi tải dữ liệu của dự án từ server</string>
+    <string name="error_cannot_get_form">Lỗi khi tải dữ liệu của biểu mẫu từ server</string>
+
 
 
     <string name="login_button">Đăng nhập</string>

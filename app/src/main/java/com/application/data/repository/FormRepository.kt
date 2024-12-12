@@ -1,6 +1,7 @@
 package com.application.data.repository
 
 import android.util.Log
+import com.application.R
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Form
 import com.application.data.entity.request.CreateFormRequest
@@ -58,7 +59,12 @@ class FormRepository(
             emit(ResourceState.Success(form))
         }.catch { exception ->
             Log.e(TAG, exception.message, exception)
-            emit(ResourceState.Error(message = "Cannot get a form"))
+            emit(
+                ResourceState.Error(
+                    message = "Cannot get a form",
+                    resId = R.string.error_cannot_get_form
+                )
+            )
         }
     }
 
@@ -108,7 +114,7 @@ class FormRepository(
     fun deleteForm(
         formId: String
     ): Flow<ResourceState<Boolean>> {
-        return flow<ResourceState<Boolean>>{
+        return flow<ResourceState<Boolean>> {
             val deleteResult = projectService.deleteForm(formId = formId)
             if (deleteResult) emit(ResourceState.Success(true))
         }.catch { exception ->

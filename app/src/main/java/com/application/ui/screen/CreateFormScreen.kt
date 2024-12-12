@@ -1,5 +1,6 @@
 package com.application.ui.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,19 +18,26 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -40,6 +48,7 @@ import com.application.R
 import com.application.constant.UiStatus
 import com.application.ui.component.BotNavigationBar
 import com.application.ui.component.CustomButton
+import com.application.ui.component.CustomSnackBarHost
 import com.application.ui.component.CustomTextField
 import com.application.ui.component.FormField
 import com.application.ui.component.TopBar
@@ -56,7 +65,21 @@ fun CreateFormScreen(
     navigateToExpertChatScreen: () -> Unit
 ) {
     val state by createFormViewModel.state.collectAsState()
-
+    val context = LocalContext.current
+    val snackBarHostState = remember { SnackbarHostState() }
+    if (state.error != null) {
+        val error = stringResource(id = state.error!!)
+        LaunchedEffect(key1 = state.error) {
+            val result = snackBarHostState.showSnackbar(
+                message = error,
+                withDismissAction = true,
+                duration = SnackbarDuration.Short
+            )
+            if (result == SnackbarResult.Dismissed) {
+                createFormViewModel.gotError()
+            }
+        }
+    }
     when (state.status) {
 
         UiStatus.INIT -> createFormViewModel.initialize()
@@ -66,6 +89,25 @@ fun CreateFormScreen(
         UiStatus.SUCCESS -> {
             Scaffold(
                 modifier = Modifier,
+                snackbarHost = {
+                    CustomSnackBarHost(
+                        snackBarHostState = snackBarHostState,
+                        dismissAction = {
+                            IconButton(
+                                modifier = Modifier
+                                    .padding(end = 10.dp)
+                                    .size(30.dp),
+                                onClick = createFormViewModel::gotError
+                            ) {
+                                Icon(
+                                    modifier = Modifier.fillMaxSize(),
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = "Close"
+                                )
+                            }
+                        }
+                    )
+                },
                 topBar = { TopBar(title = R.string.create_form, signOutClicked = navigateToLogin) },
                 bottomBar = {
                     BotNavigationBar(
@@ -178,7 +220,7 @@ fun CreateFormScreen(
                 }
             }
         }
-        UiStatus.ERROR -> {}
+        UiStatus.ERROR -> Toast.makeText(context, state.error!!, Toast.LENGTH_LONG).show()
     }
 
 }

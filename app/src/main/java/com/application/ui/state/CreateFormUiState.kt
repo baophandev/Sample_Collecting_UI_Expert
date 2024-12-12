@@ -1,5 +1,6 @@
 package com.application.ui.state
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.application.constant.UiStatus
@@ -9,5 +10,5 @@ data class CreateFormUiState (
     val description: String = "",
     val fields: SnapshotStateList<String> = mutableStateListOf(),
     val status: UiStatus = UiStatus.INIT,
-    val error: String? = null,
+    @StringRes val error: Int? = null
 )
