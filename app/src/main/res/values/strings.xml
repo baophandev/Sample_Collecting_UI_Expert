@@ -95,6 +95,11 @@
     <string name="error_empty_project_name">Tên dự án không được để trống</string>
     <string name="error_empty_stage_name">Tên đợt không được để trống</string>
     <string name="error_empty_startDate_endDate">Ngày bắt đầu và ngày kết thúc không được để trống</string>
+    <string name="error_empty_form_name">Tên biểu mẫu không được để trống</string>
+    <string name="error_cannot_get_form">Lỗi khi tải dữ liệu của biểu mẫu từ server</string>
+    <string name="error_empty_field_name">Tên trường không được để trống</string>
+    <string name="error_empty_field_of_form">Một biểu mẫu phải tồn tại ít nhất một trường</string>
+    <string name="error_invalid_data">Dữ liệu không hợp lệ</string>
 
     <string name="login_button">Đăng nhập</string>
     <string name="register_button">Đăng ký</string>

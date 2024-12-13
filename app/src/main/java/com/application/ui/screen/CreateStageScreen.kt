@@ -223,8 +223,8 @@ fun CreateStageScreen(
                                     state.emailMembers.contains(email)
                         },
                         listHeight = 180.dp,
-                        onAddField = {},
-                        onRemoveField = {}
+                        onAddField = { newEmailMember -> viewModel.updateEmailMember(newEmailMember) },
+                        onRemoveField = { index -> viewModel.removeMemberId(index) }
                     )
 
                     CustomButton(

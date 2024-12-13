@@ -42,7 +42,12 @@ class CreateFormViewModel @Inject constructor(
 
         val collectAction: (ResourceState<String>) -> Unit = { resourceState ->
             when (resourceState) {
-                is ResourceState.Error -> _state.update { it.copy(status = UiStatus.ERROR) }
+                is ResourceState.Error -> _state.update {
+                    it.copy(
+                        status = UiStatus.SUCCESS,
+                        error = resourceState.resId
+                    )
+                }
 
                 is ResourceState.Success -> {
                     _state.update { it.copy(status = UiStatus.SUCCESS) }
@@ -64,19 +69,18 @@ class CreateFormViewModel @Inject constructor(
         }
     }
 
+    fun gotError() {
+        _state.update { it.copy(error = null) }
+    }
+
     private fun validateFields(): Boolean {
         val currentState = state.value
-        return if (
-            currentState.title.isBlank() ||
-            currentState.fields.isEmpty()
-        ) {
-            _state.update {
-                it.copy(
-                    status = UiStatus.ERROR,
-                    error = R.string.fields_not_validate.toString()
-                )
-            }
-            false
-        } else true
+        if (currentState.title.isBlank()) {
+            _state.update { it.copy(error = R.string.error_empty_form_name) }
+            return false
+        } else if (currentState.fields.isEmpty() || currentState.fields.any { it.isBlank() }) {
+            _state.update { it.copy(error = R.string.error_empty_field_name) }
+            return false
+        } else return true
     }
 }

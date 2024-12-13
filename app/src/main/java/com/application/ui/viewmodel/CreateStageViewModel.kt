@@ -64,6 +64,21 @@ class CreateStageViewModel @Inject constructor(
         }
     }
 
+    fun updateEmailMember(emailMember: String) {
+        _state.update {
+            if (!it.emailMembers.contains(emailMember)) {
+                it.copy(emailMembers = it.emailMembers + emailMember)
+            } else it
+        }
+    }
+
+    fun removeMemberId(index: Int) {
+        val currentMemberList = state.value.emailMembers.toMutableList()
+        currentMemberList.removeAt(index)
+        _state.update { it.copy(emailMembers = currentMemberList)
+        }
+    }
+
     fun selectForm(formIdx: Int) {
         val form = state.value.forms[formIdx]
         _state.update { it.copy(selectedForm = Pair(form.id, form.title)) }

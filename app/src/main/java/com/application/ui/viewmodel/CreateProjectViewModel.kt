@@ -6,19 +6,23 @@ import androidx.lifecycle.viewModelScope
 import com.application.R
 import com.application.data.repository.ProjectRepository
 import com.application.ui.state.CreateProjectUiState
+import com.sc.library.user.entity.User
+import com.sc.library.user.repository.UserRepository
 import com.sc.library.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class CreateProjectViewModel @Inject constructor(
-    private val repository: ProjectRepository
+    private val projectRepository: ProjectRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CreateProjectUiState())
@@ -44,18 +48,57 @@ class CreateProjectViewModel @Inject constructor(
         }
     }
 
-    fun updateMemberId(memberId: String) {
-        _state.update {
-            if (!it.memberIds.contains(memberId)) {
-                it.copy(memberIds = it.memberIds + memberId)
-            } else it
+    fun addMemberEmail(memberEmail: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            userRepository.getUserByEmail(email = memberEmail)
+                .onStart { _state.update { it.copy(loading = true) } }
+                .collectLatest { resourceState ->
+                    when (resourceState) {
+                        is ResourceState.Success -> {
+                            val user = resourceState.data as? User
+                            if (user != null) {
+                                val newMemberId = user.id
+                                _state.update {
+                                    val updatedEmails = it.memberEmailMap.toMutableMap().apply {
+                                        this[memberEmail] = newMemberId // email -> ID
+                                    }
+                                    it.copy(
+                                        loading = false,
+                                        memberIds = updatedEmails.values.toList(),
+                                        memberEmailMap = updatedEmails
+                                    )
+                                }
+                            } else {
+                                _state.update {
+                                    it.copy(loading = false, error = R.string.error_invalid_data)
+                                }
+                            }
+
+                        }
+
+                        is ResourceState.Error -> _state.update {
+                            it.copy(loading = false, error = resourceState.resId)
+                        }
+                    }
+                }
         }
     }
 
-    fun removeMemberId(index: Int) {
-        val currentMemberList = state.value.memberIds.toMutableList()
-        currentMemberList.removeAt(index)
-        _state.update { it.copy(memberIds = currentMemberList)
+    fun removeMemberEmail(index: Int) {
+        val currentState = _state.value
+
+        val currentEmails = currentState.memberEmailMap.keys.toList()
+        if (index in currentEmails.indices) {
+            val emailToRemove = currentEmails[index]
+            val updatedEmails = currentState.memberEmailMap.toMutableMap().apply {
+                remove(emailToRemove)
+            }
+            _state.update {
+                it.copy(
+                    memberIds = updatedEmails.values.toList(),
+                    memberEmailMap = updatedEmails
+                )
+            }
         }
     }
 
@@ -86,7 +129,7 @@ class CreateProjectViewModel @Inject constructor(
         }
 
         viewModelScope.launch(Dispatchers.IO) {
-            repository.createProject(
+            projectRepository.createProject(
                 thumbnail = thumbnail,
                 name = currentState.name,
                 description = currentState.description,
@@ -102,12 +145,10 @@ class CreateProjectViewModel @Inject constructor(
         if (currentState.name.isBlank()) {
             _state.update { it.copy(error = R.string.error_empty_project_name) }
             return false
-        }
-        else if (currentState.startDate == null || currentState.endDate == null) {
+        } else if (currentState.startDate == null || currentState.endDate == null) {
             _state.update { it.copy(error = R.string.error_empty_startDate_endDate) }
             return false
-        }
-        else if (currentState.startDate > currentState.endDate) {
+        } else if (currentState.startDate > currentState.endDate) {
             _state.update { it.copy(error = R.string.error_start_date_greater_than_end_date) }
             return false
         } else return true
