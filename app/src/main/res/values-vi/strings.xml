@@ -44,7 +44,7 @@
     <string name="create_form">Tạo biểu mẫu</string>
     <string name="field_name">Tên trường</string>
     <string name="add_form">Thêm biểu mẫu</string>
-    <string name="modify_project">Sửa nội dung</string>
+    <string name="modify_project">Chỉnh sửa dự án</string>
     <string name="saving_sample">Đang lưu mẫu vật…</string>
     <string name="delete_project">Xóa dự án</string>
     <string name="delete_project_description">Bạn có chắc chắn xóa dự án này? Bạn không thể khôi phục dữ liệu nếu đã xóa.</string>
@@ -101,7 +101,9 @@
     <string name="error_cannot_get_stage">Lỗi khi tải dữ liệu của đợt từ server</string>
     <string name="error_cannot_get_project">Lỗi khi tải dữ liệu của dự án từ server</string>
     <string name="error_cannot_get_form">Lỗi khi tải dữ liệu của biểu mẫu từ server</string>
-    <string name="error_invalid_data">Dữ liệu không hợp lệ</string>
+    <string name="error_cannot_get_user_by_email">Không thể tải dữ liệu của người dùng từ server</string>
+    <string name="error_not_a_member_of_project">Email vừa nhập không phải là một thành viên của dự án</string>
+    <string name="error_cannot_get_member_of_project">Lỗi không thể lấy danh sách thành viên của dự án</string>
 
 
 

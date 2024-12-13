@@ -109,7 +109,12 @@ fun CreateStageScreen(
                         }
                     )
                 },
-                topBar = { TopBar(title = R.string.create_stage, signOutClicked = navigateToLogin) },
+                topBar = {
+                    TopBar(
+                        title = R.string.create_stage,
+                        signOutClicked = navigateToLogin
+                    )
+                },
                 bottomBar = {
                     BotNavigationBar(
                         modifier = Modifier.padding(vertical = 10.dp),
@@ -217,14 +222,17 @@ fun CreateStageScreen(
                     }
 
                     FieldToList(
-                        fieldDataList = state.emailMembers,
+                        fieldDataList = state.stageMemberEmailMap.keys.toList(),
                         textValidator = { email ->
-                            email.contains(RegexValidation.EMAIL) &&
-                                    state.emailMembers.contains(email)
+                            email.contains(RegexValidation.EMAIL)
                         },
                         listHeight = 180.dp,
-                        onAddField = { newEmailMember -> viewModel.updateEmailMember(newEmailMember) },
-                        onRemoveField = { index -> viewModel.removeMemberId(index) }
+                        onAddField = { newEmailMember ->
+                            viewModel.addStageMemberEmail(
+                                newEmailMember
+                            )
+                        },
+                        onRemoveField = { index -> viewModel.removeMemberEmail(index) }
                     )
 
                     CustomButton(
@@ -246,6 +254,7 @@ fun CreateStageScreen(
                 }
             }
         }
+
         UiStatus.ERROR -> Toast.makeText(context, state.error!!, Toast.LENGTH_LONG).show()
     }
 }

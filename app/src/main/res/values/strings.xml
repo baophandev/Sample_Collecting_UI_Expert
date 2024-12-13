@@ -99,7 +99,9 @@
     <string name="error_cannot_get_form">Lỗi khi tải dữ liệu của biểu mẫu từ server</string>
     <string name="error_empty_field_name">Tên trường không được để trống</string>
     <string name="error_empty_field_of_form">Một biểu mẫu phải tồn tại ít nhất một trường</string>
-    <string name="error_invalid_data">Dữ liệu không hợp lệ</string>
+    <string name="error_cannot_get_user_by_email">Không thể tải dữ liệu của người dùng từ server</string>
+    <string name="error_not_a_member_of_project">Email vừa nhập không phải là một thành viên của dự án</string>
+    <string name="error_cannot_get_member_of_project">Lỗi không thể lấy danh sách thành viên của dự án</string>
 
     <string name="login_button">Đăng nhập</string>
     <string name="register_button">Đăng ký</string>

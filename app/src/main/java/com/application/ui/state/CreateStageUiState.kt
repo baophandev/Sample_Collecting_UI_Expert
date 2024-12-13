@@ -15,5 +15,7 @@ data class CreateStageUiState(
 
     val forms: List<Form> = emptyList(),
     val selectedForm: Pair<String, String>? = null, // <Form ID, Form title>
-    val emailMembers: List<String> = emptyList(),
+    val projectMemberEmails: List<String> = emptyList(),
+    val stageMemberEmails: List<String> = emptyList(), // memberId
+    val stageMemberEmailMap: Map<String, String> = emptyMap(), // key: email -> value: memberId
 )

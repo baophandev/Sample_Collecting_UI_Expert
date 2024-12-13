@@ -70,7 +70,7 @@ class CreateProjectViewModel @Inject constructor(
                                 }
                             } else {
                                 _state.update {
-                                    it.copy(loading = false, error = R.string.error_invalid_data)
+                                    it.copy(loading = false, error = R.string.error_cannot_get_user_by_email)
                                 }
                             }
 
