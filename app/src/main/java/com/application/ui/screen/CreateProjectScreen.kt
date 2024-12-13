@@ -204,10 +204,10 @@ fun CreateProjectScreen(
                 }
 
                 FieldToList(
-                    fieldDataList = state.memberIds,
+                    fieldDataList = state.memberEmailMap.keys.toList(),
                     textValidator = { email -> email.contains(RegexValidation.EMAIL) },
-                    onAddField = { newMemberId -> viewModel.updateMemberId(newMemberId) },
-                    onRemoveField = { index -> viewModel.removeMemberId(index) }
+                    onAddField = { newMemberEmail -> viewModel.addMemberEmail(newMemberEmail) },
+                    onRemoveField = { index -> viewModel.removeMemberEmail(index) }
                 )
 
                 CustomButton(

@@ -101,6 +101,7 @@
     <string name="error_cannot_get_stage">Lỗi khi tải dữ liệu của đợt từ server</string>
     <string name="error_cannot_get_project">Lỗi khi tải dữ liệu của dự án từ server</string>
     <string name="error_cannot_get_form">Lỗi khi tải dữ liệu của biểu mẫu từ server</string>
+    <string name="error_invalid_data">Dữ liệu không hợp lệ</string>
 
 
 
