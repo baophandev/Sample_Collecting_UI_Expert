@@ -52,7 +52,6 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
-import com.application.constant.ReloadSignal
 import com.application.constant.UiStatus
 import com.application.data.entity.Sample
 import com.application.ui.component.CustomButton
@@ -67,8 +66,6 @@ private enum class StageTab { DETAIL, PHOTOS }
 fun StageDetailScreen(
     viewModel: StageDetailViewModel = hiltViewModel(),
     stageId: String,
-    reloadSignal: ReloadSignal,
-    onReloadSuccessfully: (Boolean) -> Unit,
     popBackToDetail: (Boolean) -> Unit,
     deletedHandler: (Boolean) -> Unit,
     navigateToModifyStage: () -> Unit,
@@ -90,19 +87,6 @@ fun StageDetailScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showAddPhoto by remember { mutableStateOf(true) }
 
-    if (reloadSignal != ReloadSignal.NONE) {
-        when (reloadSignal) {
-            ReloadSignal.RELOAD_STAGE ->
-                viewModel.loadStage(
-                    stageId = stageId,
-                    skipCached = true,
-                    onComplete = onReloadSuccessfully
-                )
-
-            else -> {}
-        }
-    }
-
     DeleteStageAlertDialog(
         show = showDeleteDialog,
         onDismissRequest = { showDeleteDialog = false },
@@ -121,7 +105,7 @@ fun StageDetailScreen(
         UiStatus.INIT -> viewModel.loadStage(stageId)
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
         UiStatus.SUCCESS -> {
-            val sampleLazyPagingItems = viewModel.flow.collectAsLazyPagingItems()
+            val sampleLazyPagingItems = viewModel.sampleFlow.collectAsLazyPagingItems()
 
             Box {
                 BottomSheetScaffold(

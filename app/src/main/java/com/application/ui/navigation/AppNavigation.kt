@@ -28,6 +28,8 @@ import com.application.ui.screen.SampleDetailScreen
 import com.application.ui.screen.StageDetailScreen
 import com.application.ui.screen.WorkersQuestionScreen
 import com.application.ui.viewmodel.DetailViewModel
+import com.application.ui.viewmodel.HomeViewModel
+import com.application.ui.viewmodel.StageDetailViewModel
 
 fun NavHostController.navigateSingleTop(route: String) {
     this.navigate(route) { launchSingleTop = true }
@@ -37,7 +39,9 @@ fun NavHostController.navigateSingleTop(route: String) {
 fun AppNavigationGraph(
     viewModel: NavigationViewModel = hiltViewModel()
 ) {
-    val detailScreenViewModel: DetailViewModel = hiltViewModel()
+    val homeScreenVM: HomeViewModel = hiltViewModel()
+    val detailScreenVM: DetailViewModel = hiltViewModel()
+    val stageDetailScreenVM: StageDetailViewModel = hiltViewModel()
 
     val state by viewModel.state.collectAsState()
     val navController = rememberNavController()
@@ -71,16 +75,12 @@ fun AppNavigationGraph(
             saveState = false
         )
     }
-    val popBackToStage: () -> Unit = {
+    val popBackToStageDetail: () -> Unit = {
         navController.popBackStack(
             route = Routes.STAGE_DETAIL_SCREEN,
             inclusive = false,
             saveState = false
         )
-    }
-
-    val onReloadSuccessfully: (Boolean) -> Unit = {
-        viewModel.updateState(state.copy(reloadSignal = ReloadSignal.NONE))
     }
 
     NavHost(
@@ -103,8 +103,9 @@ fun AppNavigationGraph(
             }
 
             HomeScreen(
+                viewModel = homeScreenVM,
                 signOutClick = {
-                    detailScreenViewModel.renewState()
+                    detailScreenVM.renewState()
                     popBackToLogin()
                 },
                 navigateToCreateProject = navigateToCreateProject,
@@ -118,7 +119,7 @@ fun AppNavigationGraph(
             CreateProjectScreen(
                 navigateToLogin = popBackToLogin,
                 navigateToHome = {
-                    // need to check reload
+                    homeScreenVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
                     popBackToHome()
                 },
                 navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
@@ -139,6 +140,7 @@ fun AppNavigationGraph(
                     navController.navigateSingleTop(Routes.STAGE_DETAIL_SCREEN)
                 }
                 val navigateToAddStage: () -> Unit = {
+                    viewModel.updateState(state.copy(currentProjectId = projectId))
                     navController.navigateSingleTop(Routes.ADD_STAGE_SCREEN)
                 }
                 val navigateToAddForm: () -> Unit = {
@@ -150,7 +152,7 @@ fun AppNavigationGraph(
                 }
 
                 DetailScreen(
-                    viewModel = detailScreenViewModel,
+                    viewModel = detailScreenVM,
                     projectId = projectId,
                     navigateToHome = popBackToHome,
                     navigateToModifyProject = navigateToModify,
@@ -178,37 +180,27 @@ fun AppNavigationGraph(
                 }
 
                 StageDetailScreen(
-                    reloadSignal = state.reloadSignal,
-                    onReloadSuccessfully = onReloadSuccessfully,
+                    viewModel = stageDetailScreenVM,
                     deletedHandler = { isDeleted ->
                         if (isDeleted)
-                            detailScreenViewModel.reload(ReloadSignal.RELOAD_STAGE)
+                            detailScreenVM.reload(ReloadSignal.RELOAD_STAGE)
                         popBackToDetail()
                     },
                     popBackToDetail = { isUpdated ->
                         if (isUpdated)
-                            detailScreenViewModel.reload(ReloadSignal.RELOAD_STAGE)
+                            detailScreenVM.reload(ReloadSignal.RELOAD_STAGE)
                         popBackToDetail()
                     },
                     stageId = stageId,
                     navigateToModifyStage = navigateToModifyStage,
                     navigateToCapture = navigateToCapture,
                     navigateToSampleDetail = navigateToSampleDetail
-
                 )
             }
         }
 
         composable(Routes.SAMPLE_DETAIL_SCREEN) {
             state.currentSampleId?.let { sampleId ->
-                val popBackToStageDetail: () -> Unit = {
-                    navController.popBackStack(
-                        route = Routes.STAGE_DETAIL_SCREEN,
-                        inclusive = false,
-                        saveState = false
-                    )
-                }
-
                 SampleDetailScreen(
                     sampleId = sampleId,
                     navigateToStageDetail = popBackToStageDetail
@@ -223,7 +215,7 @@ fun AppNavigationGraph(
                 CreateFormScreen(
                     projectId = projectId,
                     postCreatedHandler = { isCreated ->
-                        if (isCreated) detailScreenViewModel.reload(ReloadSignal.RELOAD_FORM)
+                        if (isCreated) detailScreenVM.reload(ReloadSignal.RELOAD_FORM)
                         popBackToDetail()
                     },
                     navigateToLogin = popBackToLogin,
@@ -241,7 +233,7 @@ fun AppNavigationGraph(
                 CreateStageScreen(
                     projectId = projectId,
                     stageCreatedHandler = { isCreated ->
-                        if (isCreated) detailScreenViewModel.reload(ReloadSignal.RELOAD_STAGE)
+                        if (isCreated) detailScreenVM.reload(ReloadSignal.RELOAD_STAGE)
                         popBackToDetail()
                     },
                     navigateToLogin = popBackToLogin,
@@ -259,7 +251,10 @@ fun AppNavigationGraph(
             }
 
             CaptureScreen(
-                popBackToStage = popBackToStage,
+                popBackToStage = {
+                    stageDetailScreenVM.reload(ReloadSignal.RELOAD_ALL_SAMPLES)
+                    popBackToStageDetail()
+                },
                 navigateToCreateSample = navigateToCreateSample
             )
         }
@@ -270,10 +265,7 @@ fun AppNavigationGraph(
 
             if (stageId != null && newSample != null) {
                 val navigateToCapture: (String?) -> Unit = { imageName ->
-                    navController.previousBackStackEntry?.savedStateHandle?.set(
-                        key = Routes.SAMPLE_STACK_KEY,
-                        value = imageName
-                    )
+                    viewModel.updateState(state.copy(savedImageName = imageName))
                     navController.popBackStack(
                         route = Routes.CAPTURE_SCREEN,
                         inclusive = false,
@@ -298,7 +290,7 @@ fun AppNavigationGraph(
                     popBackToLogin = popBackToLogin,
                     popBackToHome = popBackToHome,
                     postUpdatedHandler = { isUpdated ->
-                        if (isUpdated) detailScreenViewModel.reload(ReloadSignal.RELOAD_PROJECT)
+                        if (isUpdated) detailScreenVM.reload(ReloadSignal.RELOAD_PROJECT)
                         popBackToDetail()
                     },
                     navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
@@ -318,8 +310,11 @@ fun AppNavigationGraph(
                     popBackToLogin = popBackToLogin,
                     popBackToHome = popBackToHome,
                     postUpdatedHandler = { isUpdated ->
-                        if (isUpdated) detailScreenViewModel.reload(ReloadSignal.RELOAD_STAGE)
-                        popBackToStage()
+                        if (isUpdated) {
+                            stageDetailScreenVM.reload(ReloadSignal.RELOAD_STAGE)
+                            detailScreenVM.reload(ReloadSignal.RELOAD_STAGE)
+                        }
+                        popBackToStageDetail()
                     },
                     navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
                     navigateToExpertChatScreen = navigateToExpertChatsScreen
@@ -336,7 +331,7 @@ fun AppNavigationGraph(
                     popBackToLogin = popBackToLogin,
                     popBackToHome = popBackToHome,
                     popBackToDetail = { isUpdated ->
-                        if (isUpdated) detailScreenViewModel.reload(ReloadSignal.RELOAD_FORM)
+                        if (isUpdated) detailScreenVM.reload(ReloadSignal.RELOAD_FORM)
                         popBackToDetail()
                     },
                     navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,

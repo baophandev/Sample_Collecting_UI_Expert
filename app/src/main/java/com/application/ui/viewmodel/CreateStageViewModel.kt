@@ -56,6 +56,8 @@ class CreateStageViewModel @Inject constructor(
         }.flow
             .cachedIn(viewModelScope)
             .catch { Log.e(TAG, it.message, it) }
+
+        _state.update { it.copy(status = UiStatus.SUCCESS) }
     }
 
     fun getProjectMember(projectId: String) {

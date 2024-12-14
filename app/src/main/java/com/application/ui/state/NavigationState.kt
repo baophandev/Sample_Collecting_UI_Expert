@@ -9,5 +9,6 @@ data class NavigationState(
     val currentStageId: String? = null,
     val currentFormId: String? = null,
     val newSample: Pair<String, Uri>? = null,
+    val savedImageName: String? = null,
     val currentSampleId: String? = null
 )
