@@ -10,18 +10,13 @@ class SamplePagingSource(
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Sample> {
         val nextPageNumber = params.key ?: 0
-        return repository.getAllSamplesOfStage(
+        val result = repository.getAllSamplesOfStage(
             stageId = stageId,
             pageNumber = nextPageNumber,
             pageSize = params.loadSize
-        ).map {
-            val nextKey = if (!it.last) nextPageNumber + 1 else null
-            LoadResult.Page(
-                data = it.content,
-                prevKey = null, // Only paging forward.
-                nextKey = nextKey
-            )
-        }.getOrElse { LoadResult.Error(it) }
+        )
+
+        return retrievePagingForward(nextPageNumber, result)
     }
 
     companion object {

@@ -8,6 +8,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.application.SCApplication.Companion.VI_LANG_TAG
+import com.application.SCApplication.Companion.changeLanguage
 import com.application.ui.navigation.AppNavigationGraph
 import com.application.ui.theme.SampleCollectingApplicationTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -16,6 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        changeLanguage(VI_LANG_TAG)
         if (!hasRequiredPermission()) {
             ActivityCompat.requestPermissions(this, PERMISSIONS, 0)
         }

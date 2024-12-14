@@ -9,11 +9,9 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.application.R
 import com.application.constant.UiStatus
-import com.application.data.datasource.IProjectService
 import com.application.data.entity.Form
 import com.application.data.paging.FormPagingSource
 import com.application.data.repository.FormRepository
-import com.application.data.repository.ProjectRepository
 import com.application.data.repository.StageRepository
 import com.application.ui.state.ModifyStageUiState
 import com.application.ui.viewmodel.HomeViewModel.Companion.TAG
@@ -35,7 +33,6 @@ import javax.inject.Inject
 class ModifyStageViewModel @Inject constructor(
     private val stageRepository: StageRepository,
     private val formRepository: FormRepository,
-    private val projectService: IProjectService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(ModifyStageUiState())
     val state = _state.asStateFlow()
@@ -45,27 +42,32 @@ class ModifyStageViewModel @Inject constructor(
     fun loadStage(projectId: String, stageId: String) {
         _state.update { it.copy(status = UiStatus.LOADING, isUpdated = false) }
         viewModelScope.launch(Dispatchers.IO) {
-            stageRepository.getStage(stageId).collectLatest { resourceState ->
-                when (resourceState) {
+            stageRepository.getStage(stageId).collectLatest { rsState ->
+                when (rsState) {
                     is ResourceState.Success -> {
-                        val stage = resourceState.data
+                        val stage = rsState.data
                         if (stage.formId != null) {
-                            val formResourceState = formRepository.getForm(stage.formId).last()
-                            if (formResourceState is ResourceState.Success)
-                                _state.update {
+                            when (val formRsState = formRepository
+                                .getForm(stage.formId).last()
+                            ) {
+                                is ResourceState.Error -> _state.update {
+                                    it.copy(status = UiStatus.ERROR)
+                                }
+
+                                is ResourceState.Success -> _state.update {
                                     it.copy(
                                         status = UiStatus.SUCCESS,
                                         stage = stage,
-                                        selectedForm = formResourceState.data
+                                        selectedForm = formRsState.data
                                     )
                                 }
-                            else _state.update { it.copy(status = UiStatus.ERROR) }
+                            }
                         } else
                             _state.update { it.copy(status = UiStatus.SUCCESS, stage = stage) }
                     }
 
                     is ResourceState.Error -> _state.update {
-                        it.copy(status = UiStatus.ERROR, error = resourceState.resId)
+                        it.copy(status = UiStatus.ERROR, error = rsState.resId)
                     }
                 }
             }
@@ -79,7 +81,7 @@ class ModifyStageViewModel @Inject constructor(
                 initialLoadSize = 3,
             )
         ) {
-            FormPagingSource(projectId, projectService)
+            FormPagingSource(projectId = projectId, formRepository = formRepository)
         }.flow
             .cachedIn(viewModelScope)
             .catch { Log.e(TAG, it.message, it) }

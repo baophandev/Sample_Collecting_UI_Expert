@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,8 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
@@ -48,28 +45,30 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
-import com.application.constant.ReloadSignal
 import com.application.constant.UiStatus
 import com.application.data.entity.Form
 import com.application.data.entity.Stage
 import com.application.ui.component.CustomButton
 import com.application.ui.component.FormContainer
+import com.application.ui.component.PagingLayout
 import com.application.ui.component.StageContainer
+import com.application.ui.component.TitleText
 import com.application.ui.component.TopNavigationBar
 import com.application.ui.viewmodel.DetailViewModel
 
-private enum class DetailScreenSwitchState { DETAIL, STAGES, FORMS }
+private enum class ScreenTab { DETAIL, STAGES, FORMS }
 private enum class AlertType { CREATE_NEW_PROJECT, DELETE, ADD_FORM, NONE, CANNOT_DELETE_FORM }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
     viewModel: DetailViewModel = hiltViewModel(),
-    reloadSignal: ReloadSignal,
-    onReloadSuccessfully: (Boolean) -> Unit,
     projectId: String,
     navigateToHome: () -> Unit,
     navigateToModifyProject: (String) -> Unit,
@@ -89,49 +88,22 @@ fun DetailScreen(
         )
     )
 
-    var switch by remember { mutableStateOf(DetailScreenSwitchState.DETAIL) }
+    var currentTab by remember { mutableStateOf(ScreenTab.DETAIL) }
     var alertType by remember { mutableStateOf(AlertType.NONE) }
-
-    val notInStage = stringResource(id = R.string.not_in_stage)
-
-    if (reloadSignal != ReloadSignal.NONE) {
-        when (reloadSignal) {
-            ReloadSignal.RELOAD_STAGE ->
-                viewModel.getStages(
-                    projectId = projectId,
-                    successHandler = onReloadSuccessfully
-                )
-
-            ReloadSignal.RELOAD_FORM ->
-                viewModel.getForms(
-                    projectId = projectId,
-                    successHandler = onReloadSuccessfully
-                )
-
-            ReloadSignal.RELOAD_PROJECT ->
-                viewModel.loadProject(
-                    projectId = projectId,
-                    skipCached = true,
-                    onComplete = onReloadSuccessfully
-                )
-
-            else -> {}
-        }
-    }
 
     when (state.status) {
         UiStatus.INIT -> {
-            viewModel.loadProject(projectId)
-            viewModel.getForms(
-                projectId = projectId, successHandler = null
-            )
-            viewModel.getStages(
-                projectId = projectId, successHandler = null
-            )
+            viewModel.fetchProject(projectId = projectId)
+            viewModel.fetchForms(projectId = projectId)
+            viewModel.fetchStages(projectId = projectId)
         }
 
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
+        UiStatus.ERROR -> navigateToHome() // Bị lỗi thì về Home
         UiStatus.SUCCESS -> {
+            val stagePagingItems = viewModel.stageFlow.collectAsLazyPagingItems()
+            val formPagingItems = viewModel.formFlow.collectAsLazyPagingItems()
+
             if (alertType != AlertType.NONE) {
                 val messages = when (alertType) {
                     AlertType.CREATE_NEW_PROJECT -> arrayOf(
@@ -175,7 +147,6 @@ fun DetailScreen(
                         when (alertType) {
                             AlertType.DELETE -> viewModel.deleteProject(
                                 projectId = state.project!!.id,
-                                projectOwnerId = state.project?.owner?.id,
                                 successHandler = navigateToHome
                             )
 
@@ -204,105 +175,41 @@ fun DetailScreen(
                     sheetPeekHeight = 600.dp,
                     sheetContent = {
                         Column(modifier = Modifier.fillMaxSize()) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 5.dp),
-                                horizontalArrangement = Arrangement.SpaceEvenly
-                            ) {
-                                CustomButton(
-                                    text = stringResource(id = R.string.details_button),
-                                    textSize = 16.sp,
-                                    textColor = if (switch == DetailScreenSwitchState.DETAIL)
-                                        Color.White else Color.Black,
-                                    background = if (switch == DetailScreenSwitchState.DETAIL)
-                                        MaterialTheme.colorScheme.primary else Color.White,
-                                    border = BorderStroke(
-                                        2.dp, colorResource(id = R.color.main_green)
-                                    ),
-                                    action = { switch = DetailScreenSwitchState.DETAIL }
-                                )
-                                CustomButton(
-                                    text = stringResource(id = R.string.stages_button),
-                                    textSize = 16.sp,
-                                    textColor = if (switch == DetailScreenSwitchState.STAGES)
-                                        Color.White else Color.Black,
-                                    background = if (switch == DetailScreenSwitchState.STAGES)
-                                        MaterialTheme.colorScheme.primary else Color.White,
-                                    border = BorderStroke(
-                                        2.dp,
-                                        colorResource(id = R.color.main_green)
-                                    ),
-                                    action = { switch = DetailScreenSwitchState.STAGES }
-                                )
-                                CustomButton(
-                                    text = stringResource(id = R.string.forms_button),
-                                    textSize = 16.sp,
-                                    textColor = if (switch == DetailScreenSwitchState.FORMS)
-                                        Color.White else Color.Black,
-                                    background = if (switch == DetailScreenSwitchState.FORMS)
-                                        MaterialTheme.colorScheme.primary else Color.White,
-                                    border = BorderStroke(
-                                        2.dp, colorResource(id = R.color.main_green)
-                                    ),
-                                    action = { switch = DetailScreenSwitchState.FORMS }
-                                )
-                            }
+                            TabButtons(tab = currentTab) { currentTab = it }
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                when (currentTab) {
+                                    ScreenTab.DETAIL -> DetailTab(
+                                        projectDescription = state.project?.description
+                                    )
 
-                            Column(
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                when (switch) {
-                                    DetailScreenSwitchState.DETAIL ->
-                                        DetailTab(projectDescription = state.project?.description)
+                                    ScreenTab.STAGES -> StageTab(
+                                        pagingItems = stagePagingItems,
+                                        onStageClick = navigateToStageDetail
+                                    )
 
-                                    DetailScreenSwitchState.STAGES ->
-                                        StageTab(
-                                            status = state.stageStatus,
-                                            error = state.stageError?.let { stringResource(id = it) },
-                                            stages = state.stages,
-//                                            onRefreshClick = {
-//                                                viewModel.getStages(
-//
-//                                                    projectId = projectId,
-//                                                    successHandler = null
-//                                                )
-//                                            },
-                                            onStageClick = navigateToStageDetail
-                                        )
-
-                                    DetailScreenSwitchState.FORMS ->
-                                        FormTab(
-                                            status = state.formStatus,
-                                            error = state.formError?.let { stringResource(id = it) },
-                                            forms = state.forms,
-//                                            onRefreshClick = {
-//                                                viewModel.getForms(
-//                                                    projectId = projectId,
-//                                                    successHandler = null
-//                                                )
-//                                            },
-                                            onFormModifyClick = { formId ->
-                                                if (viewModel.isProjectOwner())
-                                                    navigateToModifyForm(formId)
-                                            },
-                                            onFormDeleteClicked = { formId ->
-                                                if (!viewModel.isFormUsed(formId)) {
-                                                    viewModel.deleteForm(formId = formId)
-                                                } else {
-                                                    alertType = AlertType.CANNOT_DELETE_FORM
-                                                }
-                                            }
-                                        )
+                                    ScreenTab.FORMS -> FormTab(
+                                        pagingItems = formPagingItems,
+                                        onFormModifyClick = { formId ->
+                                            if (viewModel.isProjectOwner())
+                                                navigateToModifyForm(formId)
+                                        },
+                                        onFormDeleteClicked = { formId ->
+                                            val isFormUsed = stagePagingItems.itemSnapshotList
+                                                .any { it?.formId == formId }
+                                            if (!isFormUsed) viewModel.deleteForm(formId = formId)
+                                            else alertType = AlertType.CANNOT_DELETE_FORM
+                                        }
+                                    )
                                 }
                             }
-
                         }
-                    }) {
+                    }
+                ) {
                     Box(modifier = Modifier.fillMaxSize()) {
                         if (state.project?.thumbnail != null) {
                             AsyncImage(
-                                model = ImageRequest.Builder(context).data(state.project?.thumbnail)
+                                model = ImageRequest.Builder(context)
+                                    .data(state.project?.thumbnail)
                                     .build(),
                                 modifier = Modifier
                                     .height(300.dp)
@@ -325,11 +232,8 @@ fun DetailScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            TopNavigationBar(
-                                backAction = navigateToHome
-                            ) {
-                                val emailOwner = state.project?.owner?.id
-                                if (emailOwner != null && emailOwner == state.project?.owner?.id) {
+                            TopNavigationBar(backAction = navigateToHome) {
+                                if (viewModel.isProjectOwner()) {
                                     DropdownMenuItem(
                                         leadingIcon = {
                                             Icon(
@@ -359,60 +263,131 @@ fun DetailScreen(
                     }
                 }
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = 20.dp),
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    when (switch) {
-                        DetailScreenSwitchState.DETAIL -> {
-                            CustomButton(
-                                modifier = Modifier.fillMaxWidth(.7f),
-                                text = stringResource(id = R.string.modify),
-                                textSize = 16.sp,
-                                background = MaterialTheme.colorScheme.primary,
-                                border = BorderStroke(0.dp, Color.Transparent)
-                            ) {
-                                if (viewModel.isProjectOwner())
-                                    navigateToModifyProject(state.project!!.id)
-                                else alertType = AlertType.CREATE_NEW_PROJECT
-                            }
-                        }
-
-                        DetailScreenSwitchState.STAGES -> {
-                            CustomButton(modifier = Modifier.fillMaxWidth(.7f),
-                                text = stringResource(id = R.string.add_stage),
-                                textSize = 16.sp,
-                                background = MaterialTheme.colorScheme.primary,
-                                border = BorderStroke(0.dp, Color.Transparent),
-                                action = {
-                                    if (viewModel.isProjectOwner()) {
-                                        if (state.forms.isEmpty()) alertType = AlertType.ADD_FORM
-                                        else navigateToAddStage()
-                                    } else alertType = AlertType.CREATE_NEW_PROJECT
-                                }
-
-                            )
-                        }
-
-                        DetailScreenSwitchState.FORMS -> {
-                            CustomButton(modifier = Modifier.fillMaxWidth(.7f),
-                                text = stringResource(id = R.string.add_form),
-                                textSize = 16.sp,
-                                background = MaterialTheme.colorScheme.primary,
-                                border = BorderStroke(0.dp, Color.Transparent),
-                                action = {
-                                    if (viewModel.isProjectOwner()) navigateToAddForm()
-                                    else alertType = AlertType.CREATE_NEW_PROJECT
-                                })
-                        }
+                FunctionalButtons(
+                    tab = currentTab,
+                    onModifyProjectClick = {
+                        if (viewModel.isProjectOwner())
+                            navigateToModifyProject(state.project!!.id)
+                        else alertType = AlertType.CREATE_NEW_PROJECT
+                    },
+                    onAddStageClick = {
+                        if (viewModel.isProjectOwner()) {
+                            if (formPagingItems.itemCount == 0)
+                                alertType = AlertType.ADD_FORM
+                            else navigateToAddStage()
+                        } else alertType = AlertType.CREATE_NEW_PROJECT
+                    },
+                    onAddFormClick = {
+                        if (viewModel.isProjectOwner()) navigateToAddForm()
+                        else alertType = AlertType.CREATE_NEW_PROJECT
                     }
-                }
+                )
             }
         }
+    }
+}
 
-        UiStatus.ERROR -> navigateToHome() // Bị lỗi thì về Home
+@Composable
+private fun TabButtons(
+    modifier: Modifier = Modifier,
+    tab: ScreenTab,
+    onTabChange: (ScreenTab) -> Unit
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        CustomButton(
+            text = stringResource(id = R.string.details_button),
+            textSize = 16.sp,
+            textColor = if (tab == ScreenTab.DETAIL)
+                Color.White else Color.Black,
+            background = if (tab == ScreenTab.DETAIL)
+                MaterialTheme.colorScheme.primary else Color.White,
+            border = BorderStroke(
+                2.dp, colorResource(id = R.color.main_green)
+            ),
+            action = { onTabChange(ScreenTab.DETAIL) }
+        )
+        CustomButton(
+            text = stringResource(id = R.string.stages_button),
+            textSize = 16.sp,
+            textColor = if (tab == ScreenTab.STAGES)
+                Color.White else Color.Black,
+            background = if (tab == ScreenTab.STAGES)
+                MaterialTheme.colorScheme.primary else Color.White,
+            border = BorderStroke(
+                2.dp,
+                colorResource(id = R.color.main_green)
+            ),
+            action = { onTabChange(ScreenTab.STAGES) }
+        )
+        CustomButton(
+            text = stringResource(id = R.string.forms_button),
+            textSize = 16.sp,
+            textColor = if (tab == ScreenTab.FORMS)
+                Color.White else Color.Black,
+            background = if (tab == ScreenTab.FORMS)
+                MaterialTheme.colorScheme.primary else Color.White,
+            border = BorderStroke(
+                2.dp, colorResource(id = R.color.main_green)
+            ),
+            action = { onTabChange(ScreenTab.FORMS) }
+        )
+    }
+}
+
+@Composable
+private fun FunctionalButtons(
+    modifier: Modifier = Modifier,
+    contentAlignment: Alignment = Alignment.BottomCenter,
+    tab: ScreenTab,
+    onModifyProjectClick: () -> Unit,
+    onAddStageClick: () -> Unit,
+    onAddFormClick: () -> Unit,
+) {
+    val btnWidthFraction = .7f
+    val btnBackground = MaterialTheme.colorScheme.primary
+    val btnTextSize = 16.sp
+    val btnBorder = BorderStroke(0.dp, Color.Transparent)
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(bottom = 20.dp),
+        contentAlignment = contentAlignment
+    ) {
+        when (tab) {
+            ScreenTab.DETAIL -> CustomButton(
+                modifier = Modifier.fillMaxWidth(btnWidthFraction),
+                text = stringResource(id = R.string.modify),
+                textSize = btnTextSize,
+                background = btnBackground,
+                border = btnBorder,
+                action = onModifyProjectClick
+            )
+
+            ScreenTab.STAGES -> CustomButton(
+                modifier = Modifier.fillMaxWidth(btnWidthFraction),
+                text = stringResource(id = R.string.add_stage),
+                textSize = btnTextSize,
+                background = btnBackground,
+                border = btnBorder,
+                action = onAddStageClick
+
+            )
+
+            ScreenTab.FORMS -> CustomButton(
+                modifier = Modifier.fillMaxWidth(btnWidthFraction),
+                text = stringResource(id = R.string.add_form),
+                textSize = btnTextSize,
+                background = btnBackground,
+                border = btnBorder,
+                action = onAddFormClick
+            )
+        }
     }
 }
 
@@ -439,114 +414,79 @@ private fun DetailTab(
 @Composable
 private fun StageTab(
     modifier: Modifier = Modifier,
-    status: UiStatus,
-    error: String? = null,
-    stages: List<Stage>,
-    //onRefreshClick: () -> Unit,
+    pagingItems: LazyPagingItems<Stage>,
     onStageClick: (String) -> Unit,
 ) {
-    LazyColumn(
-        modifier = modifier
-            .padding(all = 10.dp)
-            .fillMaxWidth(),
-    ) {
-//        stickyHeader {
-//            Row(
-//                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
-//            ) {
-//                IconButton(onClick = onRefreshClick) {
-//                    Icon(
-//                        modifier = Modifier.fillMaxSize(.5f),
-//                        painter = painterResource(id = R.drawable.return_arrow),
-//                        contentDescription = "load new forms",
-//                        tint = MaterialTheme.colorScheme.primary
-//                    )
-//                }
-//            }
-//        }
-        when (status) {
-            UiStatus.LOADING -> item {
-                LoadingScreen(text = stringResource(id = R.string.loading))
-            }
-
-            UiStatus.SUCCESS -> items(items = stages, key = { it.id }) { stage ->
-                StageContainer(
-                    title = stage.name!!,
-                    description = stage.description,
-                    modifier = Modifier
-                        .padding(vertical = 10.dp)
-                        .clickable { onStageClick(stage.id) }
-                )
-            }
-
-            UiStatus.ERROR -> item {
-                Text(text = error ?: "Lỗi load stages rùi, sửa đi")
-            }
-
-            else -> {}
+    PagingLayout(
+        modifier = modifier,
+        pagingItems = pagingItems,
+        contentAlignment = Alignment.TopCenter,
+        itemKey = pagingItems.itemKey { it.id },
+        itemsContent = { stage ->
+            StageContainer(
+                title = stage.name,
+                description = stage.description,
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
+                    .clickable { onStageClick(stage.id) }
+            )
+        },
+        noItemContent = {
+            Icon(
+                painter = painterResource(id = R.drawable.empty_icon),
+                contentDescription = "No project",
+                modifier = Modifier.size(100.dp),
+                tint = colorResource(id = R.color.main_green)
+            )
+            TitleText(
+                text = stringResource(id = R.string.no_stages),
+                textSize = 20.sp,
+                color = colorResource(id = R.color.main_green)
+            )
         }
-    }
+    )
 }
 
 
 @Composable
 private fun FormTab(
     modifier: Modifier = Modifier,
-    status: UiStatus,
-    error: String? = null,
-    forms: List<Form>,
-    //onRefreshClick: () -> Unit,
+    pagingItems: LazyPagingItems<Form>,
     onFormModifyClick: ((String) -> Unit)?,
     onFormDeleteClicked: ((String) -> Unit)?
 ) {
-    LazyColumn(
-        modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(10.dp)
-    ) {
-//        stickyHeader {
-//            Row(
-//                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
-//            ) {
-//                IconButton(onClick = onRefreshClick) {
-//                    Icon(
-//                        modifier = Modifier.fillMaxSize(.5f),
-//                        painter = painterResource(id = R.drawable.return_arrow),
-//                        contentDescription = "load new forms",
-//                        tint = MaterialTheme.colorScheme.primary
-//                    )
-//                }
-//            }
-//        }
-        when (status) {
-            UiStatus.LOADING -> item {
-                LoadingScreen(text = stringResource(id = R.string.loading))
-            }
-
-            UiStatus.SUCCESS -> items(forms) { form ->
-                Spacer(modifier = Modifier.size(10.dp))
-                FormContainer(
-                    name = form.title,
-                    modifier = Modifier
-                        .padding(horizontal = 10.dp)
-                        .fillMaxWidth(),
-                    onModifyClicked = {
-                        if (onFormModifyClick != null)
-                            onFormModifyClick(form.id)
-                    },
-                    onDeleteClicked = {
-                        if (onFormDeleteClicked != null)
-                            onFormDeleteClicked(form.id)
-                    }
-                )
-            }
-
-            UiStatus.ERROR -> item {
-                Text(text = error ?: "Lỗi load stages rùi, sửa đi")
-            }
-
-            else -> {}
+    PagingLayout(
+        modifier = modifier,
+        pagingItems = pagingItems,
+        itemKey = pagingItems.itemKey { it.id },
+        itemsContent = { form ->
+            FormContainer(
+                name = form.title,
+                modifier = Modifier
+                    .padding(horizontal = 10.dp)
+                    .fillMaxWidth(),
+                onModifyClicked = {
+                    if (onFormModifyClick != null)
+                        onFormModifyClick(form.id)
+                },
+                onDeleteClicked = {
+                    if (onFormDeleteClicked != null)
+                        onFormDeleteClicked(form.id)
+                }
+            )
+        },
+        noItemContent = {
+            Icon(
+                painter = painterResource(id = R.drawable.empty_icon),
+                contentDescription = "No form",
+                modifier = Modifier.size(100.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            TitleText(
+                text = stringResource(id = R.string.no_forms),
+                textSize = 20.sp,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
-
-    }
-
+    )
 }

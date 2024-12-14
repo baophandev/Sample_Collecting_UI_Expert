@@ -45,6 +45,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.application.R
 import com.application.constant.UiStatus
 import com.application.ui.component.BotNavigationBar
@@ -64,7 +65,7 @@ fun CreateStageScreen(
     projectId: String,
     navigateToLogin: () -> Unit,
     navigateToHome: () -> Unit,
-    postCreatedHandler: (Boolean) -> Unit,
+    stageCreatedHandler: (Boolean) -> Unit,
     navigateToWorkersQuestionScreen: () -> Unit,
     navigateToExpertChatScreen: () -> Unit
 ) {
@@ -85,9 +86,15 @@ fun CreateStageScreen(
         }
     }
     when (state.status) {
-        UiStatus.INIT -> viewModel.initialize(projectId)
+        UiStatus.INIT -> {
+            viewModel.fetchForms(projectId = projectId)
+            viewModel.getProjectMember(projectId = projectId)
+        }
+
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.creating_stage))
         UiStatus.SUCCESS -> {
+            val formPagingItems = viewModel.formFlow.collectAsLazyPagingItems()
+
             Scaffold(
                 modifier = Modifier,
                 snackbarHost = {
@@ -207,22 +214,24 @@ fun CreateStageScreen(
                                 onDismissRequest = { expanded = false },
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
-                                state.forms.forEachIndexed { idx, form ->
-                                    DropdownMenuItem(
-                                        text = { Text(form.title) },
-                                        onClick = {
-                                            expanded = false
-                                            viewModel.selectForm(idx)
-                                        },
-                                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                                    )
+                                formPagingItems.itemSnapshotList.forEach {
+                                    it?.let { form ->
+                                        DropdownMenuItem(
+                                            text = { Text(text = form.title) },
+                                            onClick = {
+                                                expanded = false
+                                                viewModel.selectForm(form)
+                                            },
+                                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
 
                     FieldToList(
-                        fieldDataList = state.stageMemberEmailMap.keys.toList(),
+                        fieldDataList = state.selectedUsers.map { it.email },
                         textValidator = { email ->
                             email.contains(RegexValidation.EMAIL)
                         },
@@ -246,7 +255,7 @@ fun CreateStageScreen(
                                 viewModel.submitStage(
                                     projectId = projectId,
                                     formId = it.first,
-                                    successHandler = postCreatedHandler
+                                    successHandler = stageCreatedHandler
                                 )
                             }
                         }

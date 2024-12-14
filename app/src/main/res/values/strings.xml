@@ -115,7 +115,7 @@
     <string name="enter_birthday">Ngày sinh</string>
     <string name="gender">Giới tính:</string>
     <string name="male">Nam</string>
-    <string name="female">Nữ</string>default_date
+    <string name="female">Nữ</string>
     <string name="have_account">Bạn đã có tài khoản?</string>
     <string name="message_placeholder">Tin nhắn</string>
     <string name="see_details">Xem chi tiết</string>
@@ -126,5 +126,9 @@
     </string>
     <string name="login_info_not_blank">Login information cannot be blank</string>
     <string name="enter_username">Email or phone number</string>
+    <string name="delete_project_error">Deleting project process has occurred an error.</string>
+    <string name="create_project_error">Creating project process has occurred an error.</string>
+    <string name="no_forms">No forms!</string>
+    <string name="no_stages">No stages!</string>
 
 </resources>

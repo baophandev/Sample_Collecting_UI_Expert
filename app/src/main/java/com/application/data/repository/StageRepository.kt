@@ -8,6 +8,7 @@ import com.application.data.entity.request.CreateStageRequest
 import com.application.data.entity.request.UpdateStageRequest
 import com.application.data.entity.response.StageResponse
 import com.application.data.repository.ProjectRepository.Companion.TAG
+import com.sc.library.utility.client.response.PagingResponse
 import com.sc.library.utility.state.ResourceState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -64,22 +65,28 @@ class StageRepository(
      * Get all stages of project by projectId.
      * @param .
      */
-    fun getAllStages(
+    suspend fun getAllStages(
         projectId: String,
         pageNumber: Int = 0,
         pageSize: Int = 6
-    ): Flow<ResourceState<List<Stage>>> {
-        return flow<ResourceState<List<Stage>>> {
-            val stages = projectService.getAllStages(projectId, pageNumber, pageSize)
-                .content.map(this@StageRepository::mapResponseToStage)
-            cachedStages.putAll(stages.map { Pair(it.id, it) })
-            emit(ResourceState.Success(stages))
-        }.catch { exception ->
-            Log.e(TAG, exception.message ?: "Unknown exception")
-            Log.e(TAG, exception.stackTraceToString())
-            emit(ResourceState.Error(message = "Cannot get all stages"))
-        }
-    }
+    ): Result<PagingResponse<Stage>> = runCatching {
+        val response = projectService.getAllStages(
+            projectId = projectId,
+            pageNumber = pageNumber,
+            pageSize = pageSize
+        )
+        val stages = response.content.map { mapResponseToStage(it) }
+        PagingResponse(
+            totalPages = response.totalPages,
+            totalElements = response.totalElements,
+            number = response.number,
+            size = response.size,
+            numberOfElements = response.numberOfElements,
+            first = response.first,
+            last = response.last,
+            content = stages
+        )
+    }.onFailure { Log.e(TAG, it.message, it) }
 
     /**
      * Get a stage by stageId .

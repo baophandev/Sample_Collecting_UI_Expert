@@ -1,22 +1,29 @@
 package com.application.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.application.R
 import com.application.constant.UiStatus
+import com.application.data.entity.Form
+import com.application.data.paging.FormPagingSource
 import com.application.data.repository.FormRepository
 import com.application.data.repository.ProjectRepository
 import com.application.data.repository.StageRepository
 import com.application.ui.state.CreateStageUiState
-import com.sc.library.user.entity.User
-import com.sc.library.user.repository.UserRepository
+import com.application.ui.viewmodel.DetailViewModel.Companion.TAG
 import com.sc.library.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -26,49 +33,38 @@ class CreateStageViewModel @Inject constructor(
     private val stageRepository: StageRepository,
     private val formRepository: FormRepository,
     private val projectRepository: ProjectRepository,
-    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CreateStageUiState())
     val state = _state.asStateFlow()
 
-    fun initialize(projectId: String) {
-        getAllForms(projectId)
-        getProjectMember(projectId)
+    lateinit var formFlow: Flow<PagingData<Form>>
+
+    fun fetchForms(projectId: String) {
+        formFlow = Pager(
+            PagingConfig(
+                pageSize = 3,
+                enablePlaceholders = false,
+                prefetchDistance = 1,
+                initialLoadSize = 3,
+            )
+        ) {
+            FormPagingSource(
+                projectId = projectId,
+                formRepository = formRepository
+            )
+        }.flow
+            .cachedIn(viewModelScope)
+            .catch { Log.e(TAG, it.message, it) }
     }
 
-    private fun getAllForms(projectId: String) {
+    fun getProjectMember(projectId: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            formRepository.getAllForms(projectId).collectLatest { resourceState ->
-                when (resourceState) {
-                    is ResourceState.Success -> _state.update {
-                        it.copy(
-                            status = UiStatus.SUCCESS,
-                            forms = resourceState.data
-                        )
-                    }
-
-                    is ResourceState.Error -> _state.update { it.copy(status = UiStatus.ERROR) }
-                }
-            }
-        }
-    }
-
-    private fun getProjectMember(projectId: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            projectRepository.getProject(projectId).collectLatest { resourceState ->
-                when (resourceState) {
+            projectRepository.getProject(projectId).collectLatest { rsState ->
+                when (rsState) {
                     is ResourceState.Success -> {
-                        val project = resourceState.data
-                        if (project.memberUsernames != null) {
-                            _state.update {
-                                it.copy(
-                                    projectMemberEmails = project.memberUsernames
-                                )
-                            }
-                        } else {
-                            _state.update { it.copy(error = R.string.error_cannot_get_member_of_project) }
-                        }
+                        val project = rsState.data
+                        _state.update { it.copy(projectMembers = project.members) }
                     }
 
                     is ResourceState.Error -> _state.update { it.copy(status = UiStatus.ERROR) }
@@ -95,66 +91,24 @@ class CreateStageViewModel @Inject constructor(
 
     fun addStageMemberEmail(memberEmail: String) {
         val currentState = state.value
-
-        if (!currentState.projectMemberEmails.contains(memberEmail)){
+        val existUser = currentState.projectMembers.find { it.email == memberEmail }
+        if (existUser == null) {
             _state.update { it.copy(error = R.string.error_not_a_member_of_project) }
             return
         }
-        viewModelScope.launch(Dispatchers.IO) {
-            userRepository.getUserByEmail(email = memberEmail)
-                .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
-                .collectLatest { resourceState ->
-                    when (resourceState) {
-                        is ResourceState.Success -> {
-                            val user = resourceState.data as? User
-                            if (user != null) {
-                                val newStageMemberId = user.id
-                                _state.update {
-                                    val updatedStageEmails = it.stageMemberEmailMap.toMutableMap().apply {
-                                        this[memberEmail] = newStageMemberId // email -> ID
-                                    }
-                                    it.copy(
-                                        status = UiStatus.SUCCESS,
-                                        stageMemberEmails = updatedStageEmails.values.toList(),
-                                        stageMemberEmailMap = updatedStageEmails
-                                    )
-                                }
-                            } else {
-                                _state.update {
-                                    it.copy(status = UiStatus.SUCCESS, error = R.string.error_cannot_get_user_by_email)
-                                }
-                            }
 
-                        }
-
-                        is ResourceState.Error -> _state.update {
-                            it.copy(status = UiStatus.ERROR, error = resourceState.resId)
-                        }
-                    }
-                }
-        }
+        val currentSelectedUsers = currentState.selectedUsers.toMutableList()
+        currentSelectedUsers.add(existUser)
+        _state.update { it.copy(selectedUsers = currentSelectedUsers) }
     }
 
     fun removeMemberEmail(index: Int) {
-        val currentState = _state.value
-
-        val currentEmails = currentState.stageMemberEmailMap.keys.toList()
-        if (index in currentEmails.indices) {
-            val emailToRemove = currentEmails[index]
-            val updatedEmails = currentState.stageMemberEmailMap.toMutableMap().apply {
-                remove(emailToRemove)
-            }
-            _state.update {
-                it.copy(
-                    stageMemberEmails = updatedEmails.values.toList(),
-                    stageMemberEmailMap = updatedEmails
-                )
-            }
-        }
+        val currentSelectedUsers = state.value.selectedUsers.toMutableList()
+        currentSelectedUsers.removeAt(index)
+        _state.update { it.copy(selectedUsers = currentSelectedUsers) }
     }
 
-    fun selectForm(formIdx: Int) {
-        val form = state.value.forms[formIdx]
+    fun selectForm(form: Form) {
         _state.update { it.copy(selectedForm = Pair(form.id, form.title)) }
     }
 

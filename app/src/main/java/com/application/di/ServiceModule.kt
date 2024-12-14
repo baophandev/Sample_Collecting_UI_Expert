@@ -27,7 +27,8 @@ object ServiceModule {
     @Provides
     @Singleton
     fun provideProjectService() : IProjectService {
-        return ProjectServiceImpl()
+        val baseUrl = "http://${ServiceHost.GATEWAY_SERVER}/api/v1/"
+        return ProjectServiceImpl(baseUrl)
     }
 
     @Provides

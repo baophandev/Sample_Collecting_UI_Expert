@@ -119,7 +119,7 @@
     <string name="enter_birthday">Ngày sinh</string>
     <string name="gender">Giới tính:</string>
     <string name="male">Nam</string>
-    <string name="female">Nữ</string>default_date
+    <string name="female">Nữ</string>
     <string name="have_account">Bạn đã có tài khoản?</string>
     <string name="message_placeholder">Tin nhắn</string>
     <string name="see_details">Xem chi tiết</string>
@@ -129,4 +129,8 @@
         này với ạ
     </string>
     <string name="enter_username">Email hoặc số điện thoại</string>
+    <string name="delete_project_error">Quá trình xóa dự án đã xảy ra lỗi.</string>
+    <string name="create_project_error">Quá trình tạo dự án đã xảy ra lỗi.</string>
+    <string name="no_forms">Không có bất kì biểu mẫu nào!!</string>
+    <string name="no_stages">Không có bất kì đợt thu mẫu nào!!</string>
 </resources>

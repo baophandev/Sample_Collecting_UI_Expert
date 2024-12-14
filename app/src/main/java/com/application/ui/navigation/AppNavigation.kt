@@ -27,6 +27,7 @@ import com.application.ui.screen.PostAnswerScreen
 import com.application.ui.screen.SampleDetailScreen
 import com.application.ui.screen.StageDetailScreen
 import com.application.ui.screen.WorkersQuestionScreen
+import com.application.ui.viewmodel.DetailViewModel
 
 fun NavHostController.navigateSingleTop(route: String) {
     this.navigate(route) { launchSingleTop = true }
@@ -36,6 +37,8 @@ fun NavHostController.navigateSingleTop(route: String) {
 fun AppNavigationGraph(
     viewModel: NavigationViewModel = hiltViewModel()
 ) {
+    val detailScreenViewModel: DetailViewModel = hiltViewModel()
+
     val state by viewModel.state.collectAsState()
     val navController = rememberNavController()
 
@@ -144,9 +147,8 @@ fun AppNavigationGraph(
                 }
 
                 DetailScreen(
+                    viewModel = detailScreenViewModel,
                     projectId = projectId,
-                    reloadSignal = state.reloadSignal,
-                    onReloadSuccessfully = onReloadSuccessfully,
                     navigateToHome = popBackToHome,
                     navigateToModifyProject = navigateToModify,
                     navigateToStageDetail = navigateToStageDetail,
@@ -176,13 +178,13 @@ fun AppNavigationGraph(
                     reloadSignal = state.reloadSignal,
                     onReloadSuccessfully = onReloadSuccessfully,
                     deletedHandler = { isDeleted ->
-                        if (isDeleted) viewModel
-                            .updateState(state.copy(reloadSignal = ReloadSignal.RELOAD_STAGE))
+                        if (isDeleted)
+                            detailScreenViewModel.reload(ReloadSignal.RELOAD_STAGE)
                         popBackToDetail()
                     },
                     popBackToDetail = { isUpdated ->
-                        if (isUpdated) viewModel
-                            .updateState(state.copy(reloadSignal = ReloadSignal.RELOAD_STAGE))
+                        if (isUpdated)
+                            detailScreenViewModel.reload(ReloadSignal.RELOAD_STAGE)
                         popBackToDetail()
                     },
                     stageId = stageId,
@@ -218,8 +220,7 @@ fun AppNavigationGraph(
                 CreateFormScreen(
                     projectId = projectId,
                     postCreatedHandler = { isCreated ->
-                        if (isCreated) viewModel
-                            .updateState(state.copy(reloadSignal = ReloadSignal.RELOAD_FORM))
+                        if (isCreated) detailScreenViewModel.reload(ReloadSignal.RELOAD_FORM)
                         popBackToDetail()
                     },
                     navigateToLogin = popBackToLogin,
@@ -236,9 +237,8 @@ fun AppNavigationGraph(
             if (projectId != null) {
                 CreateStageScreen(
                     projectId = projectId,
-                    postCreatedHandler = { isCreated ->
-                        if (isCreated) viewModel
-                            .updateState(state.copy(reloadSignal = ReloadSignal.RELOAD_STAGE))
+                    stageCreatedHandler = { isCreated ->
+                        if (isCreated) detailScreenViewModel.reload(ReloadSignal.RELOAD_STAGE)
                         popBackToDetail()
                     },
                     navigateToLogin = popBackToLogin,
@@ -295,8 +295,7 @@ fun AppNavigationGraph(
                     popBackToLogin = popBackToLogin,
                     popBackToHome = popBackToHome,
                     postUpdatedHandler = { isUpdated ->
-                        if (isUpdated) viewModel
-                            .updateState(state.copy(reloadSignal = ReloadSignal.RELOAD_PROJECT))
+                        if (isUpdated) detailScreenViewModel.reload(ReloadSignal.RELOAD_PROJECT)
                         popBackToDetail()
                     },
                     navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
@@ -316,8 +315,7 @@ fun AppNavigationGraph(
                     popBackToLogin = popBackToLogin,
                     popBackToHome = popBackToHome,
                     postUpdatedHandler = { isUpdated ->
-                        if (isUpdated) viewModel
-                            .updateState(state.copy(reloadSignal = ReloadSignal.RELOAD_STAGE))
+                        if (isUpdated) detailScreenViewModel.reload(ReloadSignal.RELOAD_STAGE)
                         popBackToStage()
                     },
                     navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
@@ -335,8 +333,7 @@ fun AppNavigationGraph(
                     popBackToLogin = popBackToLogin,
                     popBackToHome = popBackToHome,
                     popBackToDetail = { isUpdated ->
-                        if (isUpdated) viewModel
-                            .updateState(state.copy(reloadSignal = ReloadSignal.RELOAD_FORM))
+                        if (isUpdated) detailScreenViewModel.reload(ReloadSignal.RELOAD_FORM)
                         popBackToDetail()
                     },
                     navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
@@ -351,7 +348,6 @@ fun AppNavigationGraph(
             }
             WorkersQuestionScreen(
                 navigateToHome = { popBackToHome() },
-                navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
                 navigateToExpertChatScreen = navigateToExpertChatsScreen,
                 navigateToPostAnswerScreen = navigateToPostAnswerScreen
             )

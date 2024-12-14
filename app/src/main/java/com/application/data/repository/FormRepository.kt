@@ -8,6 +8,7 @@ import com.application.data.entity.request.CreateFormRequest
 import com.application.data.entity.request.UpdateFormRequest
 import com.application.data.entity.response.FormResponse
 import com.application.data.repository.ProjectRepository.Companion.TAG
+import com.sc.library.utility.client.response.PagingResponse
 import com.sc.library.utility.state.ResourceState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -25,21 +26,28 @@ class FormRepository(
      * Get all forms of a project by projectId.
      *
      */
-    fun getAllForms(
+    suspend fun getAllForms(
         projectId: String,
         pageNumber: Int = 0,
         pageSize: Int = 6
-    ): Flow<ResourceState<List<Form>>> {
-        return flow<ResourceState<List<Form>>> {
-            val forms = projectService.getAllForms(projectId, pageNumber, pageSize)
-                .content.map(this@FormRepository::mapResponseToForm)
-            cachedForms.putAll(forms.map { Pair(it.id, it) })
-            emit(ResourceState.Success(forms))
-        }.catch { exception ->
-            Log.e(TAG, exception.message, exception)
-            emit(ResourceState.Error(message = "Cannot get all forms"))
-        }
-    }
+    ): Result<PagingResponse<Form>> = runCatching {
+        val response = projectService.getAllForms(
+            projectId = projectId,
+            pageNumber = pageNumber,
+            pageSize = pageSize
+        )
+        val forms = response.content.map { mapResponseToForm(it) }
+        PagingResponse(
+            totalPages = response.totalPages,
+            totalElements = response.totalElements,
+            number = response.number,
+            size = response.size,
+            numberOfElements = response.numberOfElements,
+            first = response.first,
+            last = response.last,
+            content = forms
+        )
+    }.onFailure { Log.e(TAG, it.message, it) }
 
     /**
      * Get a form of a project by formId.
