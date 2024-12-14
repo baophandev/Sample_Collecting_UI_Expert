@@ -124,5 +124,8 @@
     </string>
     <string name="login_info_not_blank">Login information cannot be blank</string>
     <string name="enter_username">Email or phone number</string>
+    <string name="get_post_error">Getting post process has occurred an error.</string>
+    <string name="create_general_comment_error">Creating general comment for post process has occurred an error.</string>
+    <string name="create_comment_error">Creating comment for post process has occurred an error.</string>
 
 </resources>

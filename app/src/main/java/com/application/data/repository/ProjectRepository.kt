@@ -8,6 +8,7 @@ import com.application.data.entity.Project
 import com.application.data.entity.request.CreateProjectRequest
 import com.application.data.entity.request.UpdateProjectRequest
 import com.application.data.entity.response.ProjectResponse
+import com.application.data.exception.ProjectException
 import com.sc.library.attachment.repository.AttachmentRepository
 import com.sc.library.user.repository.UserRepository
 import com.sc.library.utility.state.ResourceState
@@ -105,7 +106,8 @@ class ProjectRepository(
                 val attachmentState = attachmentRepository.storeAttachment(it).last()
                 if (attachmentState is ResourceState.Success)
                     updateRequest = updateRequest.copy(thumbnailId = attachmentState.data)
-                else throw Exception("Storing attachment got an exception.")
+                else throw ProjectException
+                    .AttachmentStoringException("Storing attachment got an exception.")
             }
 
             val updateResult = projectService.updateProject(projectId, updateRequest)

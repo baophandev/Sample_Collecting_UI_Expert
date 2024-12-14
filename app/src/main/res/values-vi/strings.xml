@@ -127,4 +127,7 @@
         này với ạ
     </string>
     <string name="enter_username">Email hoặc số điện thoại</string>
+    <string name="get_post_error">Quá trình lấy dữ liệu bài đăng đã xảy ra lỗi.</string>
+    <string name="create_general_comment_error">Quá trình tạo nhận xét tổng quan cho bài đăng đã xảy ra lỗi.</string>
+    <string name="create_comment_error">Quá trình tạo nhận xét cho bài đăng đã xảy ra lỗi.</string>
 </resources>

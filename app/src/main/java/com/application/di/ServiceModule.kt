@@ -1,7 +1,9 @@
 package com.application.di
 
 import com.application.constant.ServiceHost
+import com.application.data.datasource.IPostService
 import com.application.data.datasource.IProjectService
+import com.application.data.datasource.impl.PostServiceImpl
 import com.application.data.datasource.impl.ProjectServiceImpl
 import com.sc.library.attachment.datasource.IAttachmentService
 import com.sc.library.attachment.datasource.impl.AttachmentServiceImpl
@@ -28,6 +30,13 @@ object ServiceModule {
     @Singleton
     fun provideProjectService() : IProjectService {
         return ProjectServiceImpl()
+    }
+
+    @Provides
+    @Singleton
+    fun providePostService() : IPostService {
+        val baseUrl = "http://${ServiceHost.GATEWAY_SERVER}/api/post/"
+        return PostServiceImpl(baseUrl)
     }
 
     @Provides
