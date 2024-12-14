@@ -40,16 +40,14 @@ import com.application.ui.viewmodel.SampleDetailViewModel
 @Composable
 fun SampleDetailScreen(
     viewModel: SampleDetailViewModel = hiltViewModel(),
-    sampleId: String,
     navigateToStageDetail: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
     var showSampleData by remember { mutableStateOf(false) }
 
     when (state.status) {
-        UiStatus.INIT -> viewModel.loadSample(sampleId)
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
-        UiStatus.ERROR -> TODO("Implement ERROR state")
+        UiStatus.ERROR -> navigateToStageDetail()
         UiStatus.SUCCESS -> Scaffold { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
                 Box(
@@ -81,6 +79,8 @@ fun SampleDetailScreen(
                 }
             }
         }
+
+        else -> {}
     }
 }
 

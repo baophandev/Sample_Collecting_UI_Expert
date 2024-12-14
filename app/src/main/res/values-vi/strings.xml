@@ -133,4 +133,8 @@
     <string name="create_project_error">Quá trình tạo dự án đã xảy ra lỗi.</string>
     <string name="no_forms">Không có bất kì biểu mẫu nào!!</string>
     <string name="no_stages">Không có bất kì đợt thu mẫu nào!!</string>
+    <string name="form_not_selected">Bạn chưa chọn biểu mẫu nào.</string>
+    <string name="unknown_project">Dự án không xác định</string>
+    <string name="no_description">Không có mô tả.</string>
+    <string name="unknown_stage">Đợt thu mẫu không xác định</string>
 </resources>

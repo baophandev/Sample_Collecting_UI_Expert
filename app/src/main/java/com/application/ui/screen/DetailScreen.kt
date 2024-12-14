@@ -69,12 +69,11 @@ private enum class AlertType { CREATE_NEW_PROJECT, DELETE, ADD_FORM, NONE, CANNO
 @Composable
 fun DetailScreen(
     viewModel: DetailViewModel = hiltViewModel(),
-    projectId: String,
     navigateToHome: () -> Unit,
     navigateToModifyProject: (String) -> Unit,
     navigateToStageDetail: (String) -> Unit,
-    navigateToAddStage: () -> Unit,
-    navigateToAddForm: () -> Unit,
+    navigateToCreateStage: (String) -> Unit,
+    navigateToCreateForm: (String) -> Unit,
     navigateToModifyForm: (String) -> Unit,
 ) {
     val context = LocalContext.current
@@ -92,12 +91,6 @@ fun DetailScreen(
     var alertType by remember { mutableStateOf(AlertType.NONE) }
 
     when (state.status) {
-        UiStatus.INIT -> {
-            viewModel.fetchProject(projectId = projectId)
-            viewModel.fetchForms(projectId = projectId)
-            viewModel.fetchStages(projectId = projectId)
-        }
-
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
         UiStatus.ERROR -> navigateToHome() // Bị lỗi thì về Home
         UiStatus.SUCCESS -> {
@@ -144,13 +137,15 @@ fun DetailScreen(
                         ),
                         border = BorderStroke(0.dp, Color.Transparent)
                     ) {
+                        val projectId = state.project!!.id
+
                         when (alertType) {
                             AlertType.DELETE -> viewModel.deleteProject(
-                                projectId = state.project!!.id,
+                                projectId = projectId,
                                 successHandler = navigateToHome
                             )
 
-                            AlertType.ADD_FORM -> navigateToAddForm()
+                            AlertType.ADD_FORM -> navigateToCreateForm(projectId)
 
                             else -> navigateToHome()
                         }
@@ -274,16 +269,18 @@ fun DetailScreen(
                         if (viewModel.isProjectOwner()) {
                             if (formPagingItems.itemCount == 0)
                                 alertType = AlertType.ADD_FORM
-                            else navigateToAddStage()
+                            else navigateToCreateStage(state.project!!.id)
                         } else alertType = AlertType.CREATE_NEW_PROJECT
                     },
                     onAddFormClick = {
-                        if (viewModel.isProjectOwner()) navigateToAddForm()
+                        if (viewModel.isProjectOwner()) navigateToCreateForm(state.project!!.id)
                         else alertType = AlertType.CREATE_NEW_PROJECT
                     }
                 )
             }
         }
+
+        else -> {}
     }
 }
 

@@ -3,6 +3,7 @@ package com.application.data.repository
 import android.util.Log
 import com.application.R
 import com.application.data.datasource.IProjectService
+import com.application.data.entity.Form
 import com.application.data.entity.Stage
 import com.application.data.entity.request.CreateStageRequest
 import com.application.data.entity.request.UpdateStageRequest
@@ -29,16 +30,15 @@ class StageRepository(
         description: String? = null,
         startDate: String? = null,
         endDate: String? = null,
-        formId: String,
-        projectOwnerId: String,
+        form: Form,
     ): Flow<ResourceState<String>> {
         val body = CreateStageRequest(
             name = name,
             description = description,
             startDate = startDate,
             endDate = endDate,
-            formId = formId,
-            projectOwnerId = projectOwnerId
+            formId = form.id,
+            projectOwnerId = form.projectOwnerId
         )
 
         return flow<ResourceState<String>> {
@@ -49,8 +49,8 @@ class StageRepository(
                 description = description,
                 startDate = startDate,
                 endDate = endDate,
-                formId = formId,
-                projectOwnerId = projectOwnerId,
+                formId = form.id,
+                projectOwnerId = form.projectOwnerId,
             )
             cachedStages[stageId] = newStage
             emit(ResourceState.Success(stageId))

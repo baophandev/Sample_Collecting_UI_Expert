@@ -24,15 +24,15 @@ class CreateFormViewModel @Inject constructor(
     private val _state = MutableStateFlow(CreateFormUiState())
     val state = _state.asStateFlow()
 
-    fun initialize() {
-        _state.update { it.copy(status = UiStatus.SUCCESS) }
+    fun fetchProject(projectId: String) {
+        _state.update { it.copy(status = UiStatus.SUCCESS, projectOwnerId = projectId) }
     }
 
     fun updateTitle(title: String) {
         _state.update { it.copy(title = title) }
     }
 
-    fun submitForm(projectId: String, successHandler: (Boolean) -> Unit) {
+    fun submitForm(successHandler: (Boolean) -> Unit) {
         if (!validateFields()) return
 
         val currentState = state.value
@@ -61,7 +61,7 @@ class CreateFormViewModel @Inject constructor(
             repository.createForm(
                 title = currentState.title,
                 description = currentState.description,
-                projectOwnerId = projectId,
+                projectOwnerId = currentState.projectOwnerId!!,
                 fields = currentState.fields.toList()
             )
                 .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }

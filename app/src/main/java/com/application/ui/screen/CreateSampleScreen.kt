@@ -1,6 +1,5 @@
 package com.application.ui.screen
 
-import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,8 +57,6 @@ import com.application.ui.viewmodel.CreateSampleViewModel
 @Composable
 fun CreateSampleScreen(
     viewModel: CreateSampleViewModel = hiltViewModel(),
-    stageId: String,
-    newSample: Pair<String, Uri>,
     navigateToCapture: (String?) -> Unit,
 ) {
     val context = LocalContext.current
@@ -76,7 +73,6 @@ fun CreateSampleScreen(
     )
 
     when (state.status) {
-        UiStatus.INIT -> viewModel.loadForm(stageId)
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
         UiStatus.ERROR -> {
             val error = stringResource(id = state.error ?: R.string.unknown_error)
@@ -186,7 +182,9 @@ fun CreateSampleScreen(
             ) { _ ->
                 Box(modifier = Modifier.fillMaxSize()) {
                     AsyncImage(
-                        model = ImageRequest.Builder(context).data(newSample.second).build(),
+                        model = ImageRequest.Builder(context)
+                            .data(state.sampleImage?.second)
+                            .build(),
                         contentDescription = "Sample Image",
                         modifier = Modifier
                             .fillMaxWidth()
@@ -225,15 +223,11 @@ fun CreateSampleScreen(
                     textSize = 16.sp,
                     background = colorResource(id = R.color.main_green),
                     border = BorderStroke(0.dp, Color.Transparent),
-                    action = {
-                        viewModel.submitSample(
-                            stageId = stageId,
-                            sampleImage = newSample,
-                            result = navigateToCapture
-                        )
-                    }
+                    action = { viewModel.submitSample(result = navigateToCapture) }
                 )
             }
         }
+
+        else -> {}
     }
 }

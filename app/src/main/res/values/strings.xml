@@ -130,5 +130,9 @@
     <string name="create_project_error">Creating project process has occurred an error.</string>
     <string name="no_forms">No forms!</string>
     <string name="no_stages">No stages!</string>
+    <string name="form_not_selected">You have not selected a form yet.</string>
+    <string name="unknown_project">Unknown project</string>
+    <string name="no_description">No description.</string>
+    <string name="unknown_stage">Unknown stage</string>
 
 </resources>

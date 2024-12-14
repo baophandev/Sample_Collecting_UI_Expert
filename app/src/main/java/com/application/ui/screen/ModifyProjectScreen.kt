@@ -67,7 +67,6 @@ import com.sc.library.utility.validate.RegexValidation
 @Composable
 fun ModifyProjectScreen(
     viewModel: ModifyProjectViewModel = hiltViewModel(),
-    projectId: String,
     popBackToLogin: () -> Unit,
     popBackToHome: () -> Unit,
     postUpdatedHandler: (Boolean) -> Unit,
@@ -94,7 +93,6 @@ fun ModifyProjectScreen(
         }
     }
     when (state.status) {
-        UiStatus.INIT -> viewModel.loadProject(projectId)
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
         UiStatus.SUCCESS -> Scaffold(
             modifier = Modifier,
@@ -199,7 +197,7 @@ fun ModifyProjectScreen(
                         .height(60.dp),
                     placeholder = { Text(text = stringResource(id = R.string.add_title)) },
                     singleLine = true,
-                    value = state.project?.name ?: "Khong co ten du an",
+                    value = state.project?.name ?: stringResource(id = R.string.unknown_project),
                     onValueChange = viewModel::updateProjectName
                 )
                 CustomTextField(
@@ -207,7 +205,7 @@ fun ModifyProjectScreen(
                         .fillMaxWidth(.95f)
                         .height(100.dp),
                     placeholder = { Text(text = stringResource(id = R.string.sample_description_default)) },
-                    value = state.project?.description ?: "Khong co mo ta",
+                    value = state.project?.description ?: stringResource(R.string.no_description),
                     onValueChange = viewModel::updateDescription
                 )
 
@@ -284,7 +282,7 @@ fun ModifyProjectScreen(
             }
         }
 
-
         UiStatus.ERROR -> Toast.makeText(context, state.error!!, Toast.LENGTH_LONG).show()
+        else -> {}
     }
 }

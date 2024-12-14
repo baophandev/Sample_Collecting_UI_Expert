@@ -62,7 +62,6 @@ import com.sc.library.utility.validate.RegexValidation
 @Composable
 fun CreateStageScreen(
     viewModel: CreateStageViewModel = hiltViewModel(),
-    projectId: String,
     navigateToLogin: () -> Unit,
     navigateToHome: () -> Unit,
     stageCreatedHandler: (Boolean) -> Unit,
@@ -86,11 +85,6 @@ fun CreateStageScreen(
         }
     }
     when (state.status) {
-        UiStatus.INIT -> {
-            viewModel.fetchForms(projectId = projectId)
-            viewModel.getProjectMember(projectId = projectId)
-        }
-
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.creating_stage))
         UiStatus.SUCCESS -> {
             val formPagingItems = viewModel.formFlow.collectAsLazyPagingItems()
@@ -198,7 +192,7 @@ fun CreateStageScreen(
                                     .menuAnchor(MenuAnchorType.PrimaryEditable)
                                     .fillMaxSize(),
                                 readOnly = true,
-                                value = state.selectedForm?.second ?: "",
+                                value = state.selectedForm?.title ?: "",
                                 onValueChange = {},
                                 label = { Text(text = stringResource(id = R.string.form)) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -251,19 +245,13 @@ fun CreateStageScreen(
                         background = colorResource(id = R.color.main_green),
                         border = BorderStroke(0.dp, Color.Transparent),
                         action = {
-                            state.selectedForm?.let {
-                                viewModel.submitStage(
-                                    projectId = projectId,
-                                    formId = it.first,
-                                    successHandler = stageCreatedHandler
-                                )
-                            }
+                            viewModel.submitStage(successHandler = stageCreatedHandler)
                         }
                     )
                 }
             }
         }
-
         UiStatus.ERROR -> Toast.makeText(context, state.error!!, Toast.LENGTH_LONG).show()
+        else -> {}
     }
 }

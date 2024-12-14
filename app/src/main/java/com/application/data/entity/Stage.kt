@@ -6,6 +6,6 @@ data class Stage(
     var description: String? = null,
     var startDate: String? = null,
     var endDate: String? = null,
-    val formId: String? = null,
+    val formId: String,
     val projectOwnerId: String,
 )

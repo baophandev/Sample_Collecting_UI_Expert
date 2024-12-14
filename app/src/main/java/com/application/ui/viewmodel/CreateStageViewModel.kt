@@ -60,7 +60,7 @@ class CreateStageViewModel @Inject constructor(
         _state.update { it.copy(status = UiStatus.SUCCESS) }
     }
 
-    fun getProjectMember(projectId: String) {
+    fun fetchProjectMembers(projectId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             projectRepository.getProject(projectId).collectLatest { rsState ->
                 when (rsState) {
@@ -111,10 +111,10 @@ class CreateStageViewModel @Inject constructor(
     }
 
     fun selectForm(form: Form) {
-        _state.update { it.copy(selectedForm = Pair(form.id, form.title)) }
+        _state.update { it.copy(selectedForm = form) }
     }
 
-    fun submitStage(projectId: String, formId: String, successHandler: (Boolean) -> Unit) {
+    fun submitStage(successHandler: (Boolean) -> Unit) {
         if (!validateFields()) return
         val currentState = state.value
 
@@ -137,8 +137,7 @@ class CreateStageViewModel @Inject constructor(
                 description = currentState.description,
                 startDate = currentState.startDate,
                 endDate = currentState.endDate,
-                formId = formId,
-                projectOwnerId = projectId
+                form = currentState.selectedForm!!,
             ).collectLatest(collectAction)
         }
     }
@@ -158,6 +157,10 @@ class CreateStageViewModel @Inject constructor(
         } else if (currentState.startDate > currentState.endDate) {
             _state.update { it.copy(error = R.string.error_start_date_greater_than_end_date) }
             return false
-        } else return true
+        } else if (currentState.selectedForm == null) {
+            _state.update { it.copy(error = R.string.form_not_selected) }
+            return false
+        }
+        else return true
     }
 }

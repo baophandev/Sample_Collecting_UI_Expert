@@ -33,33 +33,37 @@ class CreateSampleViewModel @Inject constructor(
     private val _state = MutableStateFlow(CreateSampleUiState())
     val state = _state.asStateFlow()
 
-    fun loadForm(stageId: String) {
+    lateinit var stageId: String
+
+    fun loadFormFromStage(stageId: String) {
+        this.stageId = stageId
+
         viewModelScope.launch(Dispatchers.IO) {
             stageRepository.getStage(stageId)
                 .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
-                .collectLatest { resourceState ->
-                    when (resourceState) {
-                        is ResourceState.Error -> _state.update { it.copy(status = UiStatus.ERROR) }
+                .collectLatest { rsState ->
+                    when (rsState) {
+                        is ResourceState.Error -> _state.update {
+                            it.copy(status = UiStatus.ERROR, error = rsState.resId)
+                        }
+
                         is ResourceState.Success -> {
-                            val stage = resourceState.data
+                            val stage = rsState.data
                             val formId = stage.formId
 
-                            if (formId == null)
-                                _state.update { it.copy(status = UiStatus.SUCCESS) }
-                            else {
-                                val fieldResourceState = fieldRepository.getAllFields(formId).last()
-                                if (fieldResourceState is ResourceState.Success)
-                                    _state.update {
-                                        it.copy(
-                                            status = UiStatus.SUCCESS,
-                                            formId = formId,
-                                            answers = fieldResourceState.data.map { field ->
-                                                Answer(content = "", field = field)
-                                            }
-                                        )
-                                    }
-                                else _state.update {
-                                    it.copy(status = UiStatus.ERROR)
+                            when (val fieldRsState = fieldRepository.getAllFields(formId).last()) {
+                                is ResourceState.Error -> _state.update {
+                                    it.copy(status = UiStatus.ERROR, error = fieldRsState.resId)
+                                }
+
+                                is ResourceState.Success -> _state.update {
+                                    it.copy(
+                                        status = UiStatus.SUCCESS,
+                                        formId = formId,
+                                        answers = fieldRsState.data.map { field ->
+                                            Answer(content = "", field = field)
+                                        }
+                                    )
                                 }
                             }
                         }
@@ -68,15 +72,15 @@ class CreateSampleViewModel @Inject constructor(
         }
     }
 
+    fun loadSampleImage(sampleImage: Pair<String, Uri>) {
+        _state.update { it.copy(sampleImage = sampleImage) }
+    }
+
     fun gotError() {
         _state.update { it.copy(status = UiStatus.SUCCESS, error = null) }
     }
 
-    fun submitSample(
-        stageId: String,
-        sampleImage: Pair<String, Uri>,
-        result: (String) -> Unit,
-    ) {
+    fun submitSample(result: (String) -> Unit) {
         val currentState = state.value
         if (!validate()) {
             _state.update { it.copy(error = R.string.fields_not_validate) }
@@ -86,21 +90,21 @@ class CreateSampleViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             sampleRepository.createSample(
                 stageId = stageId,
-                attachmentUri = sampleImage.second,
+                attachmentUri = currentState.sampleImage!!.second,
                 position = "",
                 answers = currentState.answers,
                 dynamicFields = currentState.dynamicFields
             )
                 .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
-                .collectLatest { resourceState ->
-                    when (resourceState) {
+                .collectLatest { rsState ->
+                    when (rsState) {
                         is ResourceState.Error -> _state.update {
-                            it.copy(status = UiStatus.ERROR, error = resourceState.resId)
+                            it.copy(status = UiStatus.ERROR, error = rsState.resId)
                         }
 
                         is ResourceState.Success -> {
                             _state.update { it.copy(status = UiStatus.SUCCESS) }
-                            viewModelScope.launch { result(resourceState.data) }
+                            viewModelScope.launch { result(rsState.data) }
                         }
                     }
                 }

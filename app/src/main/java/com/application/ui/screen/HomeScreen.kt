@@ -49,7 +49,7 @@ fun HomeScreen(
     navigateToDetailProject: (String) -> Unit,
     navigateToWorkersQuestionScreen: () -> Unit,
     navigateToExpertChatScreen: () -> Unit,
-    signOutClick: () -> Unit
+    navigateToLogin: () -> Unit
 ) {
     val projectPagingItems = viewModel.flow.collectAsLazyPagingItems()
 
@@ -75,7 +75,7 @@ fun HomeScreen(
                 ) {
                     showLogoutDialog = false
                     Toast.makeText(context, signOut, Toast.LENGTH_SHORT).show()
-                    signOutClick()
+                    navigateToLogin()
                 }
             },
             dismissButton = {

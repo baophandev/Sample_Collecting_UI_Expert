@@ -61,15 +61,17 @@ import com.application.ui.viewmodel.StageDetailViewModel
 
 private enum class StageTab { DETAIL, PHOTOS }
 
+/**
+ * @param navigateToModifyStage (projectId, stageId) -> Unit
+ * @param navigateToSampleDetail (sampleId) -> Unit
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StageDetailScreen(
     viewModel: StageDetailViewModel = hiltViewModel(),
-    stageId: String,
     popBackToDetail: (Boolean) -> Unit,
-    deletedHandler: (Boolean) -> Unit,
-    navigateToModifyStage: () -> Unit,
-    navigateToCapture: () -> Unit,
+    navigateToModifyStage: (String, String) -> Unit,
+    navigateToCapture: (String) -> Unit,
     navigateToSampleDetail: (String) -> Unit
 ) {
     val context = LocalContext.current
@@ -91,18 +93,12 @@ fun StageDetailScreen(
         show = showDeleteDialog,
         onDismissRequest = { showDeleteDialog = false },
         onConfirmButtonClick = {
-            state.stage?.projectOwnerId?.let {
-                viewModel.deleteStage(
-                    projectOwnerId = it,
-                    stageId = stageId,
-                    successHandler = deletedHandler
-                )
-            }
+            showDeleteDialog = false
+            viewModel.deleteStage(successHandler = popBackToDetail)
         }
     )
 
     when (state.status) {
-        UiStatus.INIT -> viewModel.loadStage(stageId)
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
         UiStatus.SUCCESS -> {
             val sampleLazyPagingItems = viewModel.sampleFlow.collectAsLazyPagingItems()
@@ -189,7 +185,7 @@ fun StageDetailScreen(
                             }
                             Spacer(modifier = Modifier.size(40.dp))
                             Text(
-                                text = state.stage?.name ?: "Title",
+                                text = state.stage?.name ?: stringResource(R.string.unknown_stage),
                                 fontSize = 30.sp,
                                 color = Color.White
                             )
@@ -211,7 +207,13 @@ fun StageDetailScreen(
                                 textSize = 16.sp,
                                 background = MaterialTheme.colorScheme.primary,
                                 border = BorderStroke(0.dp, Color.Transparent),
-                                action = navigateToModifyStage
+                                action = {
+                                    val currentStage = state.stage!!
+                                    navigateToModifyStage(
+                                        currentStage.projectOwnerId,
+                                        currentStage.id
+                                    )
+                                }
                             )
                         }
 
@@ -222,7 +224,7 @@ fun StageDetailScreen(
                                 textSize = 16.sp,
                                 background = MaterialTheme.colorScheme.primary,
                                 border = BorderStroke(0.dp, Color.Transparent),
-                                action = navigateToCapture
+                                action = { navigateToCapture(state.stage!!.id) }
                             )
                         }
                     }
@@ -230,7 +232,7 @@ fun StageDetailScreen(
             }
         }
 
-        UiStatus.ERROR -> {}
+        else -> {}
     }
 }
 
