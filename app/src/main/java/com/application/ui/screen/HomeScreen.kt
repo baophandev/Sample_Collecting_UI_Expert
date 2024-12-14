@@ -45,11 +45,11 @@ import com.application.ui.viewmodel.HomeViewModel
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    navigateToLogin: () -> Unit,
     navigateToCreateProject: () -> Unit,
     navigateToDetailProject: (String) -> Unit,
     navigateToWorkersQuestionScreen: () -> Unit,
-    navigateToExpertChatScreen: () -> Unit
+    navigateToExpertChatScreen: () -> Unit,
+    signOutClick: () -> Unit
 ) {
     val projectPagingItems = viewModel.flow.collectAsLazyPagingItems()
 
@@ -75,7 +75,7 @@ fun HomeScreen(
                 ) {
                     showLogoutDialog = false
                     Toast.makeText(context, signOut, Toast.LENGTH_SHORT).show()
-                    navigateToLogin()
+                    signOutClick()
                 }
             },
             dismissButton = {
@@ -99,7 +99,7 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                TopBar(title = R.string.home_screen_title, signOutClicked = navigateToLogin)
+                TopBar(title = R.string.home_screen_title, signOutClicked = { showLogoutDialog = true })
             }
         },
         bottomBar = {

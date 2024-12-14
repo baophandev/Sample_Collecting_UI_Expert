@@ -162,6 +162,10 @@ class DetailViewModel @Inject constructor(
         }
     }
 
+    fun renewState() {
+        _state.update { DetailUiState() }
+    }
+
     companion object {
         const val TAG = "DetailViewModel"
     }

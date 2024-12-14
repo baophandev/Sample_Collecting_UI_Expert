@@ -103,7 +103,10 @@ fun AppNavigationGraph(
             }
 
             HomeScreen(
-                navigateToLogin = popBackToLogin,
+                signOutClick = {
+                    detailScreenViewModel.renewState()
+                    popBackToLogin()
+                },
                 navigateToCreateProject = navigateToCreateProject,
                 navigateToDetailProject = navigateToDetailProject,
                 navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
