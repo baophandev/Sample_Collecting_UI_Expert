@@ -104,6 +104,7 @@
     <string name="error_cannot_get_user_by_email">Không thể tải dữ liệu của người dùng từ server</string>
     <string name="error_not_a_member_of_project">Email vừa nhập không phải là một thành viên của dự án</string>
     <string name="error_cannot_get_member_of_project">Lỗi không thể lấy danh sách thành viên của dự án</string>
+    <string name="error_is_a_member_of_project">Email vừa nhập đã là một thành viên của dự án</string>
 
 
 

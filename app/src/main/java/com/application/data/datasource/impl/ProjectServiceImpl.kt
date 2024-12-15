@@ -11,6 +11,7 @@ import com.application.data.entity.request.CreateStageRequest
 import com.application.data.entity.request.UpdateDynamicFieldRequest
 import com.application.data.entity.request.UpdateFieldRequest
 import com.application.data.entity.request.UpdateFormRequest
+import com.application.data.entity.request.UpdateMemberRequest
 import com.application.data.entity.request.UpdateProjectRequest
 import com.application.data.entity.request.UpdateStageRequest
 import com.application.data.entity.response.FieldResponse
@@ -73,6 +74,17 @@ class ProjectServiceImpl(
         val response = client.patch(urlString = "project/$projectId") {
             contentType(ContentType.Application.Json)
             setBody(updateRequestData)
+        }
+        return response.status == HttpStatusCode.NoContent
+    }
+
+    override suspend fun updateProjectMember(
+        projectId: String,
+        updateMemberRequest: UpdateMemberRequest
+    ): Boolean {
+        val response = client.patch(urlString = "project/$projectId/member") {
+            contentType(ContentType.Application.Json)
+            setBody(updateMemberRequest)
         }
         return response.status == HttpStatusCode.NoContent
     }

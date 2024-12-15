@@ -230,7 +230,7 @@ fun ModifyProjectScreen(
                     ) { viewModel.updateDate(date = it, isStartDate = false) }
                 }
 
-                if (state.memberUsernames.isEmpty()) {
+                if (state.projectUsers.isEmpty()) {
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
@@ -253,9 +253,13 @@ fun ModifyProjectScreen(
                     }
                 } else {
                     FieldToList(
-                        fieldDataList = state.memberUsernames,
+                        fieldDataList = state.projectUsers.map { it.email },
                         textValidator = { email -> email.contains(RegexValidation.EMAIL) },
-                        onAddField = {},
+                        onAddField = { newEmailMember ->
+                            viewModel.addNewProjectMember(
+                                newEmailMember
+                            )
+                        },
                         onRemoveField = {}
                     )
                 }
