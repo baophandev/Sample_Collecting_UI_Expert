@@ -23,13 +23,14 @@ object ServiceModule {
     @Singleton
     fun provideUserService() : IUserService {
         val baseUrl = "http://${ServiceHost.GATEWAY_SERVER}/api/v1/user/"
-        return UserServiceImpl(baseUrl)
+        return UserServiceImpl(baseUrl = baseUrl, timeout = 50000)
     }
 
     @Provides
     @Singleton
     fun provideProjectService() : IProjectService {
-        return ProjectServiceImpl()
+        val baseUrl = "http://${ServiceHost.GATEWAY_SERVER}/api/v1/"
+        return ProjectServiceImpl(baseUrl = baseUrl, timeout = 50000)
     }
 
     @Provides
@@ -43,7 +44,7 @@ object ServiceModule {
     @Singleton
     fun provideAttachmentService() : IAttachmentService {
         val baseUrl = "http://${ServiceHost.GATEWAY_SERVER}/api/file/"
-        return AttachmentServiceImpl(baseUrl)
+        return AttachmentServiceImpl(baseUrl = baseUrl, timeout = 50000)
     }
 
 }

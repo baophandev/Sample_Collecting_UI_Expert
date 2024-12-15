@@ -67,11 +67,9 @@ import com.sc.library.utility.validate.RegexValidation
 @Composable
 fun ModifyStageScreen(
     viewModel: ModifyStageViewModel = hiltViewModel(),
-    projectId: String,
-    stageId: String,
-    popBackToLogin: () -> Unit,
-    popBackToHome: () -> Unit,
-    postUpdatedHandler: (Boolean) -> Unit,
+    navigateToLogin: () -> Unit,
+    navigateToHome: () -> Unit,
+    navigateToStageDetail: (Boolean) -> Unit,
     navigateToWorkersQuestionScreen: () -> Unit,
     navigateToExpertChatScreen: () -> Unit
 ) {
@@ -94,10 +92,6 @@ fun ModifyStageScreen(
         }
     }
     when (state.status) {
-        UiStatus.INIT -> {
-            viewModel.loadStage(projectId, stageId)
-        }
-
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
         UiStatus.SUCCESS -> {
             val formLazyPagingItems = viewModel.flow.collectAsLazyPagingItems()
@@ -124,7 +118,7 @@ fun ModifyStageScreen(
                     )
                 },
                 topBar = {
-                    TopBar(title = R.string.modify_stage, signOutClicked = popBackToLogin)
+                    TopBar(title = R.string.modify_stage, signOutClicked = navigateToLogin)
                 },
                 bottomBar = {
                     BotNavigationBar(
@@ -135,7 +129,7 @@ fun ModifyStageScreen(
                         IconButton(
                             modifier = Modifier.size(50.dp),
 
-                            onClick = popBackToHome
+                            onClick = navigateToHome
                         ) {
                             Icon(
                                 modifier = Modifier.fillMaxSize(.60f),
@@ -273,7 +267,7 @@ fun ModifyStageScreen(
                         background = colorResource(id = R.color.main_green),
                         border = BorderStroke(0.dp, Color.Transparent),
                         action = {
-                            viewModel.submit(successHandler = postUpdatedHandler)
+                            viewModel.submit(successHandler = navigateToStageDetail)
                         }
                     )
                 }
@@ -281,5 +275,6 @@ fun ModifyStageScreen(
         }
 
         UiStatus.ERROR -> Toast.makeText(context, state.error!!, Toast.LENGTH_LONG).show()
+        else -> {}
     }
 }

@@ -73,7 +73,7 @@ import java.util.Locale
 fun CaptureScreen(
     viewModel: CaptureViewModel = hiltViewModel(),
     popBackToStage: () -> Unit,
-    navigateToCreateSample: (Pair<String, Uri>) -> Unit
+    navigateToCreateSample: (String, Pair<String, Uri>) -> Unit
 ) {
     val context = LocalContext.current
     val controller = remember {
@@ -124,11 +124,9 @@ fun CaptureScreen(
                 },
                 onPhotosDeleted = { removeList ->
                     removeList.forEach { id ->
-                        sampleImages.find { it.first == id }
-                            ?.let { pair ->
-                                if (deleteImage(context, pair.second))
-                                    sampleImages.remove(pair)
-                            }
+                        sampleImages.find { it.first == id }?.let { pair ->
+                            if (deleteImage(context, pair.second)) sampleImages.remove(pair)
+                        }
                     }
                 }
             )
@@ -320,7 +318,7 @@ fun CaptureScreen(
                             shape = RoundedCornerShape(25.dp),
                             onClick = {
                                 val image = sampleImages[activeImageIdx!!]
-                                navigateToCreateSample(image)
+                                navigateToCreateSample(viewModel.stageId, image)
                             }
                         ) {
                             Text(

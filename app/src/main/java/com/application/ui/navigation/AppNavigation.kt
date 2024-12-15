@@ -2,8 +2,6 @@ package com.application.ui.navigation
 
 import android.net.Uri
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -27,16 +25,36 @@ import com.application.ui.screen.PostAnswerScreen
 import com.application.ui.screen.SampleDetailScreen
 import com.application.ui.screen.StageDetailScreen
 import com.application.ui.screen.WorkersQuestionScreen
+import com.application.ui.viewmodel.CaptureViewModel
+import com.application.ui.viewmodel.CreateFormViewModel
+import com.application.ui.viewmodel.CreateSampleViewModel
+import com.application.ui.viewmodel.CreateStageViewModel
+import com.application.ui.viewmodel.DetailViewModel
+import com.application.ui.viewmodel.HomeViewModel
+import com.application.ui.viewmodel.ModifyFormViewModel
+import com.application.ui.viewmodel.ModifyProjectViewModel
+import com.application.ui.viewmodel.ModifyStageViewModel
+import com.application.ui.viewmodel.SampleDetailViewModel
+import com.application.ui.viewmodel.StageDetailViewModel
 
 fun NavHostController.navigateSingleTop(route: String) {
     this.navigate(route) { launchSingleTop = true }
 }
 
 @Composable
-fun AppNavigationGraph(
-    viewModel: NavigationViewModel = hiltViewModel()
-) {
-    val state by viewModel.state.collectAsState()
+fun AppNavigationGraph() {
+    val homeScreenVM: HomeViewModel = hiltViewModel()
+    val detailVM: DetailViewModel = hiltViewModel()
+    val modifyProjectVM: ModifyProjectViewModel = hiltViewModel()
+    val stageDetailVM: StageDetailViewModel = hiltViewModel()
+    val createStageVM: CreateStageViewModel = hiltViewModel()
+    val modifyStageVM: ModifyStageViewModel = hiltViewModel()
+    val createFormVM: CreateFormViewModel = hiltViewModel()
+    val modifyFormVM: ModifyFormViewModel = hiltViewModel()
+    val sampleDetailVM: SampleDetailViewModel = hiltViewModel()
+    val captureVM: CaptureViewModel = hiltViewModel()
+    val createSampleVM: CreateSampleViewModel = hiltViewModel()
+
     val navController = rememberNavController()
 
     val navigateToExpertChatsScreen: () -> Unit = {
@@ -48,36 +66,33 @@ fun AppNavigationGraph(
     }
 
     val popBackToLogin: () -> Unit = {
+        detailVM.renewState()
         navController.popBackStack(
             Routes.LOGIN_SCREEN,
             inclusive = false,
             saveState = false
         )
     }
-    val popBackToHome: () -> Unit = {
+    val popBackToHomeScreen: () -> Unit = {
         navController.popBackStack(
             Routes.HOME_SCREEN,
             inclusive = false,
             saveState = false
         )
     }
-    val popBackToDetail: () -> Unit = {
+    val popBackToDetailScreen: () -> Unit = {
         navController.popBackStack(
             route = Routes.DETAIL_SCREEN,
             inclusive = false,
             saveState = false
         )
     }
-    val popBackToStage: () -> Unit = {
+    val popBackToStageDetailScreen: () -> Unit = {
         navController.popBackStack(
             route = Routes.STAGE_DETAIL_SCREEN,
             inclusive = false,
             saveState = false
         )
-    }
-
-    val onReloadSuccessfully: (Boolean) -> Unit = {
-        viewModel.updateState(state.copy(reloadSignal = ReloadSignal.NONE))
     }
 
     NavHost(
@@ -95,11 +110,14 @@ fun AppNavigationGraph(
                 navController.navigateSingleTop(Routes.CREATE_PROJECT_SCREEN)
             }
             val navigateToDetailProject: (String) -> Unit = { projectId ->
-                viewModel.updateState(state.copy(currentProjectId = projectId))
+                detailVM.fetchProject(projectId = projectId)
+                detailVM.fetchForms(projectId = projectId)
+                detailVM.fetchStages(projectId = projectId)
                 navController.navigateSingleTop(Routes.DETAIL_SCREEN)
             }
 
             HomeScreen(
+                viewModel = homeScreenVM,
                 navigateToLogin = popBackToLogin,
                 navigateToCreateProject = navigateToCreateProject,
                 navigateToDetailProject = navigateToDetailProject,
@@ -108,241 +126,193 @@ fun AppNavigationGraph(
             )
         }
 
+        composable(route = Routes.DETAIL_SCREEN) {
+            val navigateToModify: (String) -> Unit = { projectIdToModify ->
+                modifyProjectVM.loadProject(projectIdToModify)
+                navController.navigateSingleTop(Routes.MODIFY_PROJECT_SCREEN)
+            }
+            val navigateToStageDetail: (String) -> Unit = { stageId ->
+                stageDetailVM.loadStage(stageId)
+                navController.navigateSingleTop(Routes.STAGE_DETAIL_SCREEN)
+            }
+            val navigateToCreateStage: (String) -> Unit = { projectId ->
+                createStageVM.fetchForms(projectId = projectId)
+                createStageVM.fetchProjectMembers(projectId = projectId)
+                navController.navigateSingleTop(Routes.CREATE_STAGE_SCREEN)
+            }
+            val navigateToCreateForm: (String) -> Unit = { projectId ->
+                createFormVM.fetchProject(projectId = projectId)
+                navController.navigateSingleTop(Routes.CREATE_FORM_SCREEN)
+            }
+            val navigateToModifyForm: (String) -> Unit = { formId ->
+                modifyFormVM.loadModifiedForm(formId)
+                modifyFormVM.loadAllModifiedFields(formId)
+                navController.navigateSingleTop(Routes.MODIFY_FORM_SCREEN)
+            }
+
+            DetailScreen(
+                viewModel = detailVM,
+                navigateToHome = { isDeleted ->
+                    if (isDeleted) homeScreenVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
+                    popBackToHomeScreen()
+                },
+                navigateToModifyProject = navigateToModify,
+                navigateToStageDetail = navigateToStageDetail,
+                navigateToCreateStage = navigateToCreateStage,
+                navigateToCreateForm = navigateToCreateForm,
+                navigateToModifyForm = navigateToModifyForm,
+            )
+        }
+
         composable(Routes.CREATE_PROJECT_SCREEN) {
             CreateProjectScreen(
                 navigateToLogin = popBackToLogin,
-                navigateToHome = {
-                    // need to check reload
-                    popBackToHome()
+                navigateToHome = { isCreated ->
+                    if (isCreated) homeScreenVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
+                    popBackToHomeScreen()
                 },
                 navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
                 navigateToExpertChatScreen = navigateToExpertChatsScreen
             )
         }
 
-        composable(route = Routes.DETAIL_SCREEN) {
-            val projectId = state.currentProjectId
-
-            if (projectId != null) {
-                val navigateToModify: (String) -> Unit = { projectIdToModify ->
-                    viewModel.updateState(state.copy(currentProjectId = projectIdToModify))
-                    navController.navigateSingleTop(Routes.MODIFY_PROJECT_SCREEN)
-                }
-                val navigateToStageDetail: (String) -> Unit = { stageId ->
-                    viewModel.updateState(state.copy(currentStageId = stageId))
-                    navController.navigateSingleTop(Routes.STAGE_DETAIL_SCREEN)
-                }
-                val navigateToAddStage: () -> Unit = {
-                    navController.navigateSingleTop(Routes.ADD_STAGE_SCREEN)
-                }
-                val navigateToAddForm: () -> Unit = {
-                    navController.navigateSingleTop(Routes.ADD_FORM_SCREEN)
-                }
-                val navigateToModifyForm: (String) -> Unit = { formId ->
-                    viewModel.updateState(state.copy(currentFormId = formId))
-                    navController.navigateSingleTop(Routes.MODIFY_FORM_SCREEN)
-                }
-
-                DetailScreen(
-                    projectId = projectId,
-                    reloadSignal = state.reloadSignal,
-                    onReloadSuccessfully = onReloadSuccessfully,
-                    navigateToHome = popBackToHome,
-                    navigateToModifyProject = navigateToModify,
-                    navigateToStageDetail = navigateToStageDetail,
-                    navigateToAddStage = navigateToAddStage,
-                    navigateToAddForm = navigateToAddForm,
-                    navigateToModifyForm = navigateToModifyForm,
-                )
-            }
+        composable(Routes.MODIFY_PROJECT_SCREEN) {
+            ModifyProjectScreen(
+                viewModel = modifyProjectVM,
+                navigateToLogin = popBackToLogin,
+                navigateToHome = popBackToHomeScreen,
+                navigateToDetail = { isModified ->
+                    if (isModified) detailVM.reload(ReloadSignal.RELOAD_PROJECT)
+                    popBackToDetailScreen()
+                },
+                navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
+                navigateToExpertChatScreen = navigateToExpertChatsScreen
+            )
         }
 
         composable(Routes.STAGE_DETAIL_SCREEN) {
-            val stageId = state.currentStageId
-
-            if (stageId != null) {
-                val navigateToModifyStage: () -> Unit = {
-                    navController.navigateSingleTop(Routes.MODIFY_STAGE_SCREEN)
-                }
-                val navigateToCapture: () -> Unit = {
-                    navController.navigateSingleTop(Routes.CAPTURE_SCREEN)
-                }
-                val navigateToSampleDetail: (String) -> Unit = { sampleId ->
-                    viewModel.updateState(state.copy(currentSampleId = sampleId))
-                    navController.navigateSingleTop(Routes.SAMPLE_DETAIL_SCREEN)
-                }
-
-                StageDetailScreen(
-                    reloadSignal = state.reloadSignal,
-                    onReloadSuccessfully = onReloadSuccessfully,
-                    deletedHandler = { isDeleted ->
-                        if (isDeleted) viewModel
-                            .updateState(state.copy(reloadSignal = ReloadSignal.RELOAD_STAGE))
-                        popBackToDetail()
-                    },
-                    popBackToDetail = { isUpdated ->
-                        if (isUpdated) viewModel
-                            .updateState(state.copy(reloadSignal = ReloadSignal.RELOAD_STAGE))
-                        popBackToDetail()
-                    },
-                    stageId = stageId,
-                    navigateToModifyStage = navigateToModifyStage,
-                    navigateToCapture = navigateToCapture,
-                    navigateToSampleDetail = navigateToSampleDetail
-
-                )
+            val navigateToModifyStage: (String, String) -> Unit = { projectId, stageId ->
+                modifyStageVM.loadStage(projectId, stageId)
+                navController.navigateSingleTop(Routes.MODIFY_STAGE_SCREEN)
             }
+            val navigateToCapture: (String) -> Unit = { stageId ->
+                captureVM.loadStage(stageId)
+                navController.navigateSingleTop(Routes.CAPTURE_SCREEN)
+            }
+            val navigateToSampleDetail: (String) -> Unit = { sampleId ->
+                sampleDetailVM.loadSample(sampleId)
+                navController.navigateSingleTop(Routes.SAMPLE_DETAIL_SCREEN)
+            }
+
+            StageDetailScreen(
+                viewModel = stageDetailVM,
+                navigateToDetail = { isUpdated ->
+                    if (isUpdated) detailVM.reload(ReloadSignal.RELOAD_STAGE)
+                    popBackToDetailScreen()
+                },
+                navigateToModifyStage = navigateToModifyStage,
+                navigateToCapture = navigateToCapture,
+                navigateToSampleDetail = navigateToSampleDetail
+            )
+        }
+
+        composable(Routes.CREATE_STAGE_SCREEN) {
+            CreateStageScreen(
+                viewModel = createStageVM,
+                navigateToDetail = { isCreated ->
+                    if (isCreated) detailVM.reload(ReloadSignal.RELOAD_STAGE)
+                    popBackToDetailScreen()
+                },
+                navigateToLogin = popBackToLogin,
+                navigateToHome = popBackToHomeScreen,
+                navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
+                navigateToExpertChatScreen = navigateToExpertChatsScreen
+            )
+        }
+
+        composable(Routes.MODIFY_STAGE_SCREEN) {
+            ModifyStageScreen(
+                viewModel = modifyStageVM,
+                navigateToLogin = popBackToLogin,
+                navigateToHome = popBackToHomeScreen,
+                navigateToStageDetail = { isUpdated ->
+                    if (isUpdated) {
+                        stageDetailVM.reload(ReloadSignal.RELOAD_STAGE)
+                        detailVM.reload(ReloadSignal.RELOAD_STAGE)
+                    }
+                    popBackToStageDetailScreen()
+                },
+                navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
+                navigateToExpertChatScreen = navigateToExpertChatsScreen
+            )
+        }
+
+        composable(Routes.CREATE_FORM_SCREEN) {
+            CreateFormScreen(
+                viewModel = createFormVM,
+                navigateToDetail = { isCreated ->
+                    if (isCreated) detailVM.reload(ReloadSignal.RELOAD_FORM)
+                    popBackToDetailScreen()
+                },
+                navigateToLogin = popBackToLogin,
+                navigateToHome = popBackToHomeScreen,
+                navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
+                navigateToExpertChatScreen = navigateToExpertChatsScreen
+            )
+        }
+
+        composable(Routes.MODIFY_FORM_SCREEN) {
+            ModifyFormScreen(
+                viewModel = modifyFormVM,
+                popBackToLogin = popBackToLogin,
+                popBackToHome = popBackToHomeScreen,
+                popBackToDetail = { isUpdated ->
+                    if (isUpdated) detailVM.reload(ReloadSignal.RELOAD_FORM)
+                    popBackToDetailScreen()
+                },
+                navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
+                navigateToExpertChatScreen = navigateToExpertChatsScreen
+            )
         }
 
         composable(Routes.SAMPLE_DETAIL_SCREEN) {
-            state.currentSampleId?.let { sampleId ->
-                val popBackToStageDetail: () -> Unit = {
-                    navController.popBackStack(
-                        route = Routes.STAGE_DETAIL_SCREEN,
-                        inclusive = false,
-                        saveState = false
-                    )
-                }
-
-                SampleDetailScreen(
-                    sampleId = sampleId,
-                    navigateToStageDetail = popBackToStageDetail
-                )
-            }
-        }
-
-        composable(Routes.ADD_FORM_SCREEN) {
-            val projectId = state.currentProjectId
-
-            if (projectId != null) {
-                CreateFormScreen(
-                    projectId = projectId,
-                    postCreatedHandler = { isCreated ->
-                        if (isCreated) viewModel
-                            .updateState(state.copy(reloadSignal = ReloadSignal.RELOAD_FORM))
-                        popBackToDetail()
-                    },
-                    navigateToLogin = popBackToLogin,
-                    navigateToHome = popBackToHome,
-                    navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
-                    navigateToExpertChatScreen = navigateToExpertChatsScreen
-                )
-            }
-        }
-
-        composable(Routes.ADD_STAGE_SCREEN) {
-            val projectId = state.currentProjectId
-
-            if (projectId != null) {
-                CreateStageScreen(
-                    projectId = projectId,
-                    postCreatedHandler = { isCreated ->
-                        if (isCreated) viewModel
-                            .updateState(state.copy(reloadSignal = ReloadSignal.RELOAD_STAGE))
-                        popBackToDetail()
-                    },
-                    navigateToLogin = popBackToLogin,
-                    navigateToHome = popBackToHome,
-                    navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
-                    navigateToExpertChatScreen = navigateToExpertChatsScreen
-                )
-            }
+            SampleDetailScreen(
+                viewModel = sampleDetailVM,
+                navigateToStageDetail = popBackToStageDetailScreen
+            )
         }
 
         composable(Routes.CAPTURE_SCREEN) {
-            val navigateToCreateSample: (Pair<String, Uri>) -> Unit = { sample ->
-                viewModel.updateState(state.copy(newSample = sample))
+            val navigateToCreateSample: (String, Pair<String, Uri>) -> Unit = { stageId, sample ->
+                createSampleVM.loadFormFromStage(stageId)
+                createSampleVM.loadSampleImage(sample)
                 navController.navigateSingleTop(Routes.CREATE_SAMPLE_SCREEN)
             }
 
             CaptureScreen(
-                popBackToStage = popBackToStage,
+                viewModel = captureVM,
+                popBackToStage = {
+                    stageDetailVM.reload(ReloadSignal.RELOAD_ALL_SAMPLES)
+                    popBackToStageDetailScreen()
+                },
                 navigateToCreateSample = navigateToCreateSample
             )
         }
 
         composable(Routes.CREATE_SAMPLE_SCREEN) {
-            val stageId = state.currentStageId
-            val newSample = state.newSample
-
-            if (stageId != null && newSample != null) {
-                val navigateToCapture: (String?) -> Unit = { imageName ->
-                    navController.previousBackStackEntry?.savedStateHandle?.set(
-                        key = Routes.SAMPLE_STACK_KEY,
-                        value = imageName
-                    )
-                    navController.popBackStack(
-                        route = Routes.CAPTURE_SCREEN,
-                        inclusive = false,
-                        saveState = false
-                    )
-                }
-
-                CreateSampleScreen(
-                    stageId = stageId,
-                    newSample = newSample,
-                    navigateToCapture = navigateToCapture,
+            val navigateToCapture: (String?) -> Unit = {
+                it?.let(captureVM::removeCreatedSampleImage)
+                navController.popBackStack(
+                    route = Routes.CAPTURE_SCREEN,
+                    inclusive = false,
+                    saveState = false
                 )
             }
-        }
 
-        composable(Routes.MODIFY_PROJECT_SCREEN) {
-            val projectId = state.currentProjectId
-
-            if (projectId != null) {
-                ModifyProjectScreen(
-                    projectId = projectId,
-                    popBackToLogin = popBackToLogin,
-                    popBackToHome = popBackToHome,
-                    postUpdatedHandler = { isUpdated ->
-                        if (isUpdated) viewModel
-                            .updateState(state.copy(reloadSignal = ReloadSignal.RELOAD_PROJECT))
-                        popBackToDetail()
-                    },
-                    navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
-                    navigateToExpertChatScreen = navigateToExpertChatsScreen
-                )
-            }
-        }
-
-        composable(Routes.MODIFY_STAGE_SCREEN) {
-            val stageId = state.currentStageId
-            val projectId = state.currentProjectId
-
-            if (stageId != null && projectId != null) {
-                ModifyStageScreen(
-                    projectId = projectId,
-                    stageId = stageId,
-                    popBackToLogin = popBackToLogin,
-                    popBackToHome = popBackToHome,
-                    postUpdatedHandler = { isUpdated ->
-                        if (isUpdated) viewModel
-                            .updateState(state.copy(reloadSignal = ReloadSignal.RELOAD_STAGE))
-                        popBackToStage()
-                    },
-                    navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
-                    navigateToExpertChatScreen = navigateToExpertChatsScreen
-                )
-            }
-        }
-
-        composable(Routes.MODIFY_FORM_SCREEN) {
-            val formId = state.currentFormId
-
-            if (formId != null) {
-                ModifyFormScreen(
-                    formId = formId,
-                    popBackToLogin = popBackToLogin,
-                    popBackToHome = popBackToHome,
-                    popBackToDetail = { isUpdated ->
-                        if (isUpdated) viewModel
-                            .updateState(state.copy(reloadSignal = ReloadSignal.RELOAD_FORM))
-                        popBackToDetail()
-                    },
-                    navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
-                    navigateToExpertChatScreen = navigateToExpertChatsScreen
-                )
-            }
+            CreateSampleScreen(
+                viewModel = createSampleVM,
+                navigateToCapture = navigateToCapture,
+            )
         }
 
         composable(Routes.WORKERS_QUESTION_SCREEN) {
@@ -350,8 +320,7 @@ fun AppNavigationGraph(
                 navController.navigateSingleTop(Routes.POST_ANSWER_SCREEN)
             }
             WorkersQuestionScreen(
-                navigateToHome = { popBackToHome() },
-                navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
+                navigateToHome = { popBackToHomeScreen() },
                 navigateToExpertChatScreen = navigateToExpertChatsScreen,
                 navigateToPostAnswerScreen = navigateToPostAnswerScreen
             )
@@ -362,7 +331,7 @@ fun AppNavigationGraph(
                 navController.navigateSingleTop(Routes.CHAT_SCREEN)
             }
             ExpertChatsScreen(
-                navigateToHome = { popBackToHome() },
+                navigateToHome = { popBackToHomeScreen() },
                 navigateToChat = navigateToChatScreen
             )
         }

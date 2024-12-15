@@ -58,7 +58,6 @@ import com.application.ui.viewmodel.ModifyFormViewModel
 @Composable
 fun ModifyFormScreen(
     viewModel: ModifyFormViewModel = hiltViewModel(),
-    formId: String,
     popBackToLogin: () -> Unit,
     popBackToHome: () -> Unit,
     popBackToDetail: (Boolean) -> Unit,
@@ -83,11 +82,6 @@ fun ModifyFormScreen(
         }
     }
     when (state.status) {
-        UiStatus.INIT -> {
-            viewModel.loadModifiedForm(formId)
-            viewModel.loadAllModifiedFields(formId)
-        }
-
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
         UiStatus.SUCCESS -> Scaffold(
             snackbarHost = {
@@ -216,6 +210,10 @@ fun ModifyFormScreen(
             }
         }
 
-        UiStatus.ERROR -> Toast.makeText(context, state.error!!, Toast.LENGTH_LONG).show()
+        UiStatus.ERROR -> {
+            Toast.makeText(context, state.error!!, Toast.LENGTH_LONG).show()
+            popBackToDetail(false)
+        }
+        else -> {}
     }
 }

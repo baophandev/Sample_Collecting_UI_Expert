@@ -45,6 +45,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.application.R
 import com.application.constant.UiStatus
 import com.application.ui.component.BotNavigationBar
@@ -57,14 +58,16 @@ import com.application.ui.component.TopBar
 import com.application.ui.viewmodel.CreateStageViewModel
 import com.sc.library.utility.validate.RegexValidation
 
+/**
+ * @param navigateToDetail (isStageCreated) -> Unit
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateStageScreen(
     viewModel: CreateStageViewModel = hiltViewModel(),
-    projectId: String,
     navigateToLogin: () -> Unit,
     navigateToHome: () -> Unit,
-    postCreatedHandler: (Boolean) -> Unit,
+    navigateToDetail: (Boolean) -> Unit,
     navigateToWorkersQuestionScreen: () -> Unit,
     navigateToExpertChatScreen: () -> Unit
 ) {
@@ -85,9 +88,10 @@ fun CreateStageScreen(
         }
     }
     when (state.status) {
-        UiStatus.INIT -> viewModel.initialize(projectId)
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.creating_stage))
         UiStatus.SUCCESS -> {
+            val formPagingItems = viewModel.formFlow.collectAsLazyPagingItems()
+
             Scaffold(
                 modifier = Modifier,
                 snackbarHost = {
@@ -109,7 +113,12 @@ fun CreateStageScreen(
                         }
                     )
                 },
-                topBar = { TopBar(title = R.string.create_stage, signOutClicked = navigateToLogin) },
+                topBar = {
+                    TopBar(
+                        title = R.string.create_stage,
+                        signOutClicked = navigateToLogin
+                    )
+                },
                 bottomBar = {
                     BotNavigationBar(
                         modifier = Modifier.padding(vertical = 10.dp),
@@ -186,7 +195,7 @@ fun CreateStageScreen(
                                     .menuAnchor(MenuAnchorType.PrimaryEditable)
                                     .fillMaxSize(),
                                 readOnly = true,
-                                value = state.selectedForm?.second ?: "",
+                                value = state.selectedForm?.title ?: "",
                                 onValueChange = {},
                                 label = { Text(text = stringResource(id = R.string.form)) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -202,29 +211,34 @@ fun CreateStageScreen(
                                 onDismissRequest = { expanded = false },
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
-                                state.forms.forEachIndexed { idx, form ->
-                                    DropdownMenuItem(
-                                        text = { Text(form.title) },
-                                        onClick = {
-                                            expanded = false
-                                            viewModel.selectForm(idx)
-                                        },
-                                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                                    )
+                                formPagingItems.itemSnapshotList.forEach {
+                                    it?.let { form ->
+                                        DropdownMenuItem(
+                                            text = { Text(text = form.title) },
+                                            onClick = {
+                                                expanded = false
+                                                viewModel.selectForm(form)
+                                            },
+                                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
 
                     FieldToList(
-                        fieldDataList = state.emailMembers,
+                        fieldDataList = state.selectedUsers.map { it.email },
                         textValidator = { email ->
-                            email.contains(RegexValidation.EMAIL) &&
-                                    state.emailMembers.contains(email)
+                            email.contains(RegexValidation.EMAIL)
                         },
                         listHeight = 180.dp,
-                        onAddField = { newEmailMember -> viewModel.updateEmailMember(newEmailMember) },
-                        onRemoveField = { index -> viewModel.removeMemberId(index) }
+                        onAddField = { newEmailMember ->
+                            viewModel.addStageMemberEmail(
+                                newEmailMember
+                            )
+                        },
+                        onRemoveField = { index -> viewModel.removeMemberEmail(index) }
                     )
 
                     CustomButton(
@@ -234,18 +248,13 @@ fun CreateStageScreen(
                         background = colorResource(id = R.color.main_green),
                         border = BorderStroke(0.dp, Color.Transparent),
                         action = {
-                            state.selectedForm?.let {
-                                viewModel.submitStage(
-                                    projectId = projectId,
-                                    formId = it.first,
-                                    successHandler = postCreatedHandler
-                                )
-                            }
+                            viewModel.submit { navigateToDetail(true) }
                         }
                     )
                 }
             }
         }
         UiStatus.ERROR -> Toast.makeText(context, state.error!!, Toast.LENGTH_LONG).show()
+        else -> {}
     }
 }

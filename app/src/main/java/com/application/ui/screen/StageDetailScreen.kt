@@ -52,7 +52,6 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
-import com.application.constant.ReloadSignal
 import com.application.constant.UiStatus
 import com.application.data.entity.Sample
 import com.application.ui.component.CustomButton
@@ -62,17 +61,17 @@ import com.application.ui.viewmodel.StageDetailViewModel
 
 private enum class StageTab { DETAIL, PHOTOS }
 
+/**
+ * @param navigateToModifyStage (projectId, stageId) -> Unit
+ * @param navigateToSampleDetail (sampleId) -> Unit
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StageDetailScreen(
     viewModel: StageDetailViewModel = hiltViewModel(),
-    stageId: String,
-    reloadSignal: ReloadSignal,
-    onReloadSuccessfully: (Boolean) -> Unit,
-    popBackToDetail: (Boolean) -> Unit,
-    deletedHandler: (Boolean) -> Unit,
-    navigateToModifyStage: () -> Unit,
-    navigateToCapture: () -> Unit,
+    navigateToDetail: (Boolean) -> Unit,
+    navigateToModifyStage: (String, String) -> Unit,
+    navigateToCapture: (String) -> Unit,
     navigateToSampleDetail: (String) -> Unit
 ) {
     val context = LocalContext.current
@@ -90,38 +89,19 @@ fun StageDetailScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showAddPhoto by remember { mutableStateOf(true) }
 
-    if (reloadSignal != ReloadSignal.NONE) {
-        when (reloadSignal) {
-            ReloadSignal.RELOAD_STAGE ->
-                viewModel.loadStage(
-                    stageId = stageId,
-                    skipCached = true,
-                    onComplete = onReloadSuccessfully
-                )
-
-            else -> {}
-        }
-    }
-
     DeleteStageAlertDialog(
         show = showDeleteDialog,
         onDismissRequest = { showDeleteDialog = false },
         onConfirmButtonClick = {
-            state.stage?.projectOwnerId?.let {
-                viewModel.deleteStage(
-                    projectOwnerId = it,
-                    stageId = stageId,
-                    successHandler = deletedHandler
-                )
-            }
+            showDeleteDialog = false
+            viewModel.deleteStage(successHandler = navigateToDetail)
         }
     )
 
     when (state.status) {
-        UiStatus.INIT -> viewModel.loadStage(stageId)
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
         UiStatus.SUCCESS -> {
-            val sampleLazyPagingItems = viewModel.flow.collectAsLazyPagingItems()
+            val sampleLazyPagingItems = viewModel.sampleFlow.collectAsLazyPagingItems()
 
             Box {
                 BottomSheetScaffold(
@@ -180,7 +160,7 @@ fun StageDetailScreen(
                         ) {
                             TopNavigationBar(
                                 backAction = {
-                                    viewModel.updateStageInDetail(successHandler = popBackToDetail)
+                                    viewModel.updateStageInDetail(successHandler = navigateToDetail)
                                 }
                             ) {
                                 if (viewModel.isProjectOwner()) {
@@ -205,7 +185,7 @@ fun StageDetailScreen(
                             }
                             Spacer(modifier = Modifier.size(40.dp))
                             Text(
-                                text = state.stage?.name ?: "Title",
+                                text = state.stage?.name ?: stringResource(R.string.unknown_stage),
                                 fontSize = 30.sp,
                                 color = Color.White
                             )
@@ -227,7 +207,13 @@ fun StageDetailScreen(
                                 textSize = 16.sp,
                                 background = MaterialTheme.colorScheme.primary,
                                 border = BorderStroke(0.dp, Color.Transparent),
-                                action = navigateToModifyStage
+                                action = {
+                                    val currentStage = state.stage!!
+                                    navigateToModifyStage(
+                                        currentStage.projectOwnerId,
+                                        currentStage.id
+                                    )
+                                }
                             )
                         }
 
@@ -238,7 +224,7 @@ fun StageDetailScreen(
                                 textSize = 16.sp,
                                 background = MaterialTheme.colorScheme.primary,
                                 border = BorderStroke(0.dp, Color.Transparent),
-                                action = navigateToCapture
+                                action = { navigateToCapture(state.stage!!.id) }
                             )
                         }
                     }
@@ -246,7 +232,7 @@ fun StageDetailScreen(
             }
         }
 
-        UiStatus.ERROR -> {}
+        else -> {}
     }
 }
 

@@ -106,9 +106,7 @@ class ModifyProjectViewModel @Inject constructor(
 
                         is ResourceState.Success -> {
                             _state.update { it.copy(status = UiStatus.SUCCESS) }
-                            viewModelScope.launch {
-                                successHandler(resourceState.data)
-                            }
+                            viewModelScope.launch { successHandler(resourceState.data) }
                         }
                     }
                 }
@@ -127,12 +125,10 @@ class ModifyProjectViewModel @Inject constructor(
         if (currentProject?.name?.isBlank() == true) {
             _state.update { it.copy(error = R.string.error_empty_project_name) }
             return false
-        }
-        else if (startDate == null || endDate == null) {
+        } else if (startDate == null || endDate == null) {
             _state.update { it.copy(error = R.string.error_empty_startDate_endDate) }
             return false
-        }
-        else if (startDate > endDate) {
+        } else if (startDate > endDate) {
             _state.update { it.copy(error = R.string.error_start_date_greater_than_end_date) }
             return false
         } else return true

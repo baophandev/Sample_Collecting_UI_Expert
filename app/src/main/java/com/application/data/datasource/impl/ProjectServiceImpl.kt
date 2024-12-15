@@ -2,7 +2,6 @@ package com.application.data.datasource.impl
 
 import com.application.constant.ProjectQueryType
 import com.application.constant.ProjectStatus
-import com.application.constant.ServiceHost
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.request.CreateFieldRequest
 import com.application.data.entity.request.CreateFormRequest
@@ -32,8 +31,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.parameters
 
-class ProjectServiceImpl : IProjectService, AbstractClient() {
-    private val client = getClient("http://${ServiceHost.GATEWAY_SERVER}/api/v1/")
+class ProjectServiceImpl(
+    baseUrl: String,
+    timeout: Long = 5000,
+) : IProjectService, AbstractClient() {
+    private val client = getClient(baseUrl = baseUrl, timeout = timeout)
 
     //Project
     override suspend fun createProject(body: CreateProjectRequest): String {
@@ -48,8 +50,8 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         status: ProjectStatus,
         pageNumber: Int,
         pageSize: Int
-    ): PagingResponse<ProjectResponse> {
-        return client.get(urlString = "project/$userId/user") {
+    ): PagingResponse<ProjectResponse> = runCatching<PagingResponse<ProjectResponse>> {
+        client.get(urlString = "project/$userId/user") {
             url {
                 encodedParameters.append("query", query.name)
                 encodedParameters.append("status", status.name)
@@ -57,7 +59,7 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
                 encodedParameters.append("pageSize", "$pageSize")
             }
         }.body()
-    }
+    }.getOrDefault(PagingResponse())
 
     override suspend fun getProject(projectId: String): ProjectResponse {
         return client.get(urlString = "project/$projectId")
@@ -92,8 +94,8 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         projectId: String,
         pageNumber: Int,
         pageSize: Int
-    ): PagingResponse<StageResponse> {
-        return client.get(urlString = "stage/$projectId/project") {
+    ): PagingResponse<StageResponse> = runCatching<PagingResponse<StageResponse>> {
+        client.get(urlString = "stage/$projectId/project") {
             url {
                 parameters {
                     append("pageNumber", "$pageNumber")
@@ -101,7 +103,7 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
                 }
             }
         }.body()
-    }
+    }.getOrDefault(PagingResponse())
 
     override suspend fun getStage(stageId: String): StageResponse {
         return client.get(urlString = "stage/$stageId").body()
@@ -135,8 +137,8 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         projectId: String,
         pageNumber: Int,
         pageSize: Int
-    ): PagingResponse<FormResponse> {
-        return client.get(urlString = "form/$projectId/project") {
+    ): PagingResponse<FormResponse> = runCatching<PagingResponse<FormResponse>> {
+        client.get(urlString = "form/$projectId/project") {
             url {
                 parameters {
                     append("pageNumber", "$pageNumber")
@@ -144,7 +146,7 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
                 }
             }
         }.body()
-    }
+    }.getOrDefault(PagingResponse())
 
     override suspend fun getForm(formId: String): FormResponse {
         return client.get(urlString = "form/$formId").body()
@@ -227,29 +229,33 @@ class ProjectServiceImpl : IProjectService, AbstractClient() {
         stageId: String,
         pageNumber: Int,
         pageSize: Int
-    ): PagingResponse<SampleResponse> = client
-        .get(urlString = "sample/$stageId/stage") {
-            url {
-                parameters {
-                    append("pageNumber", "$pageNumber")
-                    append("pageSize", "$pageSize")
+    ): PagingResponse<SampleResponse> = runCatching<PagingResponse<SampleResponse>> {
+        client
+            .get(urlString = "sample/$stageId/stage") {
+                url {
+                    parameters {
+                        append("pageNumber", "$pageNumber")
+                        append("pageSize", "$pageSize")
+                    }
                 }
             }
-        }
-        .body()
+            .body()
+    }.getOrDefault(PagingResponse())
 
     override suspend fun getAllSamplesOfProject(
         projectId: String,
         pageNumber: Int,
         pageSize: Int
-    ): PagingResponse<SampleResponse> = client
-        .get(urlString = "sample/$projectId/project") {
-            url {
-                parameters {
-                    append("pageNumber", "$pageNumber")
-                    append("pageSize", "$pageSize")
+    ): PagingResponse<SampleResponse> = runCatching<PagingResponse<SampleResponse>> {
+        client
+            .get(urlString = "sample/$projectId/project") {
+                url {
+                    parameters {
+                        append("pageNumber", "$pageNumber")
+                        append("pageSize", "$pageSize")
+                    }
                 }
             }
-        }
-        .body()
+            .body()
+    }.getOrDefault(PagingResponse())
 }

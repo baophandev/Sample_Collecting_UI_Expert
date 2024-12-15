@@ -9,13 +9,21 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CaptureViewModel @Inject constructor(
-//    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    /**
+     * Pair(imageName, imageUri)
+     */
     val sampleImages: SnapshotStateList<Pair<String, Uri>> = mutableStateListOf()
 
-//    init {
-//        savedStateHandle.remove<String>(Routes.SAMPLE_STACK_KEY)?.let { imageName ->
-//            sampleImages.removeIf { it.first == imageName }
-//        }
-//    }
+    lateinit var stageId: String
+
+    fun loadStage(stageId: String) {
+        this.stageId = stageId
+    }
+
+    fun removeCreatedSampleImage(imageName: String) {
+        sampleImages.removeIf { it.first == imageName }
+    }
+
 }

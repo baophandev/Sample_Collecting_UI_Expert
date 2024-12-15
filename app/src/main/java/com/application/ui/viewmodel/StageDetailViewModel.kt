@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.application.constant.ReloadSignal
 import com.application.constant.UiStatus
 import com.application.data.entity.Sample
 import com.application.data.paging.SamplePagingSource
@@ -39,12 +40,11 @@ class StageDetailViewModel @Inject constructor(
     private val _state = MutableStateFlow(StageDetailUiState())
     val state = _state.asStateFlow()
 
-    lateinit var flow: Flow<PagingData<Sample>>
+    lateinit var sampleFlow: Flow<PagingData<Sample>>
 
     fun loadStage(
         stageId: String,
         skipCached: Boolean = false,
-        onComplete: ((Boolean) -> Unit)? = null
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             stageRepository.getStage(stageId, skipCached)
@@ -67,9 +67,6 @@ class StageDetailViewModel @Inject constructor(
                             else _state.update { it.copy(status = UiStatus.ERROR) }
                         }
                     }
-                    onComplete?.let {
-                        viewModelScope.launch { onComplete(resourceState is ResourceState.Success) }
-                    }
                 }
         }
 
@@ -77,9 +74,7 @@ class StageDetailViewModel @Inject constructor(
     }
 
     private fun initSamplePagingFlow(stageId: String) {
-        if (::flow.isInitialized) return
-
-        flow = Pager(
+        sampleFlow = Pager(
             androidx.paging.PagingConfig(
                 pageSize = 3,
                 enablePlaceholders = false,
@@ -130,30 +125,25 @@ class StageDetailViewModel @Inject constructor(
         return loggedUser.id == projectOwner.id
     }
 
-    fun deleteStage(
-        projectOwnerId: String,
-        stageId: String,
-        successHandler: (Boolean) -> Unit
-    ) {
-        if (projectOwnerId.isEmpty()) {
-            _state.update { it.copy(status = UiStatus.ERROR) }
-            return
-        }
-        _state.update { it.copy(status = UiStatus.LOADING) }
-        viewModelScope.launch(Dispatchers.IO) {
-            stageRepository.deleteStage(stageId = stageId).collectLatest { resourceState ->
-                when (resourceState) {
-                    is ResourceState.Success -> {
-                        viewModelScope.launch { successHandler(true) }
-                    }
+    fun deleteStage(successHandler: (Boolean) -> Unit) {
+        state.value.stage?.id?.let { stageId ->
+            viewModelScope.launch(Dispatchers.IO) {
+                stageRepository.deleteStage(stageId = stageId)
+                    .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
+                    .collectLatest { resourceState ->
+                        when (resourceState) {
+                            is ResourceState.Success -> {
+                                viewModelScope.launch { successHandler(true) }
+                            }
 
-                    is ResourceState.Error -> _state.update {
-                        it.copy(
-                            status = UiStatus.ERROR,
-                            error = resourceState.resId
-                        )
+                            is ResourceState.Error -> _state.update {
+                                it.copy(
+                                    status = UiStatus.ERROR,
+                                    error = resourceState.resId
+                                )
+                            }
+                        }
                     }
-                }
             }
         }
     }
@@ -163,6 +153,14 @@ class StageDetailViewModel @Inject constructor(
             sampleRepository.deleteSample(sampleId)
                 .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
                 .collectLatest { }
+        }
+    }
+
+    fun reload(signal: ReloadSignal) {
+        when (signal) {
+            ReloadSignal.RELOAD_ALL_SAMPLES -> initSamplePagingFlow(state.value.stage!!.id)
+            ReloadSignal.RELOAD_STAGE -> loadStage(state.value.stage!!.id)
+            else -> {}
         }
     }
 

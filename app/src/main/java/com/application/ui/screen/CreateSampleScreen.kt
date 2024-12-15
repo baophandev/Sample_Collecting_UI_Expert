@@ -1,7 +1,7 @@
 package com.application.ui.screen
 
-import android.net.Uri
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -58,8 +58,6 @@ import com.application.ui.viewmodel.CreateSampleViewModel
 @Composable
 fun CreateSampleScreen(
     viewModel: CreateSampleViewModel = hiltViewModel(),
-    stageId: String,
-    newSample: Pair<String, Uri>,
     navigateToCapture: (String?) -> Unit,
 ) {
     val context = LocalContext.current
@@ -75,118 +73,124 @@ fun CreateSampleScreen(
         )
     )
 
-    when (state.status) {
-        UiStatus.INIT -> viewModel.loadForm(stageId)
-        UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
-        UiStatus.ERROR -> {
-            val error = stringResource(id = state.error ?: R.string.unknown_error)
-            LaunchedEffect(state.error) {
-                val result = snackBarHostState.showSnackbar(
-                    message = error,
-                    withDismissAction = true,
-                    duration = SnackbarDuration.Short
-                )
-                if (result == SnackbarResult.Dismissed)
-                    viewModel.gotError()
-            }
-        }
-        UiStatus.SUCCESS -> Box {
-            BottomSheetScaffold(
-                scaffoldState = scaffoldState,
-                sheetPeekHeight = 600.dp,
-                sheetContent = {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 15.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Top
-                    ) {
-                        itemsIndexed(
-                            items = state.answers,
-                            key = { index, _ -> index }
-                        ) { index, data ->
-                            Spacer(modifier = Modifier.size(4.dp))
-                            BlockField(
-                                fieldName = data.field.name,
-                                onValueChange = { newValue ->
-                                    viewModel.updateAnswer(index, newValue)
-                                }
-                            )
-                            Spacer(modifier = Modifier.size(4.dp))
-                        }
-
-                        item {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                IconButton(
-                                    modifier = Modifier
-                                        .padding(0.dp)
-                                        .size(50.dp),
-                                    onClick = viewModel::addDynamicField
-                                ) {
-                                    Icon(
-                                        modifier = Modifier.fillMaxSize(),
-                                        imageVector = Icons.Default.Add,
-                                        contentDescription = "Add flex field",
-                                        tint = colorResource(id = R.color.main_green)
-                                    )
-                                }
+    Box {
+        BottomSheetScaffold(
+            scaffoldState = scaffoldState,
+            sheetPeekHeight = 600.dp,
+            sheetContent = {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 15.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    itemsIndexed(
+                        items = state.answers,
+                        key = { index, _ -> index }
+                    ) { index, data ->
+                        Spacer(modifier = Modifier.size(4.dp))
+                        BlockField(
+                            fieldName = data.field.name,
+                            onValueChange = { newValue ->
+                                viewModel.updateAnswer(index, newValue)
                             }
-                        }
+                        )
+                        Spacer(modifier = Modifier.size(4.dp))
+                    }
 
-                        itemsIndexed(
-                            items = state.dynamicFields,
-                            key = { _, field -> field.id }
-                        ) { index, data ->
-                            Spacer(modifier = Modifier.size(4.dp))
-                            DynamicField(
-                                fieldName = data.name,
-                                onFieldNameChange = { fieldName ->
-                                    viewModel.updateDynamicFieldName(index, fieldName)
-                                },
-                                fieldValue = data.value,
-                                onFieldValueChange = { fieldValue ->
-                                    viewModel.updateDynamicFieldValue(index, fieldValue)
-                                },
-                                onDeleteClicked = {
-                                    viewModel.deleteDynamicField(index)
-                                }
-                            )
-                            Spacer(modifier = Modifier.size(4.dp))
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(
+                                modifier = Modifier
+                                    .padding(0.dp)
+                                    .size(50.dp),
+                                onClick = viewModel::addDynamicField
+                            ) {
+                                Icon(
+                                    modifier = Modifier.fillMaxSize(),
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Add flex field",
+                                    tint = colorResource(id = R.color.main_green)
+                                )
+                            }
                         }
                     }
-                },
-                snackbarHost = {
-                    SnackbarHost(hostState = snackBarHostState) {
-                        Snackbar(
-                            containerColor = colorResource(id = R.color.red),
-                            dismissAction = {
-                                IconButton(
-                                    modifier = Modifier.size(50.dp),
-                                    onClick = viewModel::gotError
-                                ) {
-                                    Icon(
-                                        modifier = Modifier.fillMaxSize(),
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = "Close"
-                                    )
-                                }
+
+                    itemsIndexed(
+                        items = state.dynamicFields,
+                        key = { _, field -> field.id }
+                    ) { index, data ->
+                        Spacer(modifier = Modifier.size(4.dp))
+                        DynamicField(
+                            fieldName = data.name,
+                            onFieldNameChange = { fieldName ->
+                                viewModel.updateDynamicFieldName(index, fieldName)
+                            },
+                            fieldValue = data.value,
+                            onFieldValueChange = { fieldValue ->
+                                viewModel.updateDynamicFieldValue(index, fieldValue)
+                            },
+                            onDeleteClicked = {
+                                viewModel.deleteDynamicField(index)
                             }
-                        ) {
-                            val visuals = snackBarHostState.currentSnackbarData?.visuals
-                            val message = visuals?.message
-                            Text(text = message ?: "")
-                        }
+                        )
+                        Spacer(modifier = Modifier.size(4.dp))
                     }
                 }
-            ) { _ ->
-                Box(modifier = Modifier.fillMaxSize()) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(context).data(newSample.second).build(),
+            },
+            snackbarHost = {
+                SnackbarHost(hostState = snackBarHostState) {
+                    Snackbar(
+                        containerColor = colorResource(id = R.color.red),
+                        dismissAction = {
+                            IconButton(
+                                modifier = Modifier.size(50.dp),
+                                onClick = viewModel::gotError
+                            ) {
+                                Icon(
+                                    modifier = Modifier.fillMaxSize(),
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = "Close"
+                                )
+                            }
+                        }
+                    ) {
+                        val visuals = snackBarHostState.currentSnackbarData?.visuals
+                        val message = visuals?.message
+                        Text(text = message ?: "")
+                    }
+                }
+            }
+        ) { _ ->
+            Box(modifier = Modifier.fillMaxSize()) {
+                when (state.status) {
+                    UiStatus.LOADING -> LoadingScreen(
+                        modifier = Modifier.background(Color.Gray.copy(alpha = .5f)),
+                        text = stringResource(id = R.string.loading)
+                    )
+
+                    UiStatus.ERROR -> {
+                        val error = stringResource(id = state.error ?: R.string.unknown_error)
+                        LaunchedEffect(state.error) {
+                            val result = snackBarHostState.showSnackbar(
+                                message = error,
+                                withDismissAction = true,
+                                duration = SnackbarDuration.Short
+                            )
+                            if (result == SnackbarResult.Dismissed)
+                                viewModel.gotError()
+                        }
+                    }
+
+                    UiStatus.SUCCESS -> AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(state.sampleImage?.second)
+                            .build(),
                         contentDescription = "Sample Image",
                         modifier = Modifier
                             .fillMaxWidth()
@@ -195,45 +199,41 @@ fun CreateSampleScreen(
                         alignment = Alignment.TopCenter,
                     )
 
-                    Box(
-                        modifier = Modifier
-                            .padding(horizontal = 10.dp, vertical = 5.dp),
-                        contentAlignment = Alignment.TopStart
-                    ) {
-                        CustomButton(
-                            text = stringResource(id = R.string.recapture_button),
-                            textSize = 14.sp,
-                            textColor = Color.Black,
-                            background = Color.White,
-                            border = BorderStroke(1.dp, Color.LightGray),
-                            action = { navigateToCapture(null) }
-                        )
-                    }
+                    else -> {}
+                }
+
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                    contentAlignment = Alignment.TopStart
+                ) {
+                    CustomButton(
+                        text = stringResource(id = R.string.recapture_button),
+                        textSize = 14.sp,
+                        textColor = Color.Black,
+                        background = Color.White,
+                        border = BorderStroke(1.dp, Color.LightGray),
+                        action = { navigateToCapture(null) }
+                    )
                 }
             }
+        }
 
-            Box(
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 20.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            CustomButton(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = 20.dp),
-                contentAlignment = Alignment.BottomCenter
-            ) {
-                CustomButton(
-                    modifier = Modifier
-                        .fillMaxWidth(.7f),
-                    text = stringResource(id = R.string.save_button),
-                    textSize = 16.sp,
-                    background = colorResource(id = R.color.main_green),
-                    border = BorderStroke(0.dp, Color.Transparent),
-                    action = {
-                        viewModel.submitSample(
-                            stageId = stageId,
-                            sampleImage = newSample,
-                            result = navigateToCapture
-                        )
-                    }
-                )
-            }
+                    .fillMaxWidth(.7f),
+                text = stringResource(id = R.string.save_button),
+                textSize = 16.sp,
+                background = colorResource(id = R.color.main_green),
+                border = BorderStroke(0.dp, Color.Transparent),
+                action = { viewModel.submit(successHandler = navigateToCapture) }
+            )
         }
     }
 }

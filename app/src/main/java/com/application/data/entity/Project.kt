@@ -11,5 +11,5 @@ data class Project(
     val startDate: String? = null,
     val endDate: String? = null,
     val owner: User,
-    val memberUsernames: List<String>? = null,
+    val members: List<User>,
 )
