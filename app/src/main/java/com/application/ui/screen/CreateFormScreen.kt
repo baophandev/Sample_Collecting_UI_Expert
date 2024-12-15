@@ -56,15 +56,14 @@ import com.application.ui.viewmodel.CreateFormViewModel
 
 @Composable
 fun CreateFormScreen(
-    createFormViewModel: CreateFormViewModel = hiltViewModel(),
-    projectId: String,
-    postCreatedHandler: (Boolean) -> Unit,
+    viewModel: CreateFormViewModel = hiltViewModel(),
+    navigateToDetail: (Boolean) -> Unit,
     navigateToLogin: () -> Unit,
     navigateToHome: () -> Unit,
     navigateToWorkersQuestionScreen: () -> Unit,
     navigateToExpertChatScreen: () -> Unit
 ) {
-    val state by createFormViewModel.state.collectAsState()
+    val state by viewModel.state.collectAsState()
     val context = LocalContext.current
     val snackBarHostState = remember { SnackbarHostState() }
     if (state.error != null) {
@@ -76,16 +75,12 @@ fun CreateFormScreen(
                 duration = SnackbarDuration.Short
             )
             if (result == SnackbarResult.Dismissed) {
-                createFormViewModel.gotError()
+                viewModel.gotError()
             }
         }
     }
     when (state.status) {
-
-        UiStatus.INIT -> createFormViewModel.initialize()
-
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
-
         UiStatus.SUCCESS -> {
             Scaffold(
                 modifier = Modifier,
@@ -97,7 +92,7 @@ fun CreateFormScreen(
                                 modifier = Modifier
                                     .padding(end = 10.dp)
                                     .size(30.dp),
-                                onClick = createFormViewModel::gotError
+                                onClick = viewModel::gotError
                             ) {
                                 Icon(
                                     modifier = Modifier.fillMaxSize(),
@@ -142,7 +137,7 @@ fun CreateFormScreen(
                         placeholder = { Text(text = stringResource(id = R.string.add_title)) },
                         singleLine = true,
                         value = state.title,
-                        onValueChange = createFormViewModel::updateTitle
+                        onValueChange = viewModel::updateTitle
                     )
 
                     Row(
@@ -208,19 +203,16 @@ fun CreateFormScreen(
                                 textSize = 16.sp,
                                 background = colorResource(id = R.color.main_green),
                                 border = BorderStroke(0.dp, Color.Transparent),
-                                action = {
-                                    createFormViewModel.submitForm(
-                                        projectId = projectId,
-                                        successHandler = postCreatedHandler
-                                    )
-                                }
+                                action = { viewModel.submit { navigateToDetail(true) } }
                             )
                         }
                     }
                 }
             }
         }
+
         UiStatus.ERROR -> Toast.makeText(context, state.error!!, Toast.LENGTH_LONG).show()
+        else -> {}
     }
 
 }

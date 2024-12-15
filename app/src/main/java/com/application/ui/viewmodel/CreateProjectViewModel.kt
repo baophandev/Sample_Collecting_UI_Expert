@@ -51,7 +51,6 @@ class CreateProjectViewModel @Inject constructor(
     fun addMemberEmail(memberEmail: String) {
         viewModelScope.launch(Dispatchers.IO) {
             userRepository.getUserByEmail(email = memberEmail)
-                .onStart { _state.update { it.copy(loading = true) } }
                 .collectLatest { resourceState ->
                     when (resourceState) {
                         is ResourceState.Success -> {
@@ -63,21 +62,20 @@ class CreateProjectViewModel @Inject constructor(
                                         this[memberEmail] = newMemberId // email -> ID
                                     }
                                     it.copy(
-                                        loading = false,
                                         memberIds = updatedEmails.values.toList(),
                                         memberEmailMap = updatedEmails
                                     )
                                 }
                             } else {
                                 _state.update {
-                                    it.copy(loading = false, error = R.string.error_invalid_data)
+                                    it.copy(error = R.string.error_cannot_get_user_by_email)
                                 }
                             }
 
                         }
 
                         is ResourceState.Error -> _state.update {
-                            it.copy(loading = false, error = resourceState.resId)
+                            it.copy(error = resourceState.resId)
                         }
                     }
                 }

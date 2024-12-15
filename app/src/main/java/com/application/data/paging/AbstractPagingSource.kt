@@ -2,6 +2,7 @@ package com.application.data.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import com.sc.library.utility.client.response.PagingResponse
 
 abstract class AbstractPagingSource<T : Any> : PagingSource<Int, T>() {
 
@@ -14,5 +15,18 @@ abstract class AbstractPagingSource<T : Any> : PagingSource<Int, T>() {
                 ?: state.closestPageToPosition(anchorPosition)?.nextKey?.minus(1)
         }
     }
+
+    protected fun <T : Any> retrievePagingForward(
+        nextPageNumber: Int,
+        response: Result<PagingResponse<T>>
+    ): LoadResult<Int, T> = response
+        .map {
+            val nextKey = if (!it.last) nextPageNumber + 1 else null
+            return LoadResult.Page(
+                data = it.content,
+                prevKey = null, // Only paging forward.
+                nextKey = nextKey
+            )
+        }.getOrElse { LoadResult.Error(it) }
 
 }

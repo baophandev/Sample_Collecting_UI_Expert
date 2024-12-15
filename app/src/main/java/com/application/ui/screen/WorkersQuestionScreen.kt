@@ -262,7 +262,6 @@ fun CardTemplateInWorkerQuestionScreen(
 @Composable
 fun WorkersQuestionScreen(
     navigateToHome: (String?) -> Unit,
-    navigateToWorkersQuestionScreen: () -> Unit,
     navigateToExpertChatScreen: () -> Unit,
     navigateToPostAnswerScreen: () -> Unit
 ) {
@@ -299,7 +298,7 @@ fun WorkersQuestionScreen(
         topBar = { WorkerQuestionScreenTopBar() },
         bottomBar = {
             BotNavigationBar(
-                onWorkersQuestionClick = navigateToWorkersQuestionScreen,
+                onWorkersQuestionClick = {},
                 onExpertChatsClick = navigateToExpertChatScreen
             ) {
                 IconButton(

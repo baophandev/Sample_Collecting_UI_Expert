@@ -64,13 +64,15 @@ import com.application.ui.component.TopBar
 import com.application.ui.viewmodel.ModifyProjectViewModel
 import com.sc.library.utility.validate.RegexValidation
 
+/**
+ * @param navigateToDetail (isProjectModified) -> Unit
+ */
 @Composable
 fun ModifyProjectScreen(
     viewModel: ModifyProjectViewModel = hiltViewModel(),
-    projectId: String,
-    popBackToLogin: () -> Unit,
-    popBackToHome: () -> Unit,
-    postUpdatedHandler: (Boolean) -> Unit,
+    navigateToLogin: () -> Unit,
+    navigateToHome: () -> Unit,
+    navigateToDetail: (Boolean) -> Unit,
     navigateToWorkersQuestionScreen: () -> Unit,
     navigateToExpertChatScreen: () -> Unit
 ) {
@@ -94,7 +96,7 @@ fun ModifyProjectScreen(
         }
     }
     when (state.status) {
-        UiStatus.INIT -> viewModel.loadProject(projectId)
+        UiStatus.INIT -> {}
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
         UiStatus.SUCCESS -> Scaffold(
             modifier = Modifier,
@@ -117,7 +119,7 @@ fun ModifyProjectScreen(
                     }
                 )
             },
-            topBar = { TopBar(title = R.string.modify_project, signOutClicked = popBackToLogin) },
+            topBar = { TopBar(title = R.string.modify_project, signOutClicked = navigateToLogin) },
             bottomBar = {
                 BotNavigationBar(
                     onWorkersQuestionClick = navigateToWorkersQuestionScreen,
@@ -125,7 +127,7 @@ fun ModifyProjectScreen(
                 ) {
                     IconButton(
                         modifier = Modifier.size(50.dp),
-                        onClick = popBackToHome
+                        onClick = navigateToHome
                     ) {
                         Icon(
                             modifier = Modifier.fillMaxSize(.60f),
@@ -199,7 +201,7 @@ fun ModifyProjectScreen(
                         .height(60.dp),
                     placeholder = { Text(text = stringResource(id = R.string.add_title)) },
                     singleLine = true,
-                    value = state.project?.name ?: "Khong co ten du an",
+                    value = state.project?.name ?: stringResource(id = R.string.unknown_project),
                     onValueChange = viewModel::updateProjectName
                 )
                 CustomTextField(
@@ -207,7 +209,7 @@ fun ModifyProjectScreen(
                         .fillMaxWidth(.95f)
                         .height(100.dp),
                     placeholder = { Text(text = stringResource(id = R.string.sample_description_default)) },
-                    value = state.project?.description ?: "Khong co mo ta",
+                    value = state.project?.description ?: stringResource(R.string.no_description),
                     onValueChange = viewModel::updateDescription
                 )
 
@@ -252,14 +254,14 @@ fun ModifyProjectScreen(
                 } else {
                     FieldToList(
                         fieldDataList = state.memberUsernames,
-                        textValidator = { email ->
-                            email.contains(RegexValidation.EMAIL)
-                        },
+                        textValidator = { email -> email.contains(RegexValidation.EMAIL) },
                         onAddField = {},
                         onRemoveField = {}
                     )
                 }
                 // Luu thong tin sau chinh sua
+
+                val updateFailed = stringResource(R.string.error_modify_project)
                 Button(
                     modifier = Modifier
                         .fillMaxWidth(.95f)
@@ -276,7 +278,10 @@ fun ModifyProjectScreen(
                         contentColor = colorResource(id = R.color.black)
                     ),
                     onClick = {
-                        viewModel.submit(successHandler = postUpdatedHandler)
+                        viewModel.submit { result ->
+                            if (result) navigateToDetail(true)
+                            else Toast.makeText(context, updateFailed, Toast.LENGTH_LONG).show()
+                        }
                     }
                 ) {
                     Text(color = Color.White, text = stringResource(id = R.string.save_button))
@@ -284,7 +289,7 @@ fun ModifyProjectScreen(
             }
         }
 
-
         UiStatus.ERROR -> Toast.makeText(context, state.error!!, Toast.LENGTH_LONG).show()
+
     }
 }

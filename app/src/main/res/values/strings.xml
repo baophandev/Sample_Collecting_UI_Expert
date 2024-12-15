@@ -70,7 +70,7 @@
     <string name="add_photo">Add photo</string>
     <string name="loading">Loading…</string>
     <string name="no_internet">Please check your internet connection and try again.</string>
-    <string name="written_by">"Written by: "</string>
+    <string name="written_by">Written by: </string>
     <string name="sign_out_title">Do you want to sign out?</string>
     <string name="sign_out_description">Choosing Sign out button to sign out, choosing Cancel button to close this dialog.</string>
     <string name="sign_out">Sign out</string>
@@ -99,7 +99,9 @@
     <string name="error_cannot_get_form">Lỗi khi tải dữ liệu của biểu mẫu từ server</string>
     <string name="error_empty_field_name">Tên trường không được để trống</string>
     <string name="error_empty_field_of_form">Một biểu mẫu phải tồn tại ít nhất một trường</string>
-    <string name="error_invalid_data">Dữ liệu không hợp lệ</string>
+    <string name="error_cannot_get_user_by_email">Không thể tải dữ liệu của người dùng từ server</string>
+    <string name="error_not_a_member_of_project">Email vừa nhập không phải là một thành viên của dự án</string>
+    <string name="error_cannot_get_member_of_project">Lỗi không thể lấy danh sách thành viên của dự án</string>
 
     <string name="login_button">Đăng nhập</string>
     <string name="register_button">Đăng ký</string>
@@ -113,7 +115,7 @@
     <string name="enter_birthday">Ngày sinh</string>
     <string name="gender">Giới tính:</string>
     <string name="male">Nam</string>
-    <string name="female">Nữ</string>default_date
+    <string name="female">Nữ</string>
     <string name="have_account">Bạn đã có tài khoản?</string>
     <string name="message_placeholder">Tin nhắn</string>
     <string name="see_details">Xem chi tiết</string>
@@ -124,5 +126,14 @@
     </string>
     <string name="login_info_not_blank">Login information cannot be blank</string>
     <string name="enter_username">Email or phone number</string>
+    <string name="delete_project_error">Deleting project process has occurred an error.</string>
+    <string name="create_project_error">Creating project process has occurred an error.</string>
+    <string name="no_forms">No forms!</string>
+    <string name="no_stages">No stages!</string>
+    <string name="form_not_selected">You have not selected a form yet.</string>
+    <string name="unknown_project">Unknown project</string>
+    <string name="no_description">No description.</string>
+    <string name="unknown_stage">Unknown stage</string>
+    <string name="creating_sample">Creating sample…</string>
 
 </resources>
