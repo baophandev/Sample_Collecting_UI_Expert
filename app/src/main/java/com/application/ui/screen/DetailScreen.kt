@@ -463,7 +463,7 @@ private fun FormTab(
             FormContainer(
                 name = form.title,
                 modifier = Modifier
-                    .padding(horizontal = 10.dp)
+                    .padding(horizontal = 5.dp, vertical = 5.dp)
                     .fillMaxWidth(),
                 onModifyClicked = {
                     if (onFormModifyClick != null)

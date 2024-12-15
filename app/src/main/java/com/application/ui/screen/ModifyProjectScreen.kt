@@ -96,6 +96,7 @@ fun ModifyProjectScreen(
         }
     }
     when (state.status) {
+        UiStatus.INIT -> {}
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
         UiStatus.SUCCESS -> Scaffold(
             modifier = Modifier,
@@ -253,9 +254,7 @@ fun ModifyProjectScreen(
                 } else {
                     FieldToList(
                         fieldDataList = state.memberUsernames,
-                        textValidator = { email ->
-                            email.contains(RegexValidation.EMAIL)
-                        },
+                        textValidator = { email -> email.contains(RegexValidation.EMAIL) },
                         onAddField = {},
                         onRemoveField = {}
                     )
@@ -291,6 +290,6 @@ fun ModifyProjectScreen(
         }
 
         UiStatus.ERROR -> Toast.makeText(context, state.error!!, Toast.LENGTH_LONG).show()
-        else -> {}
+
     }
 }
