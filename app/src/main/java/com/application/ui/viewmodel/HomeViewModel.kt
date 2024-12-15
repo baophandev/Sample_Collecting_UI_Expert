@@ -30,10 +30,6 @@ class HomeViewModel @Inject constructor(
 
     var flow: Flow<PagingData<Project>> = initFlow()
 
-    init {
-        initFlow()
-    }
-
     fun reload(reloadProject: ReloadSignal) {
         when (reloadProject) {
             ReloadSignal.RELOAD_ALL_PROJECTS -> flow = initFlow()

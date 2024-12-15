@@ -32,9 +32,10 @@ import io.ktor.http.contentType
 import io.ktor.http.parameters
 
 class ProjectServiceImpl(
-    baseUrl: String
+    baseUrl: String,
+    timeout: Long = 5000,
 ) : IProjectService, AbstractClient() {
-    private val client = getClient(baseUrl)
+    private val client = getClient(baseUrl = baseUrl, timeout = timeout)
 
     //Project
     override suspend fun createProject(body: CreateProjectRequest): String {

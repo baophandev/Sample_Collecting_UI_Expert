@@ -11,6 +11,9 @@ import javax.inject.Inject
 class CaptureViewModel @Inject constructor(
 ) : ViewModel() {
 
+    /**
+     * Pair(imageName, imageUri)
+     */
     val sampleImages: SnapshotStateList<Pair<String, Uri>> = mutableStateListOf()
 
     lateinit var stageId: String

@@ -64,12 +64,15 @@ import com.application.ui.component.TopBar
 import com.application.ui.viewmodel.ModifyProjectViewModel
 import com.sc.library.utility.validate.RegexValidation
 
+/**
+ * @param navigateToDetail (isProjectModified) -> Unit
+ */
 @Composable
 fun ModifyProjectScreen(
     viewModel: ModifyProjectViewModel = hiltViewModel(),
-    popBackToLogin: () -> Unit,
-    popBackToHome: () -> Unit,
-    postUpdatedHandler: (Boolean) -> Unit,
+    navigateToLogin: () -> Unit,
+    navigateToHome: () -> Unit,
+    navigateToDetail: (Boolean) -> Unit,
     navigateToWorkersQuestionScreen: () -> Unit,
     navigateToExpertChatScreen: () -> Unit
 ) {
@@ -115,7 +118,7 @@ fun ModifyProjectScreen(
                     }
                 )
             },
-            topBar = { TopBar(title = R.string.modify_project, signOutClicked = popBackToLogin) },
+            topBar = { TopBar(title = R.string.modify_project, signOutClicked = navigateToLogin) },
             bottomBar = {
                 BotNavigationBar(
                     onWorkersQuestionClick = navigateToWorkersQuestionScreen,
@@ -123,7 +126,7 @@ fun ModifyProjectScreen(
                 ) {
                     IconButton(
                         modifier = Modifier.size(50.dp),
-                        onClick = popBackToHome
+                        onClick = navigateToHome
                     ) {
                         Icon(
                             modifier = Modifier.fillMaxSize(.60f),
@@ -258,6 +261,8 @@ fun ModifyProjectScreen(
                     )
                 }
                 // Luu thong tin sau chinh sua
+
+                val updateFailed = stringResource(R.string.error_modify_project)
                 Button(
                     modifier = Modifier
                         .fillMaxWidth(.95f)
@@ -274,7 +279,10 @@ fun ModifyProjectScreen(
                         contentColor = colorResource(id = R.color.black)
                     ),
                     onClick = {
-                        viewModel.submit(successHandler = postUpdatedHandler)
+                        viewModel.submit { result ->
+                            if (result) navigateToDetail(true)
+                            else Toast.makeText(context, updateFailed, Toast.LENGTH_LONG).show()
+                        }
                     }
                 ) {
                     Text(color = Color.White, text = stringResource(id = R.string.save_button))

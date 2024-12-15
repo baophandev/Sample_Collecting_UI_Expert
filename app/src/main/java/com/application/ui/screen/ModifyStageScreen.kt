@@ -67,9 +67,9 @@ import com.sc.library.utility.validate.RegexValidation
 @Composable
 fun ModifyStageScreen(
     viewModel: ModifyStageViewModel = hiltViewModel(),
-    popBackToLogin: () -> Unit,
-    popBackToHome: () -> Unit,
-    postUpdatedHandler: (Boolean) -> Unit,
+    navigateToLogin: () -> Unit,
+    navigateToHome: () -> Unit,
+    navigateToStageDetail: (Boolean) -> Unit,
     navigateToWorkersQuestionScreen: () -> Unit,
     navigateToExpertChatScreen: () -> Unit
 ) {
@@ -118,7 +118,7 @@ fun ModifyStageScreen(
                     )
                 },
                 topBar = {
-                    TopBar(title = R.string.modify_stage, signOutClicked = popBackToLogin)
+                    TopBar(title = R.string.modify_stage, signOutClicked = navigateToLogin)
                 },
                 bottomBar = {
                     BotNavigationBar(
@@ -129,7 +129,7 @@ fun ModifyStageScreen(
                         IconButton(
                             modifier = Modifier.size(50.dp),
 
-                            onClick = popBackToHome
+                            onClick = navigateToHome
                         ) {
                             Icon(
                                 modifier = Modifier.fillMaxSize(.60f),
@@ -267,7 +267,7 @@ fun ModifyStageScreen(
                         background = colorResource(id = R.color.main_green),
                         border = BorderStroke(0.dp, Color.Transparent),
                         action = {
-                            viewModel.submit(successHandler = postUpdatedHandler)
+                            viewModel.submit(successHandler = navigateToStageDetail)
                         }
                     )
                 }

@@ -65,11 +65,14 @@ import com.application.ui.viewmodel.DetailViewModel
 private enum class ScreenTab { DETAIL, STAGES, FORMS }
 private enum class AlertType { CREATE_NEW_PROJECT, DELETE, ADD_FORM, NONE, CANNOT_DELETE_FORM }
 
+/**
+ * @param navigateToHome (isProjectDeleted) -> Unit
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
     viewModel: DetailViewModel = hiltViewModel(),
-    navigateToHome: () -> Unit,
+    navigateToHome: (Boolean) -> Unit,
     navigateToModifyProject: (String) -> Unit,
     navigateToStageDetail: (String) -> Unit,
     navigateToCreateStage: (String) -> Unit,
@@ -92,7 +95,7 @@ fun DetailScreen(
 
     when (state.status) {
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
-        UiStatus.ERROR -> navigateToHome() // Bị lỗi thì về Home
+        UiStatus.ERROR -> navigateToHome(true) // Bị lỗi thì về Home
         UiStatus.SUCCESS -> {
             val stagePagingItems = viewModel.stageFlow.collectAsLazyPagingItems()
             val formPagingItems = viewModel.formFlow.collectAsLazyPagingItems()
@@ -142,12 +145,12 @@ fun DetailScreen(
                         when (alertType) {
                             AlertType.DELETE -> viewModel.deleteProject(
                                 projectId = projectId,
-                                successHandler = navigateToHome
+                                successHandler = { navigateToHome(true) }
                             )
 
                             AlertType.ADD_FORM -> navigateToCreateForm(projectId)
 
-                            else -> navigateToHome()
+                            else -> navigateToHome(false)
                         }
 
                         alertType = AlertType.NONE
@@ -227,7 +230,7 @@ fun DetailScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            TopNavigationBar(backAction = navigateToHome) {
+                            TopNavigationBar(backAction = { navigateToHome(false) }) {
                                 if (viewModel.isProjectOwner()) {
                                     DropdownMenuItem(
                                         leadingIcon = {

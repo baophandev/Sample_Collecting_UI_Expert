@@ -15,11 +15,14 @@ import com.application.data.repository.ProjectRepository.Companion.TAG
 import com.sc.library.attachment.repository.AttachmentRepository
 import com.sc.library.utility.client.response.PagingResponse
 import com.sc.library.utility.state.ResourceState
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.runBlocking
 import java.sql.Timestamp
 
 class SampleRepository(
@@ -124,29 +127,32 @@ class SampleRepository(
     }
 
     private suspend fun mapResponseToSample(response: SampleResponse): Sample {
-        val atmState = attachmentRepository.getAttachment(response.attachmentId).last()
-        val image = if (atmState is ResourceState.Success)
-            Uri.parse(atmState.data.url)
-        else throw Exception("Cannot get a sample image.")
-
-        val answers = response.answers
-            .sortedBy { it.field.numberOrder }
-            .map {
-                val resourceState = fieldRepository.getField(it.field.id).last()
-                val field = if (resourceState is ResourceState.Success)
-                    resourceState.data else Field.ERROR_FIELD
-                Answer(content = it.value, field = field)
+        val (image, answers, dynamicFields) = runBlocking {
+            val image = async {
+                when (val atmState =
+                    attachmentRepository.getAttachment(response.attachmentId).last()) {
+                    is ResourceState.Success -> Uri.parse(atmState.data.url)
+                    is ResourceState.Error -> throw Exception("Cannot get a sample image.")
+                }
             }
-
-        val dynamicFields = response.dynamicFields
-            .sortedBy { it.numberOrder }
-            .map {
+            val answers = response.answers.sortedBy { it.field.numberOrder }.map {
+                async {
+                    val resourceState = fieldRepository.getField(it.field.id).last()
+                    val field = if (resourceState is ResourceState.Success)
+                        resourceState.data else Field.ERROR_FIELD
+                    Answer(content = it.value, field = field)
+                }
+            }
+            val dynamicFields = response.dynamicFields.sortedBy { it.numberOrder }.map {
                 DynamicField(
                     id = it.id,
                     name = it.name,
                     value = it.value,
                 )
             }
+
+            Triple(image.await(), answers.awaitAll(), dynamicFields)
+        }
 
         return Sample(
             id = response.id,

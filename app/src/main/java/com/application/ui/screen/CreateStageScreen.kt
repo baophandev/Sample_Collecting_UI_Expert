@@ -58,13 +58,16 @@ import com.application.ui.component.TopBar
 import com.application.ui.viewmodel.CreateStageViewModel
 import com.sc.library.utility.validate.RegexValidation
 
+/**
+ * @param navigateToDetail (isStageCreated) -> Unit
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateStageScreen(
     viewModel: CreateStageViewModel = hiltViewModel(),
     navigateToLogin: () -> Unit,
     navigateToHome: () -> Unit,
-    stageCreatedHandler: (Boolean) -> Unit,
+    navigateToDetail: (Boolean) -> Unit,
     navigateToWorkersQuestionScreen: () -> Unit,
     navigateToExpertChatScreen: () -> Unit
 ) {
@@ -245,7 +248,7 @@ fun CreateStageScreen(
                         background = colorResource(id = R.color.main_green),
                         border = BorderStroke(0.dp, Color.Transparent),
                         action = {
-                            viewModel.submitStage(successHandler = stageCreatedHandler)
+                            viewModel.submit { navigateToDetail(true) }
                         }
                     )
                 }

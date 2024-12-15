@@ -137,4 +137,5 @@
     <string name="unknown_project">Dự án không xác định</string>
     <string name="no_description">Không có mô tả.</string>
     <string name="unknown_stage">Đợt thu mẫu không xác định</string>
+    <string name="creating_sample">Đang tạo mẫu…</string>
 </resources>

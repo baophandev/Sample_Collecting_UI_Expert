@@ -70,7 +70,7 @@
     <string name="add_photo">Add photo</string>
     <string name="loading">Loading…</string>
     <string name="no_internet">Please check your internet connection and try again.</string>
-    <string name="written_by">"Written by: "</string>
+    <string name="written_by">Written by: </string>
     <string name="sign_out_title">Do you want to sign out?</string>
     <string name="sign_out_description">Choosing Sign out button to sign out, choosing Cancel button to close this dialog.</string>
     <string name="sign_out">Sign out</string>
@@ -134,5 +134,6 @@
     <string name="unknown_project">Unknown project</string>
     <string name="no_description">No description.</string>
     <string name="unknown_stage">Unknown stage</string>
+    <string name="creating_sample">Creating sample…</string>
 
 </resources>

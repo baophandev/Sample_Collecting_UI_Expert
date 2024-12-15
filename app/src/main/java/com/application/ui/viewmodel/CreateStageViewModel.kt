@@ -114,7 +114,7 @@ class CreateStageViewModel @Inject constructor(
         _state.update { it.copy(selectedForm = form) }
     }
 
-    fun submitStage(successHandler: (Boolean) -> Unit) {
+    fun submit(successHandler: () -> Unit) {
         if (!validateFields()) return
         val currentState = state.value
 
@@ -125,8 +125,8 @@ class CreateStageViewModel @Inject constructor(
                 }
 
                 is ResourceState.Success -> {
-                    _state.update { it.copy(status = UiStatus.SUCCESS) }
-                    viewModelScope.launch { successHandler(true) }
+                    _state.update { CreateStageUiState() }
+                    viewModelScope.launch { successHandler() }
                 }
             }
         }

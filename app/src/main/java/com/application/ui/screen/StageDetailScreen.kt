@@ -69,7 +69,7 @@ private enum class StageTab { DETAIL, PHOTOS }
 @Composable
 fun StageDetailScreen(
     viewModel: StageDetailViewModel = hiltViewModel(),
-    popBackToDetail: (Boolean) -> Unit,
+    navigateToDetail: (Boolean) -> Unit,
     navigateToModifyStage: (String, String) -> Unit,
     navigateToCapture: (String) -> Unit,
     navigateToSampleDetail: (String) -> Unit
@@ -94,7 +94,7 @@ fun StageDetailScreen(
         onDismissRequest = { showDeleteDialog = false },
         onConfirmButtonClick = {
             showDeleteDialog = false
-            viewModel.deleteStage(successHandler = popBackToDetail)
+            viewModel.deleteStage(successHandler = navigateToDetail)
         }
     )
 
@@ -160,7 +160,7 @@ fun StageDetailScreen(
                         ) {
                             TopNavigationBar(
                                 backAction = {
-                                    viewModel.updateStageInDetail(successHandler = popBackToDetail)
+                                    viewModel.updateStageInDetail(successHandler = navigateToDetail)
                                 }
                             ) {
                                 if (viewModel.isProjectOwner()) {

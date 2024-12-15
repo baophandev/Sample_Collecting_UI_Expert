@@ -203,7 +203,7 @@ fun CreateFormScreen(
                                 textSize = 16.sp,
                                 background = colorResource(id = R.color.main_green),
                                 border = BorderStroke(0.dp, Color.Transparent),
-                                action = { viewModel.submitForm(successHandler = navigateToDetail) }
+                                action = { viewModel.submit { navigateToDetail(true) } }
                             )
                         }
                     }

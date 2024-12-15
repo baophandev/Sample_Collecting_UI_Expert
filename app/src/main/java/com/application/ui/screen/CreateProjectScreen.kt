@@ -58,7 +58,7 @@ import com.sc.library.utility.validate.RegexValidation
 fun CreateProjectScreen(
     viewModel: CreateProjectViewModel = hiltViewModel(),
     navigateToLogin: () -> Unit,
-    navigateToHome: (String?) -> Unit,
+    navigateToHome: (Boolean) -> Unit,
     navigateToWorkersQuestionScreen: () -> Unit,
     navigateToExpertChatScreen: () -> Unit
 ) {
@@ -109,14 +109,14 @@ fun CreateProjectScreen(
                 TopBar(title = R.string.create_project, signOutClicked = navigateToLogin)
             },
             bottomBar = {
-                BotNavigationBar (
+                BotNavigationBar(
                     onWorkersQuestionClick = navigateToWorkersQuestionScreen,
                     onExpertChatsClick = navigateToExpertChatScreen
                 ) {
                     IconButton(
                         modifier = Modifier.size(50.dp),
 
-                        onClick = { navigateToHome(null) }
+                        onClick = { navigateToHome(false) }
                     ) {
                         Icon(
                             modifier = Modifier.fillMaxSize(.60f),
@@ -217,7 +217,7 @@ fun CreateProjectScreen(
                     background = colorResource(id = R.color.main_green),
                     border = BorderStroke(0.dp, Color.Transparent),
                     action = {
-                        viewModel.submit(successHandler = navigateToHome)
+                        viewModel.submit { navigateToHome(true) }
                     }
                 )
             }
