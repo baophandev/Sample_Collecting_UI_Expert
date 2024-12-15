@@ -52,7 +52,6 @@
     <string name="delete_stage">Delete Stage</string>
     <string name="delete_stage_description">Are you sure to delete this stage? You cannot restore data if deleted.</string>
     <string name="cancel">Cancel</string>
-    <string name="create_sample_error">Saving this sample data got an error</string>
     <string name="create_stage">Create Stage</string>
     <string name="photos">Photos</string>
     <string name="no_members">No email members</string>
@@ -138,5 +137,18 @@
     <string name="get_post_error">Getting post process has occurred an error.</string>
     <string name="create_general_comment_error">Creating general comment for post process has occurred an error.</string>
     <string name="create_comment_error">Creating comment for post process has occurred an error.</string>
+    <string name="get_field_error">Getting field process has occurred an error.</string>
+    <string name="create_field_error">Creating field process has occurred an error.</string>
+    <string name="update_field_error">Updating field process has occurred an error.</string>
+    <string name="delete_field_error">Deleting field process has occurred an error.</string>
+    <string name="create_form_error">Creating form process has occurred an error.</string>
+    <string name="delete_form_error">Deleting form process has occurred an error.</string>
+    <string name="update_form_error">Updating form process has occurred an error.</string>
+    <string name="create_sample_error">Creating sample process has occurred an error.</string>
+    <string name="get_sample_error">Getting sample process has occurred an error.</string>
+    <string name="create_stage_error">Creating stage process has occurred an error.</string>
+    <string name="delete_stage_error">Deleting stage process has occurred an error.</string>
+    <string name="update_stage_error">Updating stage process has occurred an error.</string>
+    <string name="get_fields_error">Getting fields process has occurred an error.</string>
 
 </resources>

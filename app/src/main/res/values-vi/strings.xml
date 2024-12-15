@@ -52,7 +52,6 @@
     <string name="delete_stage">Xoá đợt</string>
     <string name="delete_stage_description">Bạn có chắc chắn xóa đợt này? Bạn không thể khôi phục dữ liệu nếu đã xóa.</string>
     <string name="cancel">Hủy bỏ</string>
-    <string name="create_sample_error">Lưu dữ liệu mẫu vật xảy ra lỗi</string>
     <string name="create_stage">Tạo đợt</string>
     <string name="photos">Hình ảnh</string>
     <string name="no_members">Không có thành viên</string>
@@ -141,4 +140,18 @@
     <string name="get_post_error">Quá trình lấy dữ liệu bài đăng đã xảy ra lỗi.</string>
     <string name="create_general_comment_error">Quá trình tạo nhận xét tổng quan cho bài đăng đã xảy ra lỗi.</string>
     <string name="create_comment_error">Quá trình tạo nhận xét cho bài đăng đã xảy ra lỗi.</string>
+    <string name="get_field_error">Quá trình lấy dữ liệu biểu mẫu đã xảy ra lỗi.</string>
+    <string name="create_field_error">Quá trình tạo trường dữ liệu đã xảy ra lỗi.</string>
+    <string name="update_field_error">Quá trình cập nhật trường dữ liệu đã xảy ra lỗi.</string>
+    <string name="delete_field_error">Quá trình xóa trường dữ liệu đã xảy ra lỗi.</string>
+    <string name="create_form_error">Quá trình tạo biểu mẫu đã xảy ra lỗi.</string>
+    <string name="delete_form_error">Quá trình xóa biểu mẫu đã xảy ra lỗi.</string>
+    <string name="update_form_error">Quá trình cập nhật biểu mẫu đã xảy ra lỗi.</string>
+    <string name="create_sample_error">Quá trình tạo mẫu đã xảy ra lỗi.</string>
+    <string name="get_sample_error">Quá trình lấy dữ liệu mẫu đã xảy ra lỗi.</string>
+    <string name="create_stage_error">Quá trình tạo đợt thu mẫu đã xảy ra lỗi.</string>
+    <string name="delete_stage_error">Quá trình xóa đợt thu mẫu đã xảy ra lỗi.</string>
+    <string name="update_stage_error">Quá trình cập nhật đợt thu mẫu đã xảy ra lỗi.</string>
+    <string name="get_fields_error">Quá trình lấy các trường dữ liệu đã xảy ra lỗi.</string>
+
 </resources>

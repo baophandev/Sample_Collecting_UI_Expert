@@ -1,6 +1,7 @@
 package com.application.data.repository
 
 import android.util.Log
+import com.application.R
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Field
 import com.application.data.entity.request.CreateFieldRequest
@@ -23,16 +24,29 @@ class FieldRepository(
      * Get all field of a form by formId.
      *
      */
-    fun getAllFields(formId: String): Flow<ResourceState<List<Field>>> {
+    fun getAllFields(
+        formId: String,
+        skipCached: Boolean = false
+    ): Flow<ResourceState<List<Field>>> {
+        if (!skipCached) {
+            val fields = cachedFields.filter { it.value.formId == formId }.values.toList()
+            return flowOf(ResourceState.Success(fields))
+        }
+
         return flow<ResourceState<List<Field>>> {
             val fields = projectService.getAllFields(formId)
                 .sortedBy { it.numberOrder }
-                .map(this@FieldRepository::mapResponseToField)
+                .map(::mapResponseToField)
             cachedFields.putAll(fields.map { Pair(it.id, it) })
             emit(ResourceState.Success(fields))
         }.catch { exception ->
             Log.e(TAG, exception.message, exception)
-            emit(ResourceState.Error(message = "Cannot get all fields of form"))
+            emit(
+                ResourceState.Error(
+                    message = "Cannot get all fields of form.",
+                    resId = R.string.get_fields_error
+                )
+            )
         }
     }
 
@@ -46,12 +60,17 @@ class FieldRepository(
 
         return flow<ResourceState<Field>> {
             val response = projectService.getField(fieldId)
-            val form = mapResponseToField(response)
-            emit(ResourceState.Success(form))
+            val field = mapResponseToField(response)
+            cachedFields[fieldId] = field
+            emit(ResourceState.Success(field))
         }.catch { exception ->
-            Log.e(TAG, exception.message ?: "Unknown exception")
-            Log.e(TAG, exception.stackTraceToString())
-            emit(ResourceState.Error(message = "Cannot get a form"))
+            Log.e(TAG, exception.message, exception)
+            emit(
+                ResourceState.Error(
+                    message = "Cannot get a field",
+                    resId = R.string.get_field_error
+                )
+            )
         }
     }
 
@@ -62,55 +81,64 @@ class FieldRepository(
         formId: String,
         name: String,
         numberOrder: Int
-    ): Flow<ResourceState<String>> {
+    ): Flow<ResourceState<String>> = flow<ResourceState<String>> {
         val body = CreateFieldRequest(
             fieldName = name,
             numberOrder = numberOrder,
         )
-
-        return flow<ResourceState<String>> {
-            val fieldId = projectService.createField(formId, body)
-            val newField = Field(
-                id = fieldId,
-                numberOrder = numberOrder,
-                name = name,
-                formId = formId
+        val fieldId = projectService.createField(formId, body)
+        val newField = Field(
+            id = fieldId,
+            numberOrder = numberOrder,
+            name = name,
+            formId = formId
+        )
+        cachedFields[fieldId] = newField
+        emit(ResourceState.Success(fieldId))
+    }.catch { exception ->
+        Log.e(TAG, exception.message, exception)
+        emit(
+            ResourceState.Error(
+                message = "Cannot create a new field",
+                resId = R.string.create_field_error
             )
-            cachedFields[fieldId] = newField
-            emit(ResourceState.Success(fieldId))
-        }.catch { exception ->
-            Log.e(TAG, exception.message, exception)
-            emit(ResourceState.Error(message = "Cannot create a new field"))
-        }
+        )
     }
 
     fun updateField(
         fieldId: String,
         fieldName: String? = null,
         numberOrder: Int? = null
-    ): Flow<ResourceState<Boolean>> {
+    ): Flow<ResourceState<Boolean>> = flow<ResourceState<Boolean>> {
         val updateRequest = UpdateFieldRequest(
             fieldName = fieldName,
             numberOrder = numberOrder
         )
-        return flow<ResourceState<Boolean>> {
-            val updateResult =
-                projectService.updateField(fieldId = fieldId, updateRequestData = updateRequest)
-            emit(ResourceState.Success(updateResult))
-        }.catch { exception ->
-            Log.e(TAG, exception.message, exception)
-            emit(ResourceState.Error(message = "Cannot update field"))
-        }
+        val updateResult =
+            projectService.updateField(fieldId = fieldId, updateRequestData = updateRequest)
+        emit(ResourceState.Success(updateResult))
+    }.catch { exception ->
+        Log.e(TAG, exception.message, exception)
+        emit(
+            ResourceState.Error(
+                message = "Cannot update field",
+                resId = R.string.update_field_error
+            )
+        )
     }
 
-    fun deleteField(fieldId: String): Flow<ResourceState<Boolean>> {
-        return flow<ResourceState<Boolean>> {
-            val updateResult = projectService.deleteField(fieldId = fieldId)
-            emit(ResourceState.Success(updateResult))
-        }.catch { exception ->
-            Log.e(TAG, exception.message, exception)
-            emit(ResourceState.Error(message = "Cannot delete field"))
-        }
+    fun deleteField(fieldId: String): Flow<ResourceState<Boolean>> = flow<ResourceState<Boolean>> {
+        val updateResult = projectService.deleteField(fieldId = fieldId)
+        if (updateResult) cachedFields.remove(fieldId)
+        emit(ResourceState.Success(updateResult))
+    }.catch { exception ->
+        Log.e(TAG, exception.message, exception)
+        emit(
+            ResourceState.Error(
+                message = "Cannot delete field",
+                resId = R.string.delete_field_error
+            )
+        )
     }
 
     private fun mapResponseToField(response: FieldResponse): Field {

@@ -17,11 +17,13 @@ import com.sc.library.attachment.repository.AttachmentRepository
 import com.sc.library.user.repository.UserRepository
 import com.sc.library.utility.client.response.PagingResponse
 import com.sc.library.utility.state.ResourceState
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.runBlocking
 
 class PostRepository(
     private val userRepository: UserRepository,
@@ -69,7 +71,7 @@ class PostRepository(
         pageSize: Int = 6
     ): Result<PagingResponse<FileInPost>> = runCatching {
         val response = service.getFilesInPost(postId, pageNumber, pageSize)
-        val fileInPosts = response.content.map { mapResponseToFilesInPost(it) }
+        val fileInPosts = response.content.map(::mapResponseToFilesInPost)
         PagingResponse(
             totalPages = response.totalPages,
             totalElements = response.totalElements,
@@ -94,7 +96,7 @@ class PostRepository(
             pageNumber = pageNumber,
             pageSize = pageSize
         )
-        val posts = response.content.map { mapResponseToPost(it) }
+        val posts = response.content.map(::mapResponseToPost)
         PagingResponse(
             totalPages = response.totalPages,
             totalElements = response.totalElements,
@@ -161,37 +163,49 @@ class PostRepository(
      * @throws [PostException.UserRetrievingException] if cannot retrieve user data.
      * @throws [PostException.AttachmentRetrievingException] if cannot retrieve attachment data.
      */
-    private suspend fun mapResponseToPost(response: PostResponse): Post {
-        val owner = when (val resourceState = userRepository.getUser(response.ownerId).last()) {
-            is ResourceState.Error -> throw PostException
-                .UserRetrievingException("Cannot retrieve an owner of post.")
+    private fun mapResponseToPost(response: PostResponse): Post {
+        val (userPair, thumbnail, generalComment) = runBlocking {
+            val owner = async {
+                when (val resourceState = userRepository.getUser(response.ownerId).last()) {
+                    is ResourceState.Error -> throw PostException
+                        .UserRetrievingException("Cannot retrieve an owner of post.")
 
-            is ResourceState.Success -> resourceState.data
-        }
-        val expert = if (response.expertId.isNotBlank())
-            when (val rsState = userRepository.getUser(response.expertId).last()) {
-                is ResourceState.Error -> throw PostException
-                    .UserRetrievingException("Cannot retrieve an expert of post.")
-
-                is ResourceState.Success -> rsState.data
-            } else null
-        val thumbnail = response.fileIds.getOrNull(0)?.let { id ->
-            when (val rsState = atmRepository.getAttachment(id).last()) {
-                is ResourceState.Error -> null
-                is ResourceState.Success -> Uri.parse(rsState.data.url)
+                    is ResourceState.Success -> resourceState.data
+                }
             }
-        }
-        val generalComment = response.generalComment?.let { comment ->
-            GeneralComment(
-                content = comment.content,
-                attachments = comment.attachmentIds.map { attachmentId ->
-                    when (val rsState = atmRepository.getAttachment(attachmentId).last()) {
-                        is ResourceState.Success -> rsState.data
+            val expert = async {
+                if (response.expertId.isNotBlank())
+                    when (val rsState = userRepository.getUser(response.expertId).last()) {
                         is ResourceState.Error -> throw PostException
-                            .AttachmentRetrievingException("Cannot retrieve an attachment of post.")
+                            .UserRetrievingException("Cannot retrieve an expert of post.")
+
+                        is ResourceState.Success -> rsState.data
+                    } else null
+            }
+            val thumbnail = async {
+                response.fileIds.getOrNull(0)?.let { id ->
+                    when (val rsState = atmRepository.getAttachment(id).last()) {
+                        is ResourceState.Error -> null
+                        is ResourceState.Success -> Uri.parse(rsState.data.url)
                     }
                 }
-            )
+            }
+            val generalComment = async {
+                response.generalComment?.let { comment ->
+                    GeneralComment(
+                        content = comment.content,
+                        attachments = comment.attachmentIds.map { attachmentId ->
+                            when (val rsState = atmRepository.getAttachment(attachmentId).last()) {
+                                is ResourceState.Success -> rsState.data
+                                is ResourceState.Error -> throw PostException
+                                    .AttachmentRetrievingException("Cannot retrieve an attachment of post.")
+                            }
+                        }
+                    )
+                }
+            }
+
+            Triple(Pair(owner.await(), expert.await()), thumbnail.await(), generalComment.await())
         }
 
         return Post(
@@ -199,8 +213,8 @@ class PostRepository(
             thumbnail = thumbnail,
             createdAt = response.createdAt,
             title = response.title,
-            owner = owner,
-            expert = expert,
+            owner = userPair.first,
+            expert = userPair.second,
             generalComment = generalComment
         )
     }
@@ -208,13 +222,19 @@ class PostRepository(
     /**
      * @throws [PostException.AttachmentRetrievingException]
      */
-    private suspend fun mapResponseToFilesInPost(response: FileInPostResponse): FileInPost {
-        val image = when (val rsState = atmRepository.getAttachment(response.fileId).last()) {
-            is ResourceState.Success -> Uri.parse(rsState.data.url)
-            is ResourceState.Error -> throw PostException
-                .AttachmentRetrievingException("Cannot retrieve an attachment of post.")
+    private fun mapResponseToFilesInPost(response: FileInPostResponse): FileInPost {
+        val (image, comment) = runBlocking {
+            val image = async {
+                when (val rsState = atmRepository.getAttachment(response.fileId).last()) {
+                    is ResourceState.Success -> Uri.parse(rsState.data.url)
+                    is ResourceState.Error -> throw PostException
+                        .AttachmentRetrievingException("Cannot retrieve an attachment of post.")
+                }
+            }
+            val comment = async { mapResponseToComment(response.comment) }
+
+            Pair(image.await(), comment.await())
         }
-        val comment = mapResponseToComment(response.comment)
 
         return FileInPost(
             id = response.fileId,

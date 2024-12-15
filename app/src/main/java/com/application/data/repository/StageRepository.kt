@@ -23,7 +23,6 @@ class StageRepository(
 
     /**
      * Create a new stage of project.
-     * @param .
      */
     fun createStage(
         name: String,
@@ -31,7 +30,7 @@ class StageRepository(
         startDate: String? = null,
         endDate: String? = null,
         form: Form,
-    ): Flow<ResourceState<String>> {
+    ): Flow<ResourceState<String>> = flow<ResourceState<String>> {
         val body = CreateStageRequest(
             name = name,
             description = description,
@@ -40,25 +39,16 @@ class StageRepository(
             formId = form.id,
             projectOwnerId = form.projectOwnerId
         )
-
-        return flow<ResourceState<String>> {
-            val stageId = projectService.createStage(body)
-            val newStage = Stage(
-                id = stageId,
-                name = name,
-                description = description,
-                startDate = startDate,
-                endDate = endDate,
-                formId = form.id,
-                projectOwnerId = form.projectOwnerId,
+        val stageId = projectService.createStage(body)
+        emit(ResourceState.Success(stageId))
+    }.catch { exception ->
+        Log.e(TAG, exception.message, exception)
+        emit(
+            ResourceState.Error(
+                message = "Cannot create a new stage.",
+                resId = R.string.create_stage_error
             )
-            cachedStages[stageId] = newStage
-            emit(ResourceState.Success(stageId))
-        }.catch { exception ->
-            Log.e(TAG, exception.message ?: "Unknown exception")
-            Log.e(TAG, exception.stackTraceToString())
-            emit(ResourceState.Error(message = "Cannot create a new stage"))
-        }
+        )
     }
 
     /**
@@ -99,12 +89,13 @@ class StageRepository(
         return flow<ResourceState<Stage>> {
             val response = projectService.getStage(stageId)
             val stage = mapResponseToStage(response)
+            cachedStages[stageId] = stage
             emit(ResourceState.Success(stage))
         }.catch { exception ->
             Log.e(TAG, exception.message, exception)
             emit(
                 ResourceState.Error(
-                    message = "Cannot get a stage",
+                    message = "Cannot get a stage.",
                     resId = R.string.error_cannot_get_stage
                 )
             )
@@ -118,7 +109,7 @@ class StageRepository(
         startDate: String? = null,
         endDate: String? = null,
         formId: String? = null,
-    ): Flow<ResourceState<Boolean>> {
+    ): Flow<ResourceState<Boolean>> = flow<ResourceState<Boolean>> {
         val updateRequest = UpdateStageRequest(
             name = name,
             description = description,
@@ -126,17 +117,16 @@ class StageRepository(
             endDate = endDate,
             formId = formId
         )
-        return flow<ResourceState<Boolean>> {
-
-            val updateResult = projectService.updateStage(stageId, updateRequest)
-            // get updated project from server
-            if (updateResult) getStage(stageId, true)
-
-            emit(ResourceState.Success(true))
-        }.catch { exception ->
-            Log.e(TAG, exception.message, exception)
-            emit(ResourceState.Error(message = "Cannot update stages"))
-        }
+        val updateResult = projectService.updateStage(stageId, updateRequest)
+        emit(ResourceState.Success(updateResult))
+    }.catch { exception ->
+        Log.e(TAG, exception.message, exception)
+        emit(
+            ResourceState.Error(
+                message = "Cannot update a stage.",
+                resId = R.string.update_stage_error
+            )
+        )
     }
 
     fun deleteStage(
@@ -144,10 +134,16 @@ class StageRepository(
     ): Flow<ResourceState<Boolean>> {
         return flow<ResourceState<Boolean>> {
             val deleteResult = projectService.deleteStage(stageId = stageId)
-            if (deleteResult) emit(ResourceState.Success(true))
+            if (deleteResult) cachedStages.remove(stageId)
+            emit(ResourceState.Success(deleteResult))
         }.catch { exception ->
             Log.e(TAG, exception.message, exception)
-            emit(ResourceState.Error(message = "Cannot delete project"))
+            emit(
+                ResourceState.Error(
+                    message = "Cannot delete a stage.",
+                    resId = R.string.delete_stage_error
+                )
+            )
         }
     }
 
