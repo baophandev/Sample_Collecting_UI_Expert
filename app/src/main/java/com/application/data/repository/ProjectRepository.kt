@@ -3,11 +3,13 @@ package com.application.data.repository
 import android.net.Uri
 import android.util.Log
 import com.application.R
+import com.application.constant.MemberOperator
 import com.application.constant.ProjectQueryType
 import com.application.constant.ProjectStatus
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Project
 import com.application.data.entity.request.CreateProjectRequest
+import com.application.data.entity.request.UpdateMemberRequest
 import com.application.data.entity.request.UpdateProjectRequest
 import com.application.data.entity.response.ProjectResponse
 import com.sc.library.attachment.repository.AttachmentRepository
@@ -154,6 +156,54 @@ class ProjectRepository(
             emit(
                 ResourceState.Error(
                     message = "Cannot update projects",
+                    resId = R.string.error_modify_project
+                )
+            )
+        }
+    }
+    fun updateProjectMember(
+        projectId: String,
+        memberId: String,
+        operator: String
+    ): Flow<ResourceState<Boolean>> {
+        var updateRequest = UpdateMemberRequest(
+            memberId = memberId,
+            operator = operator
+        )
+        return flow<ResourceState<Boolean>> {
+            val updateResult = projectService.updateProjectMember(projectId = projectId, updateMemberRequest = updateRequest)
+            // get updated project member from server
+            if (updateResult) getProject(projectId, true)
+            emit(ResourceState.Success(true))
+        }.catch { exception ->
+            Log.e(TAG, exception.message, exception)
+            emit(
+                ResourceState.Error(
+                    message = "Cannot add member in modifyProject",
+                    resId = R.string.error_modify_project
+                )
+            )
+        }
+    }
+    fun updateProjectMember2(
+        projectId: String,
+        memberId: String,
+        operator: MemberOperator
+    ): Flow<ResourceState<Boolean>> {
+        var updateRequest = UpdateMemberRequest(
+            memberId = memberId,
+            operator = operator.name
+        )
+        return flow<ResourceState<Boolean>> {
+            val updateResult = projectService.updateProjectMember(projectId = projectId, updateMemberRequest = updateRequest)
+            // get updated project member from server
+            if (updateResult) getProject(projectId, true)
+            emit(ResourceState.Success(true))
+        }.catch { exception ->
+            Log.e(TAG, exception.message, exception)
+            emit(
+                ResourceState.Error(
+                    message = "Cannot add member in modifyProject",
                     resId = R.string.error_modify_project
                 )
             )
