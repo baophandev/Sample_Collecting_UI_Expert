@@ -1,9 +1,15 @@
 package com.application.ui.screen
 
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -48,15 +55,13 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
 import com.application.constant.UiStatus
-import com.application.data.entity.Post
-import com.application.ui.component.CustomCircularProgressIndicator
-import com.application.ui.viewmodel.PostDetailViewModel
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import com.application.data.entity.Comment
 import com.application.data.entity.GeneralComment
+import com.application.data.entity.Post
 import com.application.ui.component.BotNavigationBar
+import com.application.ui.component.CustomButton
+import com.application.ui.component.CustomCircularProgressIndicator
+import com.application.ui.viewmodel.PostDetailViewModel
 
 @Composable
 fun PostDetailScreen(
@@ -79,20 +84,35 @@ fun PostDetailScreen(
             Scaffold(
                 topBar = { state.post?.let { post -> HeaderSection(post) } },
                 bottomBar = {
-                    BotNavigationBar(
-                        onQuestionsClick = navigateToQuestions,
-                        onExpertChatClick = navigateToConversations
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.SpaceBetween
                     ) {
-                        IconButton(
-                            modifier = Modifier.size(50.dp),
-                            onClick = navigateToHome
+                        CustomButton(
+                            modifier = Modifier
+                                .fillMaxWidth(.9f)
+                                .clip(RoundedCornerShape(2.dp)),
+                            text = stringResource(R.string.submit),
+                            textSize = 14.sp,
+                            background = MaterialTheme.colorScheme.primary,
+                            action = viewModel::submit
+                        )
+
+                        BotNavigationBar(
+                            onQuestionsClick = navigateToQuestions,
+                            onExpertChatClick = navigateToConversations
                         ) {
-                            Icon(
-                                modifier = Modifier.fillMaxSize(.75f),
-                                painter = painterResource(id = R.drawable.ic_home),
-                                contentDescription = "Home",
-                                tint = MaterialTheme.colorScheme.secondary
-                            )
+                            IconButton(
+                                modifier = Modifier.size(50.dp),
+                                onClick = navigateToHome
+                            ) {
+                                Icon(
+                                    modifier = Modifier.fillMaxSize(.75f),
+                                    painter = painterResource(id = R.drawable.ic_home),
+                                    contentDescription = "Home",
+                                    tint = MaterialTheme.colorScheme.secondary
+                                )
+                            }
                         }
                     }
                 }
@@ -108,10 +128,12 @@ fun PostDetailScreen(
                     ) { index ->
                         val item = filePagingItems[index] ?: return@items
 
-                        ExpertResponseCard(
+                        FileInPostTemplate(
                             image = item.image,
                             description = item.description,
                             comment = item.comment,
+                            onAnswerChange = { viewModel.updateAnswer(index, it) },
+                            onAddAttachment = {},
                             onAttachmentClick = viewModel::startDownload,
                         )
                         Spacer(modifier = Modifier.height(5.dp))
@@ -122,6 +144,7 @@ fun PostDetailScreen(
                             generalComment = state.post?.generalComment,
                             onAttachmentClick = viewModel::startDownload
                         )
+                        Spacer(modifier = Modifier.height(5.dp))
                     }
                 }
             }
@@ -259,13 +282,19 @@ private fun ConclusionSection(
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ExpertResponseCard(
+private fun FileInPostTemplate(
     image: Uri,
     description: String? = null,
     comment: Comment? = null,
+    onAnswerChange: (String) -> Unit,
+    onAddAttachment: (List<Uri>) -> Unit,
     onAttachmentClick: (Uri, String) -> Unit,
 ) {
     val context = LocalContext.current
+    val pickFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents(),
+        onResult = { onAddAttachment(it) }
+    )
 
     Card(
         shape = RoundedCornerShape(8.dp),
@@ -310,18 +339,22 @@ private fun ExpertResponseCard(
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     color = Color.Black
                 )
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFFF0F0F0), shape = RoundedCornerShape(8.dp))
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = comment?.content ?: stringResource(R.string.no_answer),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Black
+                TextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = comment?.content ?: "",
+                    onValueChange = onAnswerChange,
+                    placeholder = {
+                        Text(
+                            text = comment?.content ?: stringResource(R.string.no_answer),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Black
+                        )
+                    },
+                    colors = TextFieldDefaults.colors().copy(
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedContainerColor = Color.Transparent
                     )
-                }
+                )
             }
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -339,6 +372,17 @@ private fun ExpertResponseCard(
                             }
                         )
                     }
+                }
+            }
+
+            Row {
+                IconButton(onClick = { pickFileLauncher.launch(input = "*") }) {
+                    Icon(
+                        modifier = Modifier.size(5.dp),
+                        painter = painterResource(R.drawable.ic_paperclip),
+                        tint = Color.Black,
+                        contentDescription = null
+                    )
                 }
             }
         }

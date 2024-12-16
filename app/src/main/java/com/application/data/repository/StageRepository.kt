@@ -14,6 +14,7 @@ import com.sc.library.user.repository.UserRepository
 import com.sc.library.utility.client.response.PagingResponse
 import com.sc.library.utility.state.ResourceState
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
@@ -187,8 +188,8 @@ class StageRepository(
                         is ResourceState.Success -> rsState.data
                     }
                 }
-            }
-        }.awaitAll()
+            }?.awaitAll()
+        }
 
         return Stage(
             id = response.id,

@@ -79,6 +79,14 @@ class PostDetailViewModel @Inject constructor(
         downloadManager.enqueue(request)
     }
 
+    fun updateAnswer(index: Int, newValue: String) {
+
+    }
+
+    fun submit() {
+        TODO("Not yet implemented")
+    }
+
     companion object {
         const val TAG = "PostDetailViewModel"
     }
