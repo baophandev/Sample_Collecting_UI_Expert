@@ -7,4 +7,5 @@ data class CreateStageRequest(
     val endDate: String?= null,
     val formId: String?= null,
     val projectOwnerId: String,
+    val memberIds: List<String>? = null
 )

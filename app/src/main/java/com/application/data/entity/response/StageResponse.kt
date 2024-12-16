@@ -8,4 +8,5 @@ data class StageResponse(
     val endDate: String? = null,
     val formId: String,
     val projectOwnerId: String,
+    val memberIds: List<String>? = null
 )

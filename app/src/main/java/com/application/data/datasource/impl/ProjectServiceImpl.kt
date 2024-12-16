@@ -132,6 +132,17 @@ class ProjectServiceImpl(
         return response.status == HttpStatusCode.NoContent
     }
 
+    override suspend fun updateStageMember(
+        stageId: String,
+        updateMemberRequest: UpdateMemberRequest
+    ): Boolean {
+        val response = client.patch(urlString = "stage/$stageId/member") {
+            contentType(ContentType.Application.Json)
+            setBody(updateMemberRequest)
+        }
+        return response.status == HttpStatusCode.NoContent
+    }
+
     override suspend fun deleteStage(stageId: String): Boolean {
         val response = client.delete(urlString = "stage/$stageId")
         return response.status == HttpStatusCode.NoContent

@@ -200,6 +200,7 @@ fun AppNavigationGraph() {
         composable(Routes.STAGE_DETAIL_SCREEN) {
             val navigateToModifyStage: (String, String) -> Unit = { projectId, stageId ->
                 modifyStageVM.loadStage(projectId, stageId)
+                modifyStageVM.fetchProjectMembers(projectId)
                 navController.navigateSingleTop(Routes.MODIFY_STAGE_SCREEN)
             }
             val navigateToCapture: (String) -> Unit = { stageId ->

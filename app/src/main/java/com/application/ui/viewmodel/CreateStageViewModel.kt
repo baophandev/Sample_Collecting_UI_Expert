@@ -132,12 +132,14 @@ class CreateStageViewModel @Inject constructor(
         }
 
         viewModelScope.launch(Dispatchers.IO) {
+            val memberIds = currentState.selectedUsers.map { it.id }
             stageRepository.createStage(
                 name = currentState.name,
                 description = currentState.description,
                 startDate = currentState.startDate,
                 endDate = currentState.endDate,
                 form = currentState.selectedForm!!,
+                memberIds = memberIds
             ).collectLatest(collectAction)
         }
     }
