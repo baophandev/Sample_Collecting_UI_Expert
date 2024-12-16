@@ -57,6 +57,10 @@ interface IProjectService {
         stageId: String,
         updateRequestData: UpdateStageRequest
     ): Boolean
+    suspend fun updateStageMember(
+        stageId: String,
+        updateMemberRequest: UpdateMemberRequest
+    ): Boolean
 
     suspend fun deleteStage(stageId: String): Boolean
 

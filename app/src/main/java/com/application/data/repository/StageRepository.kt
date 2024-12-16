@@ -6,18 +6,22 @@ import com.application.data.datasource.IProjectService
 import com.application.data.entity.Form
 import com.application.data.entity.Stage
 import com.application.data.entity.request.CreateStageRequest
+import com.application.data.entity.request.UpdateMemberRequest
 import com.application.data.entity.request.UpdateStageRequest
 import com.application.data.entity.response.StageResponse
 import com.application.data.repository.ProjectRepository.Companion.TAG
+import com.sc.library.user.repository.UserRepository
 import com.sc.library.utility.client.response.PagingResponse
 import com.sc.library.utility.state.ResourceState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.last
 
 class StageRepository(
     private val projectService: IProjectService,
+    private val userRepository: UserRepository,
 ) {
     private val cachedStages: MutableMap<String, Stage> = mutableMapOf()
 
@@ -31,6 +35,7 @@ class StageRepository(
         startDate: String? = null,
         endDate: String? = null,
         form: Form,
+        memberIds: List<String>? = null
     ): Flow<ResourceState<String>> {
         val body = CreateStageRequest(
             name = name,
@@ -38,21 +43,23 @@ class StageRepository(
             startDate = startDate,
             endDate = endDate,
             formId = form.id,
-            projectOwnerId = form.projectOwnerId
+            projectOwnerId = form.projectOwnerId,
+            memberIds = memberIds
         )
 
         return flow<ResourceState<String>> {
             val stageId = projectService.createStage(body)
-            val newStage = Stage(
-                id = stageId,
-                name = name,
-                description = description,
-                startDate = startDate,
-                endDate = endDate,
-                formId = form.id,
-                projectOwnerId = form.projectOwnerId,
-            )
-            cachedStages[stageId] = newStage
+//            val newStage = Stage(
+//                id = stageId,
+//                name = name,
+//                description = description,
+//                startDate = startDate,
+//                endDate = endDate,
+//                formId = form.id,
+//                projectOwnerId = form.projectOwnerId,
+//                members =
+//            )
+//            cachedStages[stageId] = newStage
             emit(ResourceState.Success(stageId))
         }.catch { exception ->
             Log.e(TAG, exception.message ?: "Unknown exception")
@@ -139,6 +146,34 @@ class StageRepository(
         }
     }
 
+    fun updateStageMember(
+        stageId: String,
+        memberId: String,
+        operator: String
+    ): Flow<ResourceState<Boolean>> {
+        var updateRequest = UpdateMemberRequest(
+            memberId = memberId,
+            operator = operator
+        )
+        return flow<ResourceState<Boolean>> {
+            val updateResult = projectService.updateStageMember(
+                stageId = stageId,
+                updateMemberRequest = updateRequest
+            )
+            // get updated stage member from server
+            if (updateResult) getStage(stageId, true)
+            emit(ResourceState.Success(true))
+        }.catch { exception ->
+            Log.e(TAG, exception.message, exception)
+            emit(
+                ResourceState.Error(
+                    message = "Cannot add member in modifyStage",
+                    resId = R.string.error_modify_stage
+                )
+            )
+        }
+    }
+
     fun deleteStage(
         stageId: String
     ): Flow<ResourceState<Boolean>> {
@@ -151,7 +186,14 @@ class StageRepository(
         }
     }
 
-    private fun mapResponseToStage(response: StageResponse): Stage {
+    private suspend fun mapResponseToStage(response: StageResponse): Stage {
+        val members = response.memberIds?.map {
+            when (val rsState = userRepository.getUser(it).last()) {
+                is ResourceState.Error -> throw Exception("Cannot get project member data.")
+                is ResourceState.Success -> rsState.data
+            }
+        }
+
         return Stage(
             id = response.id,
             name = response.name,
@@ -160,6 +202,7 @@ class StageRepository(
             endDate = response.endDate,
             formId = response.formId,
             projectOwnerId = response.projectOwnerId,
+            members = members ?: emptyList()
         )
     }
 
