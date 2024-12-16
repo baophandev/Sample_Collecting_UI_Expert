@@ -10,8 +10,7 @@ data class ModifyProjectUiState(
     @StringRes val error: Int? = null,
     val project: Project? = null,
     val projectUsers: List<User> = emptyList(),
-    val projectUsersMap: Map<String, String> = emptyMap(), // key: email -> value: memberId
-    val updatedMemberIds: List<String> = emptyList(),
+    val addedMemberIds: List<String> = emptyList(),
     val deletedMemberIds: List<String> = emptyList(),
     val isUpdated: Boolean = false,
     val isThumbnailUpdated: Boolean = false

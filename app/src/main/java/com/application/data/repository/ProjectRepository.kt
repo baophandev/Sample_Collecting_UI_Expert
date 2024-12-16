@@ -3,6 +3,7 @@ package com.application.data.repository
 import android.net.Uri
 import android.util.Log
 import com.application.R
+import com.application.constant.MemberOperator
 import com.application.constant.ProjectQueryType
 import com.application.constant.ProjectStatus
 import com.application.data.datasource.IProjectService
@@ -162,10 +163,36 @@ class ProjectRepository(
     }
     fun updateProjectMember(
         projectId: String,
-        memberId: String
+        memberId: String,
+        operator: String
     ): Flow<ResourceState<Boolean>> {
         var updateRequest = UpdateMemberRequest(
-            memberId = memberId
+            memberId = memberId,
+            operator = operator
+        )
+        return flow<ResourceState<Boolean>> {
+            val updateResult = projectService.updateProjectMember(projectId = projectId, updateMemberRequest = updateRequest)
+            // get updated project member from server
+            if (updateResult) getProject(projectId, true)
+            emit(ResourceState.Success(true))
+        }.catch { exception ->
+            Log.e(TAG, exception.message, exception)
+            emit(
+                ResourceState.Error(
+                    message = "Cannot add member in modifyProject",
+                    resId = R.string.error_modify_project
+                )
+            )
+        }
+    }
+    fun updateProjectMember2(
+        projectId: String,
+        memberId: String,
+        operator: MemberOperator
+    ): Flow<ResourceState<Boolean>> {
+        var updateRequest = UpdateMemberRequest(
+            memberId = memberId,
+            operator = operator.name
         )
         return flow<ResourceState<Boolean>> {
             val updateResult = projectService.updateProjectMember(projectId = projectId, updateMemberRequest = updateRequest)

@@ -260,7 +260,7 @@ fun ModifyProjectScreen(
                                 newEmailMember
                             )
                         },
-                        onRemoveField = {}
+                        onRemoveField = { index -> viewModel.removeMemberEmail(index) }
                     )
                 }
                 // Luu thong tin sau chinh sua

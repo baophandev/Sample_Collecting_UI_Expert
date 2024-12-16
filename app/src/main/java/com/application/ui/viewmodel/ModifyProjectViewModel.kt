@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.R
+import com.application.constant.MemberOperator
 import com.application.constant.UiStatus
 import com.application.data.entity.Project
 import com.application.data.repository.ProjectRepository
@@ -105,12 +106,10 @@ class ModifyProjectViewModel @Inject constructor(
                             is ResourceState.Success -> {
                                 val user = resourceState.data as? User
                                 if (user != null) {
-//                                    val updatedMemberIds = currentState.updatedMemberIds.toMutableList()
-//                                    updatedMemberIds.add(user.id)
                                     _state.update {
                                         it.copy(
                                             projectUsers = it.projectUsers + user,
-                                            updatedMemberIds = it.updatedMemberIds + user.id,
+                                            addedMemberIds = it.addedMemberIds + user.id,
                                             isUpdated = true
                                         )
                                     }
@@ -131,32 +130,22 @@ class ModifyProjectViewModel @Inject constructor(
         }
     }
 
-    private suspend fun updateMemberToRepository(
-        projectId: String,
-        updatedMembers: List<User>,
-        successHandler: (Boolean) -> Unit
-    ) {
-        updatedMembers.forEachIndexed { _, updatedMember ->
-            repository.updateProjectMember(
-                projectId = projectId,
-                memberId = updatedMember.id
-            ).collectLatest { resourceState ->
-                when (resourceState) {
-                    is ResourceState.Error -> _state.update {
-                        it.copy(
-                            status = UiStatus.SUCCESS,
-                            error = resourceState.resId
-                        )
-                    }
+    fun removeMemberEmail(index: Int) {
+        val currentMembers = _state.value.projectUsers
+        currentMembers.getOrNull(index)?.let { member ->
+            val mutableMembers = currentMembers.toMutableList()
+            mutableMembers.removeAt(index)
 
-                    is ResourceState.Success -> {
-                        _state.update { it.copy(status = UiStatus.SUCCESS) }
-                        viewModelScope.launch {
-                            successHandler(resourceState.data)
-                        }
-                    }
-                }
+            val deletedMemberIds = state.value.deletedMemberIds.toMutableList()
+            deletedMemberIds.add(member.id)
+            _state.update {
+                it.copy(
+                    projectUsers = mutableMembers,
+                    deletedMemberIds = deletedMemberIds,
+                    isUpdated = true
+                )
             }
+
         }
     }
 
@@ -190,6 +179,75 @@ class ModifyProjectViewModel @Inject constructor(
         }
     }
 
+    private suspend fun addMemberToRepository(
+        projectId: String,
+        addedMembers: List<User>,
+        successHandler: (Boolean) -> Unit
+    ) {
+        addedMembers.forEach { addedMember ->
+            repository.updateProjectMember(
+                projectId = projectId,
+                memberId = addedMember.id,
+                operator = MemberOperator.ADD.toString()
+            ).collectLatest { resourceState ->
+                when (resourceState) {
+                    is ResourceState.Error -> _state.update {
+                        it.copy(
+                            status = UiStatus.SUCCESS,
+                            error = resourceState.resId
+                        )
+                    }
+
+                    is ResourceState.Success -> {
+                        _state.update {
+                            it.copy(
+                                status = UiStatus.SUCCESS,
+                                projectUsers = it.projectUsers + addedMember // Thêm user mới
+                            )
+                        }
+                        successHandler(resourceState.data)
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun deleteMemberToRepository(
+        projectId: String,
+        deleteMemberIds: List<String>,
+        successHandler: (Boolean) -> Unit
+    ) {
+        deleteMemberIds.forEach { memberId ->
+            repository.updateProjectMember(
+                projectId = projectId,
+                memberId = memberId,
+                operator = MemberOperator.REMOVE.toString()
+            ).collectLatest { resourceState ->
+                when (resourceState) {
+                    is ResourceState.Error -> _state.update {
+                        it.copy(
+                            status = UiStatus.SUCCESS,
+                            error = resourceState.resId
+                        )
+                    }
+
+                    is ResourceState.Success -> {
+                        _state.update {
+                            val updatedUsers = it.projectUsers.filter { user ->
+                                user.id != memberId // filter ra cac user co id khac voi id trong deleteMemberIds
+                            }
+                            it.copy(
+                                status = UiStatus.SUCCESS,
+                                projectUsers = updatedUsers
+                            )
+                        }
+                        successHandler(resourceState.data)
+                    }
+                }
+            }
+        }
+    }
+
     fun submit(successHandler: (Boolean) -> Unit) {
         if (!validate() || state.value.project == null || !state.value.isUpdated) return
         val currentState = state.value
@@ -206,13 +264,20 @@ class ModifyProjectViewModel @Inject constructor(
                         successHandler = successHandler
                     )
                 }
-
-                if (currentState.updatedMemberIds.isNotEmpty()) {
-                    val updatedMemberIds = currentState.updatedMemberIds
-                    val updatedMembers = currentMembers.filter { updatedMemberIds.contains(it.id) }
-                    updateMemberToRepository(
+                if (currentState.addedMemberIds.isNotEmpty()) {
+                    val addedMemberIds = currentState.addedMemberIds
+                    val addedMembers = currentMembers.filter { addedMemberIds.contains(it.id) }
+                    addMemberToRepository(
                         projectId = currentProject.id,
-                        updatedMembers = updatedMembers,
+                        addedMembers = addedMembers,
+                        successHandler = successHandler
+                    )
+                }
+                if (currentState.deletedMemberIds.isNotEmpty()) {
+                    val deletedMemberIds = currentState.deletedMemberIds
+                    deleteMemberToRepository(
+                        projectId = currentProject.id,
+                        deleteMemberIds = deletedMemberIds,
                         successHandler = successHandler
                     )
                 }
