@@ -10,6 +10,7 @@ import com.application.data.entity.request.CreateStageRequest
 import com.application.data.entity.request.UpdateDynamicFieldRequest
 import com.application.data.entity.request.UpdateFieldRequest
 import com.application.data.entity.request.UpdateFormRequest
+import com.application.data.entity.request.UpdateMemberRequest
 import com.application.data.entity.request.UpdateProjectRequest
 import com.application.data.entity.request.UpdateStageRequest
 import com.application.data.entity.response.FieldResponse
@@ -35,6 +36,10 @@ interface IProjectService {
     suspend fun updateProject(
         projectId: String,
         updateRequestData: UpdateProjectRequest
+    ): Boolean
+    suspend fun updateProjectMember(
+        projectId: String,
+        updateMemberRequest: UpdateMemberRequest
     ): Boolean
 
     suspend fun deleteProject(projectId: String): Boolean
