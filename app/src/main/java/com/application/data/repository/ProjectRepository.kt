@@ -185,31 +185,6 @@ class ProjectRepository(
             )
         }
     }
-    fun updateProjectMember2(
-        projectId: String,
-        memberId: String,
-        operator: MemberOperator
-    ): Flow<ResourceState<Boolean>> {
-        var updateRequest = UpdateMemberRequest(
-            memberId = memberId,
-            operator = operator.name
-        )
-        return flow<ResourceState<Boolean>> {
-            val updateResult = projectService.updateProjectMember(projectId = projectId, updateMemberRequest = updateRequest)
-            // get updated project member from server
-            if (updateResult) getProject(projectId, true)
-            emit(ResourceState.Success(true))
-        }.catch { exception ->
-            Log.e(TAG, exception.message, exception)
-            emit(
-                ResourceState.Error(
-                    message = "Cannot add member in modifyProject",
-                    resId = R.string.error_modify_project
-                )
-            )
-        }
-    }
-
 
     fun deleteProject(
         projectId: String

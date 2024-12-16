@@ -2,10 +2,7 @@ package com.application.ui.screen
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,8 +42,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -184,7 +179,9 @@ fun ModifyStageScreen(
                     ExposedDropdownMenuBox(
                         modifier = Modifier.clip(RoundedCornerShape(15.dp)),
                         expanded = expanded,
-                        onExpandedChange = { expanded = it },
+                        onExpandedChange = {
+//                            expanded = it
+                        },
                     ) {
                         TextField(
                             modifier = Modifier
@@ -223,40 +220,17 @@ fun ModifyStageScreen(
                         }
                     }
 
-                    //projectEmailMembers?.let {
-                    if (state.memberUsernames.isEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(20.dp))
-                                .fillMaxWidth(.95f)
-                                .height(120.dp)
-                                .border(
-                                    width = 0.dp,
-                                    Color.LightGray,
-                                    shape = RoundedCornerShape(20.dp)
-                                )
-                                .background(colorResource(id = R.color.gray_100)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.no_members),
-                                textAlign = TextAlign.Center,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Light
+                    FieldToList(
+                        fieldDataList = state.stageUsers.map { it.email },
+                        textValidator = { email -> email.contains(RegexValidation.EMAIL) },
+                        listHeight = 180.dp,
+                        onAddField = { newMemberEmail ->
+                            viewModel.addNewStageMember(
+                                newMemberEmail
                             )
-                        }
-                    } else {
-                        FieldToList(
-                            fieldDataList = state.memberUsernames,
-                            textValidator = { email ->
-                                email.contains(RegexValidation.EMAIL)
-                            },
-                            listHeight = 180.dp,
-                            onAddField = {},
-                            onRemoveField = {}
-                        )
-                    }
-                    //}
+                        },
+                        onRemoveField = { index -> viewModel.removeMemberEmail(index) }
+                    )
 
                     CustomButton(
                         modifier = Modifier

@@ -4,7 +4,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,17 +37,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
@@ -230,40 +225,16 @@ fun ModifyProjectScreen(
                     ) { viewModel.updateDate(date = it, isStartDate = false) }
                 }
 
-                if (state.projectUsers.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .fillMaxWidth(.95f)
-                            .height(120.dp)
-                            .border(
-                                width = 0.dp,
-                                Color.LightGray,
-                                shape = RoundedCornerShape(20.dp)
-                            )
-                            .background(colorResource(id = R.color.gray_100)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.no_members),
-                            textAlign = TextAlign.Center,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Light
+                FieldToList(
+                    fieldDataList = state.projectUsers.map { it.email },
+                    textValidator = { email -> email.contains(RegexValidation.EMAIL) },
+                    onAddField = { newEmailMember ->
+                        viewModel.addNewProjectMember(
+                            newEmailMember
                         )
-                    }
-                } else {
-                    FieldToList(
-                        fieldDataList = state.projectUsers.map { it.email },
-                        textValidator = { email -> email.contains(RegexValidation.EMAIL) },
-                        onAddField = { newEmailMember ->
-                            viewModel.addNewProjectMember(
-                                newEmailMember
-                            )
-                        },
-                        onRemoveField = { index -> viewModel.removeMemberEmail(index) }
-                    )
-                }
-                // Luu thong tin sau chinh sua
+                    },
+                    onRemoveField = { index -> viewModel.removeMemberEmail(index) }
+                )
 
                 val updateFailed = stringResource(R.string.error_modify_project)
                 Button(

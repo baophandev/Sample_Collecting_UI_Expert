@@ -41,8 +41,11 @@ class RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideStageRepository(projectService: IProjectService): StageRepository {
-        return StageRepository(projectService)
+    fun provideStageRepository(
+        projectService: IProjectService,
+        userRepository: UserRepository,
+    ): StageRepository {
+        return StageRepository(projectService, userRepository)
     }
 
     @Provides
