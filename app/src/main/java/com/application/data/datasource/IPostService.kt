@@ -1,9 +1,7 @@
 package com.application.data.datasource
 
 import com.application.data.entity.request.CreateCommentRequest
-import com.application.data.entity.response.CommentResponse
 import com.application.data.entity.response.FileInPostResponse
-import com.application.data.entity.response.GeneralCommentResponse
 import com.application.data.entity.response.PostResponse
 import com.sc.library.utility.client.response.PagingResponse
 

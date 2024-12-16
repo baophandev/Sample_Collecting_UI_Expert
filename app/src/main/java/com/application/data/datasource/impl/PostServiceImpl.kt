@@ -33,7 +33,7 @@ class PostServiceImpl(
         pageNumber: Int,
         pageSize: Int
     ): PagingResponse<PostResponse> = runCatching<PagingResponse<PostResponse>> {
-        client.get(urlString = "getPostsByDomain/$expertId") {
+        client.get(urlString = "getByExpertId/$expertId") {
             url {
                 encodedParameters.append("isAnswered", "$isAnswered")
                 encodedParameters.append("pageNumber", "$pageNumber")

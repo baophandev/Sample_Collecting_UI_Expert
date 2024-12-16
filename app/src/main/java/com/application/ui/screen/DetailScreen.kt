@@ -474,6 +474,7 @@ private fun FormTab(
                         onFormDeleteClicked(form.id)
                 }
             )
+            Spacer(modifier = Modifier.size(5.dp))
         },
         noItemContent = {
             Icon(

@@ -154,5 +154,12 @@
     <string name="delete_stage_error">Quá trình xóa đợt thu mẫu đã xảy ra lỗi.</string>
     <string name="update_stage_error">Quá trình cập nhật đợt thu mẫu đã xảy ra lỗi.</string>
     <string name="get_fields_error">Quá trình lấy các trường dữ liệu đã xảy ra lỗi.</string>
+    <string name="description">Mô tả</string>
+    <string name="expert_answer">Trả lời của chuyên gia</string>
+    <string name="no_answer">Chưa có câu trả lời.</string>
+    <string name="expert_conclusion">Kết luận tổng thể của chuyên gia</string>
+    <string name="no_post">Không có bài đăng nào!</string>
+    <string name="answered_post">Các bài đăng đã trả lời</string>
+    <string name="no_comment">Chưa có nội dung.</string>
 
 </resources>

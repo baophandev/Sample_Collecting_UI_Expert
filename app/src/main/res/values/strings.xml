@@ -151,5 +151,12 @@
     <string name="delete_stage_error">Deleting stage process has occurred an error.</string>
     <string name="update_stage_error">Updating stage process has occurred an error.</string>
     <string name="get_fields_error">Getting fields process has occurred an error.</string>
+    <string name="description">Description</string>
+    <string name="expert_answer">Answer from Expert</string>
+    <string name="no_answer">No answer yet.</string>
+    <string name="expert_conclusion">Conclusion from Expert</string>
+    <string name="no_post">No post!</string>
+    <string name="answered_post">Answered posts</string>
+    <string name="no_comment">No content yet.</string>
 
 </resources>

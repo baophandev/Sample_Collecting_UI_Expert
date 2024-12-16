@@ -18,6 +18,7 @@ import com.sc.library.user.repository.UserRepository
 import com.sc.library.utility.client.response.PagingResponse
 import com.sc.library.utility.state.ResourceState
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
@@ -239,18 +240,22 @@ class PostRepository(
         return FileInPost(
             id = response.fileId,
             image = image,
-            description = response.content,
+            description = response.description,
             comment = comment
         )
     }
 
-    private suspend fun mapResponseToComment(response: CommentResponse): Comment {
-        val attachments = response.attachmentIds.map { id ->
-            when (val rsState = atmRepository.getAttachment(id).last()) {
-                is ResourceState.Success -> rsState.data
-                is ResourceState.Error -> throw PostException
-                    .AttachmentRetrievingException("Cannot retrieve an attachment of post.")
-            }
+    private fun mapResponseToComment(response: CommentResponse): Comment {
+        val attachments = runBlocking {
+            response.attachmentIds.map { id ->
+                async {
+                    when (val rsState = atmRepository.getAttachment(id).last()) {
+                        is ResourceState.Success -> rsState.data
+                        is ResourceState.Error -> throw PostException
+                            .AttachmentRetrievingException("Cannot retrieve an attachment of post.")
+                    }
+                }
+            }.awaitAll()
         }
 
         return Comment(

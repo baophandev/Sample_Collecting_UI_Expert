@@ -26,7 +26,7 @@ data class UserDataConversation(
 )
 
 @Composable
-fun ExpertChatsScreen(
+fun ConversationsScreen(
     navigateToHome: () -> Unit,
     navigateToChat: () -> Unit,
 ) {

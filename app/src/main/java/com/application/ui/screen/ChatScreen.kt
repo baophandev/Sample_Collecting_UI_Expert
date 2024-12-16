@@ -362,7 +362,7 @@ fun ChatList(
 @Composable
 fun ChatScreen(
     modifier: Modifier = Modifier,
-    navigateToExpertChatListScreen: () -> Unit
+    navigateToConversations: () -> Unit
 ) {
     val messages: SnapshotStateList<ChatData> = remember { mutableStateListOf() }
     val chatState = rememberLazyListState()
@@ -374,7 +374,7 @@ fun ChatScreen(
             TopChatBar(
                 title = "Chuyên gia MiMi",
                 modifier = Modifier.padding(bottom = 3.dp),
-                route = navigateToExpertChatListScreen
+                route = navigateToConversations
             )
         }, bottomBar = {
             ReplyBar(

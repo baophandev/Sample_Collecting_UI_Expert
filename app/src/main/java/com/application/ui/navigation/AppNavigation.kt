@@ -15,16 +15,16 @@ import com.application.ui.screen.CreateProjectScreen
 import com.application.ui.screen.CreateSampleScreen
 import com.application.ui.screen.CreateStageScreen
 import com.application.ui.screen.DetailScreen
-import com.application.ui.screen.ExpertChatsScreen
+import com.application.ui.screen.ConversationsScreen
 import com.application.ui.screen.HomeScreen
 import com.application.ui.screen.LoginScreen
 import com.application.ui.screen.ModifyFormScreen
 import com.application.ui.screen.ModifyProjectScreen
 import com.application.ui.screen.ModifyStageScreen
-import com.application.ui.screen.PostAnswerScreen
+import com.application.ui.screen.PostDetailScreen
 import com.application.ui.screen.SampleDetailScreen
 import com.application.ui.screen.StageDetailScreen
-import com.application.ui.screen.WorkersQuestionScreen
+import com.application.ui.screen.QuestionsScreen
 import com.application.ui.viewmodel.CaptureViewModel
 import com.application.ui.viewmodel.CreateFormViewModel
 import com.application.ui.viewmodel.CreateSampleViewModel
@@ -34,6 +34,8 @@ import com.application.ui.viewmodel.HomeViewModel
 import com.application.ui.viewmodel.ModifyFormViewModel
 import com.application.ui.viewmodel.ModifyProjectViewModel
 import com.application.ui.viewmodel.ModifyStageViewModel
+import com.application.ui.viewmodel.PostDetailViewModel
+import com.application.ui.viewmodel.QuestionsViewModel
 import com.application.ui.viewmodel.SampleDetailViewModel
 import com.application.ui.viewmodel.StageDetailViewModel
 
@@ -54,26 +56,27 @@ fun AppNavigationGraph() {
     val sampleDetailVM: SampleDetailViewModel = hiltViewModel()
     val captureVM: CaptureViewModel = hiltViewModel()
     val createSampleVM: CreateSampleViewModel = hiltViewModel()
+    val postDetailVM: PostDetailViewModel = hiltViewModel()
+    val questionsVM: QuestionsViewModel = hiltViewModel()
 
     val navController = rememberNavController()
 
-    val navigateToExpertChatsScreen: () -> Unit = {
-        navController.navigateSingleTop(Routes.EXPERT_CHATS_SCREEN)
+    val navigateToConversations: () -> Unit = {
+        navController.navigateSingleTop(Routes.CONVERSATIONS_SCREEN)
     }
 
-    val navigateToWorkersQuestionScreen: () -> Unit = {
-        navController.navigateSingleTop(Routes.WORKERS_QUESTION_SCREEN)
+    val navigateToQuestions: () -> Unit = {
+        navController.navigateSingleTop(Routes.QUESTIONS_SCREEN)
     }
 
     val popBackToLogin: () -> Unit = {
-        detailVM.renewState()
         navController.popBackStack(
             Routes.LOGIN_SCREEN,
             inclusive = false,
             saveState = false
         )
     }
-    val popBackToHomeScreen: () -> Unit = {
+    val popBackToHome: () -> Unit = {
         navController.popBackStack(
             Routes.HOME_SCREEN,
             inclusive = false,
@@ -101,6 +104,10 @@ fun AppNavigationGraph() {
     ) {
         composable(Routes.LOGIN_SCREEN) {
             LoginScreen {
+                homeScreenVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
+                questionsVM.reload(ReloadSignal.RELOAD_ALL_POSTS)
+                detailVM.renewState()
+
                 navController.navigateSingleTop(Routes.HOME_SCREEN)
             }
         }
@@ -121,8 +128,8 @@ fun AppNavigationGraph() {
                 navigateToLogin = popBackToLogin,
                 navigateToCreateProject = navigateToCreateProject,
                 navigateToDetailProject = navigateToDetailProject,
-                navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
-                navigateToExpertChatScreen = navigateToExpertChatsScreen
+                navigateToQuestions = navigateToQuestions,
+                navigateToConversations = navigateToConversations
             )
         }
 
@@ -154,7 +161,7 @@ fun AppNavigationGraph() {
                 viewModel = detailVM,
                 navigateToHome = { isDeleted ->
                     if (isDeleted) homeScreenVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
-                    popBackToHomeScreen()
+                    popBackToHome()
                 },
                 navigateToModifyProject = navigateToModify,
                 navigateToStageDetail = navigateToStageDetail,
@@ -169,10 +176,10 @@ fun AppNavigationGraph() {
                 navigateToLogin = popBackToLogin,
                 navigateToHome = { isCreated ->
                     if (isCreated) homeScreenVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
-                    popBackToHomeScreen()
+                    popBackToHome()
                 },
-                navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
-                navigateToExpertChatScreen = navigateToExpertChatsScreen
+                navigateToQuestions = navigateToQuestions,
+                navigateToConversations = navigateToConversations
             )
         }
 
@@ -180,13 +187,13 @@ fun AppNavigationGraph() {
             ModifyProjectScreen(
                 viewModel = modifyProjectVM,
                 navigateToLogin = popBackToLogin,
-                navigateToHome = popBackToHomeScreen,
+                navigateToHome = popBackToHome,
                 navigateToDetail = { isModified ->
                     if (isModified) detailVM.reload(ReloadSignal.RELOAD_PROJECT)
                     popBackToDetailScreen()
                 },
-                navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
-                navigateToExpertChatScreen = navigateToExpertChatsScreen
+                navigateToQuestions = navigateToQuestions,
+                navigateToConversations = navigateToConversations
             )
         }
 
@@ -224,9 +231,9 @@ fun AppNavigationGraph() {
                     popBackToDetailScreen()
                 },
                 navigateToLogin = popBackToLogin,
-                navigateToHome = popBackToHomeScreen,
-                navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
-                navigateToExpertChatScreen = navigateToExpertChatsScreen
+                navigateToHome = popBackToHome,
+                navigateToQuestions = navigateToQuestions,
+                navigateToConversations = navigateToConversations
             )
         }
 
@@ -234,7 +241,7 @@ fun AppNavigationGraph() {
             ModifyStageScreen(
                 viewModel = modifyStageVM,
                 navigateToLogin = popBackToLogin,
-                navigateToHome = popBackToHomeScreen,
+                navigateToHome = popBackToHome,
                 navigateToStageDetail = { isUpdated ->
                     if (isUpdated) {
                         stageDetailVM.reload(ReloadSignal.RELOAD_STAGE)
@@ -242,8 +249,8 @@ fun AppNavigationGraph() {
                     }
                     popBackToStageDetailScreen()
                 },
-                navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
-                navigateToExpertChatScreen = navigateToExpertChatsScreen
+                navigateToQuestions = navigateToQuestions,
+                navigateToConversations = navigateToConversations
             )
         }
 
@@ -255,9 +262,9 @@ fun AppNavigationGraph() {
                     popBackToDetailScreen()
                 },
                 navigateToLogin = popBackToLogin,
-                navigateToHome = popBackToHomeScreen,
-                navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
-                navigateToExpertChatScreen = navigateToExpertChatsScreen
+                navigateToHome = popBackToHome,
+                navigateToQuestions = navigateToQuestions,
+                navigateToConversations = navigateToConversations
             )
         }
 
@@ -265,13 +272,13 @@ fun AppNavigationGraph() {
             ModifyFormScreen(
                 viewModel = modifyFormVM,
                 popBackToLogin = popBackToLogin,
-                popBackToHome = popBackToHomeScreen,
+                popBackToHome = popBackToHome,
                 popBackToDetail = { isUpdated ->
                     if (isUpdated) detailVM.reload(ReloadSignal.RELOAD_FORM)
                     popBackToDetailScreen()
                 },
-                navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen,
-                navigateToExpertChatScreen = navigateToExpertChatsScreen
+                navigateToQuestions = navigateToQuestions,
+                navigateToConversations = navigateToConversations
             )
         }
 
@@ -315,39 +322,56 @@ fun AppNavigationGraph() {
             )
         }
 
-        composable(Routes.WORKERS_QUESTION_SCREEN) {
-            val navigateToPostAnswerScreen: () -> Unit = {
-                navController.navigateSingleTop(Routes.POST_ANSWER_SCREEN)
+        composable(Routes.QUESTIONS_SCREEN) {
+            val navigateToPostDetail: (String) -> Unit = { postId ->
+                postDetailVM.fetchPost(postId)
+                navController.navigateSingleTop(Routes.POST_DETAIL_SCREEN)
             }
-            WorkersQuestionScreen(
-                navigateToHome = { popBackToHomeScreen() },
-                navigateToExpertChatScreen = navigateToExpertChatsScreen,
-                navigateToPostAnswerScreen = navigateToPostAnswerScreen
+            QuestionsScreen(
+                viewModel = questionsVM,
+                navigateToHome = popBackToHome,
+                navigateToConversations = navigateToConversations,
+                navigateToPostDetail = navigateToPostDetail
             )
         }
 
-        composable(Routes.EXPERT_CHATS_SCREEN) {
-            val navigateToChatScreen: () -> Unit = {
+        composable(Routes.POST_DETAIL_SCREEN) {
+            val popBackToQuestions: () -> Unit = {
+                navController.popBackStack(
+                    route = Routes.QUESTIONS_SCREEN,
+                    inclusive = false,
+                    saveState = false
+                )
+            }
+
+            PostDetailScreen(
+                viewModel = postDetailVM,
+                navigateToQuestions = popBackToQuestions,
+                navigateToHome = popBackToHome,
+                navigateToConversations = navigateToConversations,
+            )
+        }
+
+        composable(Routes.CONVERSATIONS_SCREEN) {
+            val navigateToChat: () -> Unit = {
                 navController.navigateSingleTop(Routes.CHAT_SCREEN)
             }
-            ExpertChatsScreen(
-                navigateToHome = { popBackToHomeScreen() },
-                navigateToChat = navigateToChatScreen
+            ConversationsScreen(
+                navigateToHome = popBackToHome,
+                navigateToChat = navigateToChat
             )
         }
 
         composable(Routes.CHAT_SCREEN) {
-            val navigateToExpertChatListScreen: () -> Unit = {
-                navController.popBackStack()
+            val popBackToConversations: () -> Unit = {
+                navController.popBackStack(
+                    route = Routes.CONVERSATIONS_SCREEN,
+                    inclusive = false,
+                    saveState = false
+                )
             }
             ChatScreen(
-                navigateToExpertChatListScreen = navigateToExpertChatListScreen
-            )
-        }
-
-        composable(Routes.POST_ANSWER_SCREEN) {
-            PostAnswerScreen(
-                navigateToWorkersQuestionScreen = navigateToWorkersQuestionScreen
+                navigateToConversations = popBackToConversations
             )
         }
 

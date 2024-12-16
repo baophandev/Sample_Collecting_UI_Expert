@@ -20,8 +20,8 @@ import com.application.R
 @Composable
 fun BotNavigationBar(
     modifier: Modifier = Modifier,
-    onWorkersQuestionClick: () -> Unit,
-    onExpertChatsClick: () -> Unit,
+    onQuestionsClick: () -> Unit,
+    onExpertChatClick: () -> Unit,
     middleButton: @Composable () -> Unit
 ) {
     Row(
@@ -51,7 +51,7 @@ fun BotNavigationBar(
 //        }
 
         IconButton(
-            onClick = onWorkersQuestionClick,
+            onClick = onQuestionsClick,
             modifier = Modifier.size(50.dp)
         ) {
             Icon(
@@ -65,7 +65,7 @@ fun BotNavigationBar(
         middleButton()
 
         IconButton(
-            onClick = onExpertChatsClick,
+            onClick = onExpertChatClick,
             modifier = Modifier
                 .size(50.dp)
         ) {

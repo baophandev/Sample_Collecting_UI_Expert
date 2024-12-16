@@ -117,7 +117,6 @@ fun FourOrMorePicturesGallery(
         modifier = Modifier
             .requiredSize(maxWidth.dp, maxHeight.dp)
             .background(backgroundColor)
-//            .padding(start = 8.dp)
     ) {
         items(images.size) { index ->
             if (images.size < 5) {
@@ -158,12 +157,11 @@ fun FourOrMorePicturesGallery(
                                 .clip(RoundedCornerShape(20.dp)),
                         )
                         Box(
-
                             modifier = Modifier
                                 .fillMaxSize()
                                 .background(Color.Black.copy(alpha = 0.5f))
                                 .clickable { /*TODO*/ }
-                        ){
+                        ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxSize(),
@@ -195,12 +193,11 @@ fun ImageGallery(
     backgroundColor: Color = Color.White,
 ) {
     val length = images.count()
-    if (length > 0) {
-        when (length) {
-            1 -> OnePictureGallery(images[0], maxWidth, maxHeight, backgroundColor)
-            2 -> TwoPicturesGallery(images, maxWidth, maxHeight, backgroundColor)
-            3 -> ThreePicturesGallery(images, maxWidth, maxHeight, backgroundColor)
-            else -> FourOrMorePicturesGallery(images, maxWidth, maxHeight, backgroundColor)
-        }
+    when (length) {
+        1 -> OnePictureGallery(images[0], maxWidth, maxHeight, backgroundColor)
+        2 -> TwoPicturesGallery(images, maxWidth, maxHeight, backgroundColor)
+        3 -> ThreePicturesGallery(images, maxWidth, maxHeight, backgroundColor)
+        4 -> FourOrMorePicturesGallery(images, maxWidth, maxHeight, backgroundColor)
+        else -> {}
     }
 }

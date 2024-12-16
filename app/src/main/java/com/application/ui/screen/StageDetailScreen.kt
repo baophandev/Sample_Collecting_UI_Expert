@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
@@ -47,6 +46,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
@@ -317,11 +317,11 @@ private fun PhotoTab(
     onImagesSelected: (Boolean) -> Unit,
     onImagesDeleted: (List<String>) -> Unit
 ) {
-    val state = rememberLazyStaggeredGridState()
     val items = pagingItems.itemSnapshotList.items
+    var isRefreshing by remember { mutableStateOf(false) }
 
-    LaunchedEffect(state.isScrollInProgress) {
-
+    LaunchedEffect(pagingItems.loadState.refresh) {
+        isRefreshing = pagingItems.loadState.refresh is LoadState.Loading
     }
 
     Column(
@@ -330,14 +330,15 @@ private fun PhotoTab(
             .fillMaxSize()
     ) {
         PhotoBottomSheetContent(
+            isRefreshing = isRefreshing,
+            onRefresh = { pagingItems.refresh() },
             uris = items.map { Pair(it.id, it.image) },
-            state = state,
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(if (items.isEmpty()) .2f else .9f),
             onPhotoPress = onPhotoPress,
             onPhotosSelected = if (isProjectOwner) onImagesSelected else null,
-            onPhotosDeleted = if (isProjectOwner) onImagesDeleted else null
+            onPhotosDeleted = if (isProjectOwner) onImagesDeleted else null,
         )
     }
 }

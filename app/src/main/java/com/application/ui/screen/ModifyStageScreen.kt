@@ -70,8 +70,8 @@ fun ModifyStageScreen(
     navigateToLogin: () -> Unit,
     navigateToHome: () -> Unit,
     navigateToStageDetail: (Boolean) -> Unit,
-    navigateToWorkersQuestionScreen: () -> Unit,
-    navigateToExpertChatScreen: () -> Unit
+    navigateToQuestions: () -> Unit,
+    navigateToConversations: () -> Unit
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
@@ -123,8 +123,8 @@ fun ModifyStageScreen(
                 bottomBar = {
                     BotNavigationBar(
                         modifier = Modifier.padding(vertical = 10.dp),
-                        onWorkersQuestionClick = navigateToWorkersQuestionScreen,
-                        onExpertChatsClick = navigateToExpertChatScreen
+                        onQuestionsClick = navigateToQuestions,
+                        onExpertChatClick = navigateToConversations
                     ) {
                         IconButton(
                             modifier = Modifier.size(50.dp),

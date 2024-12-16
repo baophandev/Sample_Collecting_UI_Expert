@@ -58,11 +58,7 @@ fun <T : Any> PagingLayout(
                 else -> Arrangement.Center
             }
         ) {
-            if (pagingItems.loadState.refresh == LoadState.Loading) item {
-                CustomCircularProgressIndicator(
-                    text = stringResource(id = R.string.loading)
-                )
-            } else if (pagingItems.loadState.hasError)
+            if (pagingItems.loadState.hasError)
                 item {
                     TitleText(
                         text = stringResource(id = R.string.unknown_error),
