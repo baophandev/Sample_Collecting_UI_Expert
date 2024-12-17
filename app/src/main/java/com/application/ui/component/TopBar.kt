@@ -144,7 +144,7 @@ fun TopBar(
                                 Text(
                                     text = stringResource(id = title)
                                         .uppercase(),
-                                    fontSize = 20.sp,
+                                    fontSize = 15.sp,
                                     fontWeight = FontWeight.W700,
                                     textAlign = TextAlign.Center,
                                     letterSpacing = 2.sp,

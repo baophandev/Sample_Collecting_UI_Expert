@@ -2,6 +2,7 @@ package com.application.data.repository
 
 import android.net.Uri
 import android.util.Log
+import com.application.R
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Answer
 import com.application.data.entity.DynamicField
@@ -11,6 +12,7 @@ import com.application.data.entity.request.CreateDynamicFieldRequest
 import com.application.data.entity.request.CreateSampleRequest
 import com.application.data.entity.request.UpsertAnswerRequest
 import com.application.data.entity.response.SampleResponse
+import com.application.data.exception.SampleException
 import com.application.data.repository.ProjectRepository.Companion.TAG
 import com.sc.library.attachment.repository.AttachmentRepository
 import com.sc.library.utility.client.response.PagingResponse
@@ -41,8 +43,15 @@ class SampleRepository(
         stageId: String,
         answers: List<Answer>,
         dynamicFields: List<DynamicField>,
-    ): Flow<ResourceState<String>> {
-        var body = CreateSampleRequest(
+    ): Flow<ResourceState<String>> = flow<ResourceState<String>> {
+        val attachmentId =
+            when (val rsState = attachmentRepository.storeAttachment(attachmentUri).last()) {
+                is ResourceState.Success -> rsState.data
+                is ResourceState.Error -> throw SampleException
+                    .AttachmentStoringException("Storing attachment got an exception.")
+            }
+        val body = CreateSampleRequest(
+            attachmentId = attachmentId,
             position = position,
             stageId = stageId,
             answers = answers.map {
@@ -57,22 +66,16 @@ class SampleRepository(
             }
         )
 
-        return flow<ResourceState<String>> {
-            val attachmentState = attachmentRepository.storeAttachment(attachmentUri).last()
-            if (attachmentState is ResourceState.Success)
-                body = body.copy(attachmentId = attachmentState.data)
-            else throw Exception("Storing attachment got an exception.")
-
-            val sampleId = projectService.createSample(body)
-            val newSample = getSample(sampleId).last()
-            if (newSample is ResourceState.Success)
-                cachedSamples[sampleId] = newSample.data
-
-            emit(ResourceState.Success(sampleId))
-        }.catch { exception ->
-            Log.e(TAG, exception.message, exception)
-            emit(ResourceState.Error(message = "Cannot create a new sample"))
-        }
+        val sampleId = projectService.createSample(body)
+        emit(ResourceState.Success(sampleId))
+    }.catch { exception ->
+        Log.e(TAG, exception.message, exception)
+        emit(
+            ResourceState.Error(
+                message = "Cannot create a new sample",
+                resId = R.string.create_sample_error
+            )
+        )
     }
 
     /**
@@ -85,20 +88,32 @@ class SampleRepository(
         return flow<ResourceState<Sample>> {
             val response = projectService.getSample(sampleId)
             val sample = mapResponseToSample(response)
+            cachedSamples[sampleId] = sample
             emit(ResourceState.Success(sample))
         }.catch {
             Log.e(TAG, it.message, it)
-            emit(ResourceState.Error(message = "Cannot get sample"))
+            emit(
+                ResourceState.Error(
+                    message = "Cannot get sample",
+                    resId = R.string.get_sample_error
+                )
+            )
         }
     }
 
     fun deleteSample(sampleId: String): Flow<ResourceState<Boolean>> {
         return flow<ResourceState<Boolean>> {
             val response = projectService.deleteSample(sampleId)
+            if (response) cachedSamples.remove(sampleId)
             emit(ResourceState.Success(response))
         }.catch {
             Log.e(TAG, it.message, it)
-            emit(ResourceState.Error(message = "Cannot get sample"))
+            emit(
+                ResourceState.Error(
+                    message = "Cannot delete a sample",
+                    resId = R.string.error_delete_sample
+                )
+            )
         }
     }
 
@@ -126,7 +141,7 @@ class SampleRepository(
         }.onFailure { Log.e(TAG, it.message, it) }
     }
 
-    private suspend fun mapResponseToSample(response: SampleResponse): Sample {
+    private fun mapResponseToSample(response: SampleResponse): Sample {
         val (image, answers, dynamicFields) = runBlocking {
             val image = async {
                 when (val atmState =

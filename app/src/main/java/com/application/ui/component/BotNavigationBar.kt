@@ -3,7 +3,6 @@ package com.application.ui.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,14 +20,14 @@ import com.application.R
 @Composable
 fun BotNavigationBar(
     modifier: Modifier = Modifier,
-    onWorkersQuestionClick: () -> Unit,
-    onExpertChatsClick: () -> Unit,
+    onQuestionsClick: () -> Unit,
+    onExpertChatClick: () -> Unit,
     middleButton: @Composable () -> Unit
 ) {
     Row(
         modifier = modifier
             .background(MaterialTheme.colorScheme.primary)
-            .padding(start = 30.dp, end = 30.dp, top = 2.dp, bottom = 2.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 1.dp, bottom = 1.dp)
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -52,11 +51,11 @@ fun BotNavigationBar(
 //        }
 
         IconButton(
-            onClick = onWorkersQuestionClick,
-            modifier = Modifier.size(40.dp)
+            onClick = onQuestionsClick,
+            modifier = Modifier.size(35.dp)
         ) {
             Icon(
-                modifier = Modifier.fillMaxSize(.75f),
+                modifier = Modifier.fillMaxSize(.60f),
                 painter = painterResource(id = R.drawable.worker_question_icon),
                 contentDescription = "Worker Question screen",
                 tint = MaterialTheme.colorScheme.secondary
@@ -66,15 +65,15 @@ fun BotNavigationBar(
         middleButton()
 
         IconButton(
-            onClick = onExpertChatsClick,
+            onClick = onExpertChatClick,
             modifier = Modifier
-                .size(40.dp)
+                .size(35.dp)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_messages),
                 contentDescription = "Expert chat screen",
                 tint = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.fillMaxSize(.85f)
+                modifier = Modifier.fillMaxSize(.60f)
             )
         }
 

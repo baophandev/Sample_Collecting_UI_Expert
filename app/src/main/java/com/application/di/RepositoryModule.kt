@@ -1,9 +1,11 @@
 package com.application.di
 
 import android.content.Context
+import com.application.data.datasource.IPostService
 import com.application.data.datasource.IProjectService
 import com.application.data.repository.FieldRepository
 import com.application.data.repository.FormRepository
+import com.application.data.repository.PostRepository
 import com.application.data.repository.ProjectRepository
 import com.application.data.repository.SampleRepository
 import com.application.data.repository.StageRepository
@@ -74,6 +76,20 @@ class RepositoryModule {
             projectService = projectService,
             attachmentRepository = attachmentRepository,
             fieldRepository = fieldRepository
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun providePostRepository(
+        postService: IPostService,
+        userRepository: UserRepository,
+        attachmentRepository: AttachmentRepository,
+    ): PostRepository {
+        return PostRepository(
+            userRepository = userRepository,
+            atmRepository = attachmentRepository,
+            service = postService
         )
     }
 

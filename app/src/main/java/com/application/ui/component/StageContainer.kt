@@ -42,15 +42,15 @@ fun StageContainer(
             modifier = Modifier.padding(15.dp),
         ) {
             Text(
-                modifier = Modifier.padding(bottom = 10.dp),
+                modifier = Modifier.padding(bottom = 7.dp),
                 text = title,
-                fontSize = 20.sp,
-                color = colorResource(id = R.color.black)
+                fontSize = 16.sp,
+                color = colorResource(id = R.color.main_green)
             )
             description?.let {
                 Text(
                     text = it,
-                    fontSize = 16.sp,
+                    fontSize = 15.sp,
                     color = colorResource(id = R.color.black)
                 )
             }

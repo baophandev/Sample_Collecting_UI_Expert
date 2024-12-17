@@ -32,8 +32,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -69,6 +72,8 @@ fun PhotoBottomSheetContent(
     onPhotoPress: (Int) -> Unit,
     onPhotosSelected: ((Boolean) -> Unit)? = null,
     onPhotosDeleted: ((List<String>) -> Unit)? = null,
+    isRefreshing: Boolean = false,
+    onRefresh: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
@@ -87,7 +92,7 @@ fun PhotoBottomSheetContent(
             )
         }
     } else {
-        Box {
+        ContainerBox(isRefreshing = isRefreshing, onRefresh = onRefresh) {
             LazyVerticalStaggeredGrid(
                 modifier = modifier,
                 state = state,
@@ -187,7 +192,10 @@ fun PhotoBottomSheetContent(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(80.dp)
-                                .background(color = Color.White, shape = RoundedCornerShape(15.dp)),
+                                .background(
+                                    color = Color.White,
+                                    shape = RoundedCornerShape(15.dp)
+                                ),
                             horizontalArrangement = Arrangement.SpaceEvenly,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -238,5 +246,28 @@ fun PhotoBottomSheetContent(
                 }
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ContainerBox(
+    isRefreshing: Boolean = false,
+    onRefresh: (() -> Unit)? = null,
+    content: @Composable () -> Unit
+) {
+    val refreshState = rememberPullToRefreshState()
+
+    if (onRefresh != null) PullToRefreshBox(
+        state = refreshState,
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh
+    ) {
+        content()
+    }
+    else Box {
+        content()
     }
 }

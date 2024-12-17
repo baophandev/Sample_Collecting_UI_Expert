@@ -28,7 +28,7 @@ class HomeViewModel @Inject constructor(
     private val query = ProjectQueryType.ALL
     private val status = ProjectStatus.NORMAL
 
-    var flow: Flow<PagingData<Project>> = initFlow()
+    lateinit var flow: Flow<PagingData<Project>>
 
     fun reload(reloadProject: ReloadSignal) {
         when (reloadProject) {
