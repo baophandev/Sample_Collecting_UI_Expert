@@ -81,7 +81,7 @@ fun QuestionsScreen(
                 onExpertChatClick = navigateToConversations
             ) {
                 IconButton(
-                    modifier = Modifier.size(50.dp),
+                    modifier = Modifier.size(38.dp),
                     onClick = navigateToHome
                 ) {
                     Icon(

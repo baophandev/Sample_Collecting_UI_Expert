@@ -112,12 +112,12 @@ fun ModifyFormScreen(
                     onExpertChatClick = navigateToConversations
                 ) {
                     IconButton(
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(38.dp),
 
                         onClick = popBackToHome
                     ) {
                         Icon(
-                            modifier = Modifier.fillMaxSize(.60f),
+                            modifier = Modifier.fillMaxSize(.75f),
                             painter = painterResource(id = R.drawable.ic_home),
                             contentDescription = null,
                             tint = Color.White

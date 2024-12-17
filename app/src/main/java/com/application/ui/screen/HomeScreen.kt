@@ -108,7 +108,7 @@ fun HomeScreen(
                 onExpertChatClick = navigateToConversations
             ) {
                 IconButton(
-                    modifier = Modifier.size(40.dp),
+                    modifier = Modifier.size(38.dp),
                     onClick = navigateToCreateProject
                 ) {
                     Icon(
