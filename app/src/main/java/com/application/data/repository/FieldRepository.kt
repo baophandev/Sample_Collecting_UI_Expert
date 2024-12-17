@@ -28,7 +28,7 @@ class FieldRepository(
         formId: String,
         skipCached: Boolean = false
     ): Flow<ResourceState<List<Field>>> {
-        if (!skipCached) {
+        if (!skipCached && cachedFields.isNotEmpty()) {
             val fields = cachedFields.filter { it.value.formId == formId }.values.toList()
             return flowOf(ResourceState.Success(fields))
         }

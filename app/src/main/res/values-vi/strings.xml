@@ -162,5 +162,8 @@
     <string name="no_post">Không có câu hỏi nào được gửi đến!</string>
     <string name="answered_post">Các câu hỏi đã trả lời</string>
     <string name="no_comment">Chưa có nội dung.</string>
+    <string name="get_files_in_post_error">Quá trình lấy các hình ảnh đã xảy ra lỗi.</string>
+    <string name="submit_post_error">Vui lòng điền bình luận tổng quát cho bài đăng này.</string>
+    <string name="back">Trở lại</string>
 
 </resources>

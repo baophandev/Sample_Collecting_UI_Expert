@@ -15,4 +15,9 @@ sealed class PostException(
         override val cause: Throwable? = null
     ) : PostException(message, cause)
 
+    class AttachmentStoringException(
+        override val message: String? = null,
+        override val cause: Throwable? = null
+    ) : PostException(message, cause)
+
 }

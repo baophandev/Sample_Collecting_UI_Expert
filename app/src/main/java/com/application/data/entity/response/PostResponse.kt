@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 data class PostResponse(
     val postId: String,
+    val status: Boolean,
     @SerializedName("created_at")
     val createdAt: String,
     val title: String,

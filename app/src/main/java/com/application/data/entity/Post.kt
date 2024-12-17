@@ -5,6 +5,7 @@ import com.sc.library.user.entity.User
 
 data class Post(
     val id: String,
+    val isResolved: Boolean = false,
     val thumbnail: Uri? = null,
     val createdAt: String,
     val title: String,

@@ -103,7 +103,10 @@ fun QuestionsScreen(
                     checked = state.isAnswered,
                     onCheckedChange = viewModel::updateIsAnswered
                 )
-                Text(text = stringResource(R.string.answered_post))
+                Text(
+                    modifier = Modifier.clickable { viewModel.updateIsAnswered(!state.isAnswered) },
+                    text = stringResource(R.string.answered_post)
+                )
             }
             PagingLayout(
                 pagingItems = postPagingItems,

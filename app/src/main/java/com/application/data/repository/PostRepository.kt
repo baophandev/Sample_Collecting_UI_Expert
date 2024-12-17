@@ -32,6 +32,7 @@ class PostRepository(
     private val service: IPostService
 ) {
     private val cachedPosts: MutableMap<String, Post> = mutableMapOf()
+    private val cachedFilesInPost: MutableMap<String, FileInPost> = mutableMapOf()
 
     /**
      * Retrieves a post by its ID, optionally skipping the cached version.
@@ -68,22 +69,32 @@ class PostRepository(
 
     suspend fun getFilesInPost(
         postId: String,
-        pageNumber: Int = 0,
-        pageSize: Int = 6
-    ): Result<PagingResponse<FileInPost>> = runCatching {
-        val response = service.getFilesInPost(postId, pageNumber, pageSize)
-        val fileInPosts = response.content.map(::mapResponseToFilesInPost)
-        PagingResponse(
-            totalPages = response.totalPages,
-            totalElements = response.totalElements,
-            number = response.number,
-            size = response.size,
-            numberOfElements = response.numberOfElements,
-            first = response.first,
-            last = response.last,
-            content = fileInPosts
-        )
-    }.onFailure { Log.e(TAG, it.message, it) }
+        skipCached: Boolean = false
+    ): Flow<ResourceState<List<FileInPost>>> {
+        if (!skipCached && cachedFilesInPost.isNotEmpty()) {
+            val files = cachedFilesInPost.filter { it.value.postId == postId }.values.toList()
+            return flowOf(ResourceState.Success(files))
+        }
+
+        return flow<ResourceState<List<FileInPost>>> {
+            val totalElements = service
+                .getFilesInPost(postId = postId, pageNumber = 0, pageSize = 1)
+                .totalElements
+            val files = service
+                .getFilesInPost(postId = postId, pageNumber = 0, pageSize = totalElements.toInt())
+                .content.map { mapResponseToFilesInPost(postId, it) }
+            cachedFilesInPost.putAll(files.map { Pair(it.id, it) })
+            emit(ResourceState.Success(files))
+        }.catch { exception ->
+            Log.e(TAG, exception.message, exception)
+            emit(
+                ResourceState.Error(
+                    message = "Cannot get all files in post.",
+                    resId = R.string.get_files_in_post_error,
+                )
+            )
+        }
+    }
 
     suspend fun getPostsByExpert(
         expertId: String,
@@ -113,8 +124,20 @@ class PostRepository(
     suspend fun createGeneralComment(
         postId: String,
         content: String,
-        attachmentIds: List<String>? = null
+        attachments: List<Uri>? = null
     ): Flow<ResourceState<Boolean>> = flow<ResourceState<Boolean>> {
+        val attachmentIds = runBlocking {
+            attachments?.map {
+                async {
+                    when (val rsState = atmRepository.storeAttachment(it).last()) {
+                        is ResourceState.Success -> rsState.data
+                        is ResourceState.Error -> throw PostException
+                            .AttachmentStoringException("Cannot store attachment.")
+
+                    }
+                }
+            }?.awaitAll() ?: emptyList()
+        }
         val body = CreateCommentRequest(
             content = content,
             attachmentIds = attachmentIds
@@ -138,8 +161,20 @@ class PostRepository(
     suspend fun createComment(
         fileId: String,
         content: String,
-        attachmentIds: List<String>? = null
+        attachments: List<Uri>? = null
     ): Flow<ResourceState<Boolean>> = flow<ResourceState<Boolean>> {
+        val attachmentIds = runBlocking {
+            attachments?.map {
+                async {
+                    when (val rsState = atmRepository.storeAttachment(it).last()) {
+                        is ResourceState.Success -> rsState.data
+                        is ResourceState.Error -> throw PostException
+                            .AttachmentStoringException("Cannot store attachment.")
+
+                    }
+                }
+            }?.awaitAll() ?: emptyList()
+        }
         val body = CreateCommentRequest(
             content = content,
             attachmentIds = attachmentIds
@@ -173,7 +208,7 @@ class PostRepository(
 
                     is ResourceState.Success -> resourceState.data
                 }
-            }
+            }.await()
             val expert = async {
                 if (response.expertId.isNotBlank())
                     when (val rsState = userRepository.getUser(response.expertId).last()) {
@@ -182,7 +217,7 @@ class PostRepository(
 
                         is ResourceState.Success -> rsState.data
                     } else null
-            }
+            }.await()
             val thumbnail = async {
                 response.fileIds.getOrNull(0)?.let { id ->
                     when (val rsState = atmRepository.getAttachment(id).last()) {
@@ -190,27 +225,28 @@ class PostRepository(
                         is ResourceState.Success -> Uri.parse(rsState.data.url)
                     }
                 }
-            }
-            val generalComment = async {
-                response.generalComment?.let { comment ->
-                    GeneralComment(
-                        content = comment.content,
-                        attachments = comment.attachmentIds.map { attachmentId ->
+            }.await()
+            val generalComment = response.generalComment?.let { comment ->
+                GeneralComment(
+                    content = comment.content,
+                    attachments = comment.attachmentIds.map { attachmentId ->
+                        async {
                             when (val rsState = atmRepository.getAttachment(attachmentId).last()) {
                                 is ResourceState.Success -> rsState.data
                                 is ResourceState.Error -> throw PostException
                                     .AttachmentRetrievingException("Cannot retrieve an attachment of post.")
                             }
                         }
-                    )
-                }
+                    }.awaitAll()
+                )
             }
 
-            Triple(Pair(owner.await(), expert.await()), thumbnail.await(), generalComment.await())
+            Triple(Pair(owner, expert), thumbnail, generalComment)
         }
 
         return Post(
             id = response.postId,
+            isResolved = response.status,
             thumbnail = thumbnail,
             createdAt = response.createdAt,
             title = response.title,
@@ -223,7 +259,7 @@ class PostRepository(
     /**
      * @throws [PostException.AttachmentRetrievingException]
      */
-    private fun mapResponseToFilesInPost(response: FileInPostResponse): FileInPost {
+    private fun mapResponseToFilesInPost(postId: String, response: FileInPostResponse): FileInPost {
         val (image, comment) = runBlocking {
             val image = async {
                 when (val rsState = atmRepository.getAttachment(response.fileId).last()) {
@@ -241,7 +277,8 @@ class PostRepository(
             id = response.fileId,
             image = image,
             description = response.description,
-            comment = comment
+            comment = comment,
+            postId = postId
         )
     }
 
