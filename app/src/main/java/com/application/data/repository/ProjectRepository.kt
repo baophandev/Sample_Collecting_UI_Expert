@@ -3,7 +3,6 @@ package com.application.data.repository
 import android.net.Uri
 import android.util.Log
 import com.application.R
-import com.application.constant.MemberOperator
 import com.application.constant.ProjectQueryType
 import com.application.constant.ProjectStatus
 import com.application.data.datasource.IProjectService
@@ -12,11 +11,11 @@ import com.application.data.entity.request.CreateProjectRequest
 import com.application.data.entity.request.UpdateMemberRequest
 import com.application.data.entity.request.UpdateProjectRequest
 import com.application.data.entity.response.ProjectResponse
+import com.application.data.exception.ProjectException
 import com.sc.library.attachment.repository.AttachmentRepository
 import com.sc.library.user.repository.UserRepository
 import com.sc.library.utility.client.response.PagingResponse
 import com.sc.library.utility.state.ResourceState
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
@@ -44,36 +43,36 @@ class ProjectRepository(
         startDate: String? = null,
         endDate: String? = null,
         memberIds: List<String>? = null
-    ): Flow<ResourceState<String>> {
-        return flow<ResourceState<String>> {
-            val ownerId = userRepository.loggedUser?.id
-                ?: throw Exception("Cannot get logged user ID.")
-            var body = CreateProjectRequest(
-                name = name,
-                description = description,
-                startDate = startDate,
-                endDate = endDate,
-                ownerId = ownerId,
-                memberIds = memberIds
-            )
+    ): Flow<ResourceState<String>> = flow<ResourceState<String>> {
+        val ownerId = userRepository.loggedUser?.id ?: throw ProjectException
+            .UserRetrievingException("Cannot get logged user ID.")
+        var body = CreateProjectRequest(
+            name = name,
+            description = description,
+            startDate = startDate,
+            endDate = endDate,
+            ownerId = ownerId,
+            memberIds = memberIds
+        )
 
-            thumbnail?.let {
-                when (val attachmentState = attachmentRepository.storeAttachment(it).last()) {
-                    is ResourceState.Error -> throw Exception("Storing attachment got an exception.")
-                    is ResourceState.Success -> body = body.copy(thumbnailId = attachmentState.data)
-                }
+        thumbnail?.let {
+            when (val attachmentState = attachmentRepository.storeAttachment(it).last()) {
+                is ResourceState.Error -> throw ProjectException
+                    .AttachmentStoringException("Storing attachment got an exception.")
+
+                is ResourceState.Success -> body = body.copy(thumbnailId = attachmentState.data)
             }
-            val projectId = projectService.createProject(body)
-            emit(ResourceState.Success(projectId))
-        }.catch { exception ->
-            Log.e(TAG, exception.message, exception)
-            emit(
-                ResourceState.Error(
-                    message = "Cannot create a new project",
-                    resId = R.string.create_project_error
-                )
-            )
         }
+        val projectId = projectService.createProject(body)
+        emit(ResourceState.Success(projectId))
+    }.catch { exception ->
+        Log.e(TAG, exception.message, exception)
+        emit(
+            ResourceState.Error(
+                message = "Cannot create a new project",
+                resId = R.string.create_project_error
+            )
+        )
     }
 
     fun getProject(projectId: String, skipCached: Boolean = false): Flow<ResourceState<Project>> {
@@ -83,14 +82,13 @@ class ProjectRepository(
         return flow<ResourceState<Project>> {
             val response = projectService.getProject(projectId)
             val project = mapResponseToProject(response)
-
             cachedProjects[projectId] = project
             emit(ResourceState.Success(project))
         }.catch {
             Log.e(TAG, it.message, it)
             emit(
                 ResourceState.Error(
-                    message = "Cannot get projects",
+                    message = "Cannot get project.",
                     resId = R.string.error_cannot_get_project
                 )
             )
@@ -102,7 +100,7 @@ class ProjectRepository(
         query: ProjectQueryType = ProjectQueryType.ALL,
         status: ProjectStatus = ProjectStatus.NORMAL,
         pageNumber: Int = 0,
-        pageSize: Int = 6
+        pageSize: Int = 6,
     ): Result<PagingResponse<Project>> = runCatching {
         val response = projectService.getAllProjects(
             userId = userId,
@@ -140,22 +138,22 @@ class ProjectRepository(
         )
         return flow<ResourceState<Boolean>> {
             thumbnail?.let {
-                val attachmentState = attachmentRepository.storeAttachment(it).last()
-                if (attachmentState is ResourceState.Success)
-                    updateRequest = updateRequest.copy(thumbnailId = attachmentState.data)
-                else throw Exception("Storing attachment got an exception.")
+                when (val attachmentState = attachmentRepository.storeAttachment(it).last()) {
+                    is ResourceState.Error -> throw ProjectException
+                        .AttachmentStoringException("Storing attachment got an exception.")
+
+                    is ResourceState.Success ->
+                        updateRequest = updateRequest.copy(thumbnailId = attachmentState.data)
+                }
             }
 
             val updateResult = projectService.updateProject(projectId, updateRequest)
-            // get updated project from server
-            if (updateResult) getProject(projectId, true)
-
-            emit(ResourceState.Success(true))
+            emit(ResourceState.Success(updateResult))
         }.catch { exception ->
             Log.e(TAG, exception.message, exception)
             emit(
                 ResourceState.Error(
-                    message = "Cannot update projects",
+                    message = "Cannot update project.",
                     resId = R.string.error_modify_project
                 )
             )
@@ -166,7 +164,7 @@ class ProjectRepository(
         memberId: String,
         operator: String
     ): Flow<ResourceState<Boolean>> {
-        var updateRequest = UpdateMemberRequest(
+        val updateRequest = UpdateMemberRequest(
             memberId = memberId,
             operator = operator
         )
@@ -186,17 +184,16 @@ class ProjectRepository(
         }
     }
 
-    fun deleteProject(
-        projectId: String
-    ): Flow<ResourceState<Boolean>> {
+    fun deleteProject(projectId: String): Flow<ResourceState<Boolean>> {
         return flow<ResourceState<Boolean>> {
             val deleteResult = projectService.deleteProject(projectId = projectId)
-            if (deleteResult) emit(ResourceState.Success(true))
+            if (deleteResult) cachedProjects.remove(projectId)
+            emit(ResourceState.Success(deleteResult))
         }.catch { exception ->
             Log.e(TAG, exception.message, exception)
             emit(
                 ResourceState.Error(
-                    message = "Cannot delete project",
+                    message = "Cannot delete project.",
                     resId = R.string.delete_project_error
                 )
             )
@@ -204,9 +201,9 @@ class ProjectRepository(
     }
 
     /**
-     * @throws [CancellationException]
+     * @throws [ProjectException.UserRetrievingException]
      */
-    private suspend fun mapResponseToProject(response: ProjectResponse): Project {
+    private fun mapResponseToProject(response: ProjectResponse): Project {
         val (thumbnail, owner, members) = runBlocking {
             val thumbnail = async {
                 val atmState = response.thumbnailId?.let {
@@ -221,7 +218,9 @@ class ProjectRepository(
 
             val owner = async {
                 when (val rsState = userRepository.getUser(response.ownerId).last()) {
-                    is ResourceState.Error -> throw Exception("Cannot get project owner data.")
+                    is ResourceState.Error -> throw ProjectException
+                        .UserRetrievingException("Cannot get project owner data.")
+
                     is ResourceState.Success -> rsState.data
                 }
             }
@@ -229,7 +228,9 @@ class ProjectRepository(
             val members = response.memberIds?.map {
                 async {
                     when (val rsState = userRepository.getUser(it).last()) {
-                        is ResourceState.Error -> throw Exception("Cannot get project member data.")
+                        is ResourceState.Error -> throw ProjectException
+                            .UserRetrievingException("Cannot get project member data.")
+
                         is ResourceState.Success -> rsState.data
                     }
                 }

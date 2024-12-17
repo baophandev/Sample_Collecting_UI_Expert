@@ -59,8 +59,8 @@ fun CreateProjectScreen(
     viewModel: CreateProjectViewModel = hiltViewModel(),
     navigateToLogin: () -> Unit,
     navigateToHome: (Boolean) -> Unit,
-    navigateToWorkersQuestionScreen: () -> Unit,
-    navigateToExpertChatScreen: () -> Unit
+    navigateToQuestions: () -> Unit,
+    navigateToConversations: () -> Unit
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
@@ -110,8 +110,8 @@ fun CreateProjectScreen(
             },
             bottomBar = {
                 BotNavigationBar(
-                    onWorkersQuestionClick = navigateToWorkersQuestionScreen,
-                    onExpertChatsClick = navigateToExpertChatScreen
+                    onQuestionsClick = navigateToQuestions,
+                    onExpertChatClick = navigateToConversations
                 ) {
                     IconButton(
                         modifier = Modifier.size(50.dp),
@@ -140,7 +140,7 @@ fun CreateProjectScreen(
                         .fillMaxWidth(.95f)
                         .height(180.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color.LightGray
+                        containerColor = Color.White
                     ),
                     onClick = { pickPictureLauncher.launch("image/*") }
                 ) {

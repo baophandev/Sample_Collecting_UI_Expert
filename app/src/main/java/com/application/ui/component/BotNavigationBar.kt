@@ -20,8 +20,8 @@ import com.application.R
 @Composable
 fun BotNavigationBar(
     modifier: Modifier = Modifier,
-    onWorkersQuestionClick: () -> Unit,
-    onExpertChatsClick: () -> Unit,
+    onQuestionsClick: () -> Unit,
+    onExpertChatClick: () -> Unit,
     middleButton: @Composable () -> Unit
 ) {
     Row(
@@ -51,11 +51,11 @@ fun BotNavigationBar(
 //        }
 
         IconButton(
-            onClick = onWorkersQuestionClick,
-            modifier = Modifier.size(50.dp)
+            onClick = onQuestionsClick,
+            modifier = Modifier.size(35.dp)
         ) {
             Icon(
-                modifier = Modifier.fillMaxSize(.75f),
+                modifier = Modifier.fillMaxSize(.60f),
                 painter = painterResource(id = R.drawable.worker_question_icon),
                 contentDescription = "Worker Question screen",
                 tint = MaterialTheme.colorScheme.secondary
@@ -65,15 +65,15 @@ fun BotNavigationBar(
         middleButton()
 
         IconButton(
-            onClick = onExpertChatsClick,
+            onClick = onExpertChatClick,
             modifier = Modifier
-                .size(50.dp)
+                .size(35.dp)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_messages),
                 contentDescription = "Expert chat screen",
                 tint = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.fillMaxSize(.85f)
+                modifier = Modifier.fillMaxSize(.60f)
             )
         }
 

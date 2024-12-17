@@ -68,8 +68,8 @@ fun ModifyProjectScreen(
     navigateToLogin: () -> Unit,
     navigateToHome: () -> Unit,
     navigateToDetail: (Boolean) -> Unit,
-    navigateToWorkersQuestionScreen: () -> Unit,
-    navigateToExpertChatScreen: () -> Unit
+    navigateToQuestions: () -> Unit,
+    navigateToConversations: () -> Unit
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
@@ -117,8 +117,8 @@ fun ModifyProjectScreen(
             topBar = { TopBar(title = R.string.modify_project, signOutClicked = navigateToLogin) },
             bottomBar = {
                 BotNavigationBar(
-                    onWorkersQuestionClick = navigateToWorkersQuestionScreen,
-                    onExpertChatsClick = navigateToExpertChatScreen
+                    onQuestionsClick = navigateToQuestions,
+                    onExpertChatClick = navigateToConversations
                 ) {
                     IconButton(
                         modifier = Modifier.size(50.dp),

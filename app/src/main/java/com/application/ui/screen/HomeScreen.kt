@@ -47,8 +47,8 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     navigateToCreateProject: () -> Unit,
     navigateToDetailProject: (String) -> Unit,
-    navigateToWorkersQuestionScreen: () -> Unit,
-    navigateToExpertChatScreen: () -> Unit,
+    navigateToQuestions: () -> Unit,
+    navigateToConversations: () -> Unit,
     navigateToLogin: () -> Unit
 ) {
     val projectPagingItems = viewModel.flow.collectAsLazyPagingItems()
@@ -104,8 +104,8 @@ fun HomeScreen(
         },
         bottomBar = {
             BotNavigationBar(
-                onWorkersQuestionClick = navigateToWorkersQuestionScreen,
-                onExpertChatsClick = navigateToExpertChatScreen
+                onQuestionsClick = navigateToQuestions,
+                onExpertChatClick = navigateToConversations
             ) {
                 IconButton(
                     modifier = Modifier.size(50.dp),
@@ -148,7 +148,7 @@ fun HomeScreen(
                 )
                 TitleText(
                     text = stringResource(id = R.string.no_projects),
-                    textSize = 20.sp,
+                    textSize = 15.sp,
                     color = colorResource(id = R.color.main_green)
                 )
             }

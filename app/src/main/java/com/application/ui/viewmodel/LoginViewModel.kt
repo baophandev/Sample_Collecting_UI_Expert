@@ -26,6 +26,8 @@ class LoginViewModel @Inject constructor(
     private val _state = MutableStateFlow(LoginUiState())
     val state: StateFlow<LoginUiState> = _state.asStateFlow()
 
+    private val requiredScopes = listOf("expert")
+
     fun login(loginSuccessful: () -> Unit) {
         val currentState = state.value
 
@@ -37,7 +39,8 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             userRepository.login(
                 username = currentState.username,
-                password = currentState.password
+                password = currentState.password,
+                requiredScopes = requiredScopes
             )
                 .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
                 .collectLatest { result ->
@@ -51,7 +54,7 @@ class LoginViewModel @Inject constructor(
                             _state.update {
                                 it.copy(
                                     status = UiStatus.ERROR,
-                                    error = R.string.login_error
+                                    error = result.resId
                                 )
                             }
                         }

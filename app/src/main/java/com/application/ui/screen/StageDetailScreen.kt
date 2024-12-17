@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
@@ -35,18 +34,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
@@ -185,9 +188,15 @@ fun StageDetailScreen(
                             }
                             Spacer(modifier = Modifier.size(40.dp))
                             Text(
-                                text = state.stage?.name ?: stringResource(R.string.unknown_stage),
-                                fontSize = 30.sp,
+                                text = state.stage?.name ?: stringResource(R.string.unknown_stage),style = TextStyle(
+                                    shadow = Shadow(
+                                        color = Color.Black, // Màu của bóng
+                                        offset = Offset(4f, 4f), // Vị trí đổ bóng (x, y)
+                                        blurRadius = 8f // Độ mờ của bóng
+                                    ),
+                                fontSize = 22.sp,
                                 color = Color.White
+                            )
                             )
                         }
                     }
@@ -317,11 +326,11 @@ private fun PhotoTab(
     onImagesSelected: (Boolean) -> Unit,
     onImagesDeleted: (List<String>) -> Unit
 ) {
-    val state = rememberLazyStaggeredGridState()
     val items = pagingItems.itemSnapshotList.items
+    var isRefreshing by remember { mutableStateOf(false) }
 
-    LaunchedEffect(state.isScrollInProgress) {
-
+    LaunchedEffect(pagingItems.loadState.refresh) {
+        isRefreshing = pagingItems.loadState.refresh is LoadState.Loading
     }
 
     Column(
@@ -330,14 +339,15 @@ private fun PhotoTab(
             .fillMaxSize()
     ) {
         PhotoBottomSheetContent(
+            isRefreshing = isRefreshing,
+            onRefresh = { pagingItems.refresh() },
             uris = items.map { Pair(it.id, it.image) },
-            state = state,
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(if (items.isEmpty()) .2f else .9f),
             onPhotoPress = onPhotoPress,
             onPhotosSelected = if (isProjectOwner) onImagesSelected else null,
-            onPhotosDeleted = if (isProjectOwner) onImagesDeleted else null
+            onPhotosDeleted = if (isProjectOwner) onImagesDeleted else null,
         )
     }
 }
