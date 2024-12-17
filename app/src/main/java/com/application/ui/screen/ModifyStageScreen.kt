@@ -147,7 +147,7 @@ fun ModifyStageScreen(
                         modifier = Modifier.fillMaxWidth(.95f),
                         placeholder = { Text(text = stringResource(id = R.string.add_title)) },
                         singleLine = true,
-                        value = state.stage?.name ?: "Khong co ten dot",
+                        value = state.stage?.name ?: "",
                         onValueChange = viewModel::updateStageName
                     )
 
@@ -156,7 +156,7 @@ fun ModifyStageScreen(
                             .fillMaxWidth(.95f)
                             .height(120.dp),
                         placeholder = { Text(text = stringResource(id = R.string.add_description)) },
-                        value = state.stage?.description ?: "Khong co mo ta dot",
+                        value = state.stage?.description ?: "",
                         onValueChange = viewModel::updateDescription
                     )
 
