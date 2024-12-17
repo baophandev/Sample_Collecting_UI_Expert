@@ -3,6 +3,7 @@ package com.application.ui.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,7 +28,7 @@ fun BotNavigationBar(
     Row(
         modifier = modifier
             .background(MaterialTheme.colorScheme.primary)
-            .padding(start = 16.dp, end = 16.dp, top = 1.dp, bottom = 1.dp)
+            .padding(start = 30.dp, end = 30.dp, top = 2.dp, bottom = 2.dp)
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -52,7 +53,7 @@ fun BotNavigationBar(
 
         IconButton(
             onClick = onWorkersQuestionClick,
-            modifier = Modifier.size(50.dp)
+            modifier = Modifier.size(40.dp)
         ) {
             Icon(
                 modifier = Modifier.fillMaxSize(.75f),
@@ -67,7 +68,7 @@ fun BotNavigationBar(
         IconButton(
             onClick = onExpertChatsClick,
             modifier = Modifier
-                .size(50.dp)
+                .size(40.dp)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_messages),

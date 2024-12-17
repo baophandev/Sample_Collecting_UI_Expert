@@ -122,7 +122,7 @@ fun ModifyStageScreen(
                         onExpertChatsClick = navigateToExpertChatScreen
                     ) {
                         IconButton(
-                            modifier = Modifier.size(50.dp),
+                            modifier = Modifier.size(40.dp),
 
                             onClick = navigateToHome
                         ) {
