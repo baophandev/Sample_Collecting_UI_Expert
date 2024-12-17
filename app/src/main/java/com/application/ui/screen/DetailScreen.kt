@@ -2,6 +2,7 @@ package com.application.ui.screen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,18 +34,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -63,6 +63,7 @@ import com.application.ui.component.PagingLayout
 import com.application.ui.component.StageContainer
 import com.application.ui.component.TitleText
 import com.application.ui.component.TopNavigationBar
+import com.application.ui.theme.SampleCollectingApplicationTheme
 import com.application.ui.viewmodel.DetailViewModel
 
 private enum class ScreenTab { DETAIL, STAGES, FORMS }
@@ -102,6 +103,7 @@ fun DetailScreen(
         UiStatus.SUCCESS -> {
             val stagePagingItems = viewModel.stageFlow.collectAsLazyPagingItems()
             val formPagingItems = viewModel.formFlow.collectAsLazyPagingItems()
+            val isProjectOwner = viewModel.isProjectOwner()
 
             if (alertType != AlertType.NONE) {
                 val messages = when (alertType) {
@@ -189,11 +191,9 @@ fun DetailScreen(
                                     )
 
                                     ScreenTab.FORMS -> FormTab(
+                                        isProjectOwner = isProjectOwner,
                                         pagingItems = formPagingItems,
-                                        onFormModifyClick = { formId ->
-                                            if (viewModel.isProjectOwner())
-                                                navigateToModifyForm(formId)
-                                        },
+                                        onFormModifyClick = navigateToModifyForm,
                                         onFormDeleteClicked = { formId ->
                                             val isFormUsed = stagePagingItems.itemSnapshotList
                                                 .any { it?.formId == formId }
@@ -234,7 +234,7 @@ fun DetailScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             TopNavigationBar(backAction = { navigateToHome(false) }) {
-                                if (viewModel.isProjectOwner()) {
+                                if (isProjectOwner) {
                                     DropdownMenuItem(
                                         leadingIcon = {
                                             Icon(
@@ -254,41 +254,48 @@ fun DetailScreen(
                                     )
                                 }
                             }
-                            Spacer(modifier = Modifier.size(40.dp))
+                            Text(
+                                text = state.project?.name
+                                    ?: stringResource(R.string.unknown_project),
+                                color = Color.White,
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.titleLarge,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 5
+                            )
                             state.project?.name?.let {
-                                Text(
-                                    text = it, fontSize = 30.sp, color = Color.White,style = TextStyle(
-                                        shadow = Shadow(
-                                            color = Color.Black, // Màu của bóng
-                                            offset = Offset(4f, 4f), // Vị trí đổ bóng (x, y)
-                                            blurRadius = 8f // Độ mờ của bóng
-                                        )
-                                    )
-                                )
+
                             }
                         }
                     }
                 }
 
-                FunctionalButtons(
-                    tab = currentTab,
-                    onModifyProjectClick = {
-                        if (viewModel.isProjectOwner())
+                if (isProjectOwner) {
+                    FunctionalButtons(
+                        tab = currentTab,
+                        onModifyProjectClick = {
                             navigateToModifyProject(state.project!!.id)
-                        else alertType = AlertType.CREATE_NEW_PROJECT
-                    },
-                    onAddStageClick = {
-                        if (viewModel.isProjectOwner()) {
+//                            if (viewModel.isProjectOwner())
+//                                navigateToModifyProject(state.project!!.id)
+//                            else alertType = AlertType.CREATE_NEW_PROJECT
+                        },
+                        onAddStageClick = {
                             if (formPagingItems.itemCount == 0)
                                 alertType = AlertType.ADD_FORM
                             else navigateToCreateStage(state.project!!.id)
-                        } else alertType = AlertType.CREATE_NEW_PROJECT
-                    },
-                    onAddFormClick = {
-                        if (viewModel.isProjectOwner()) navigateToCreateForm(state.project!!.id)
-                        else alertType = AlertType.CREATE_NEW_PROJECT
-                    }
-                )
+//                            if (viewModel.isProjectOwner()) {
+//                                if (formPagingItems.itemCount == 0)
+//                                    alertType = AlertType.ADD_FORM
+//                                else navigateToCreateStage(state.project!!.id)
+//                            } else alertType = AlertType.CREATE_NEW_PROJECT
+                        },
+                        onAddFormClick = {
+                            navigateToCreateForm(state.project!!.id)
+//                            if (viewModel.isProjectOwner()) navigateToCreateForm(state.project!!.id)
+//                            else alertType = AlertType.CREATE_NEW_PROJECT
+                        }
+                    )
+                }
             }
         }
 
@@ -402,7 +409,8 @@ private fun FunctionalButtons(
 
 @Composable
 private fun DetailTab(
-    modifier: Modifier = Modifier, projectDescription: String? = null
+    modifier: Modifier = Modifier,
+    projectDescription: String? = null
 ) {
     Text(
         modifier = modifier.padding(horizontal = 30.dp, vertical = 15.dp),
@@ -460,9 +468,10 @@ private fun StageTab(
 @Composable
 private fun FormTab(
     modifier: Modifier = Modifier,
+    isProjectOwner: Boolean = true,
     pagingItems: LazyPagingItems<Form>,
-    onFormModifyClick: ((String) -> Unit)?,
-    onFormDeleteClicked: ((String) -> Unit)?
+    onFormModifyClick: (String) -> Unit,
+    onFormDeleteClicked: (String) -> Unit
 ) {
     PagingLayout(
         modifier = modifier,
@@ -470,18 +479,13 @@ private fun FormTab(
         itemKey = pagingItems.itemKey { it.id },
         itemsContent = { form ->
             FormContainer(
+                isProjectOwner = isProjectOwner,
                 name = form.title,
                 modifier = Modifier
                     .padding(horizontal = 5.dp, vertical = 5.dp)
                     .fillMaxWidth(),
-                onModifyClicked = {
-                    if (onFormModifyClick != null)
-                        onFormModifyClick(form.id)
-                },
-                onDeleteClicked = {
-                    if (onFormDeleteClicked != null)
-                        onFormDeleteClicked(form.id)
-                }
+                onModifyClicked = { onFormModifyClick(form.id) },
+                onDeleteClicked = { onFormDeleteClicked(form.id) }
             )
             Spacer(modifier = Modifier.size(5.dp))
         },
@@ -499,4 +503,21 @@ private fun FormTab(
             )
         }
     )
+}
+
+@Preview(widthDp = 350)
+@Composable
+private fun Test() {
+    SampleCollectingApplicationTheme(dynamicColor = false) {
+        Box(modifier = Modifier.background(Color.White)) {
+            Text(
+                text = "Ten hihiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii daiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii neeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.titleLarge,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 5
+            )
+        }
+    }
 }
