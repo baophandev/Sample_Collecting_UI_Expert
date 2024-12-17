@@ -52,10 +52,10 @@ fun BotNavigationBar(
 
         IconButton(
             onClick = onQuestionsClick,
-            modifier = Modifier.size(50.dp)
+            modifier = Modifier.size(35.dp)
         ) {
             Icon(
-                modifier = Modifier.fillMaxSize(.75f),
+                modifier = Modifier.fillMaxSize(.60f),
                 painter = painterResource(id = R.drawable.worker_question_icon),
                 contentDescription = "Worker Question screen",
                 tint = MaterialTheme.colorScheme.secondary
@@ -67,13 +67,13 @@ fun BotNavigationBar(
         IconButton(
             onClick = onExpertChatClick,
             modifier = Modifier
-                .size(50.dp)
+                .size(35.dp)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_messages),
                 contentDescription = "Expert chat screen",
                 tint = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.fillMaxSize(.85f)
+                modifier = Modifier.fillMaxSize(.60f)
             )
         }
 
