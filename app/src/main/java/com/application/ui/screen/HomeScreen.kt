@@ -148,7 +148,7 @@ fun HomeScreen(
                 )
                 TitleText(
                     text = stringResource(id = R.string.no_projects),
-                    textSize = 20.sp,
+                    textSize = 15.sp,
                     color = colorResource(id = R.color.main_green)
                 )
             }

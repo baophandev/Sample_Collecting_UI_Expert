@@ -140,7 +140,7 @@ fun CreateProjectScreen(
                         .fillMaxWidth(.95f)
                         .height(180.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color.LightGray
+                        containerColor = Color.White
                     ),
                     onClick = { pickPictureLauncher.launch("image/*") }
                 ) {

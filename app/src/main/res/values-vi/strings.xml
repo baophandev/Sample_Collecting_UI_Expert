@@ -53,7 +53,7 @@
     <string name="delete_stage_description">Bạn có chắc chắn xóa đợt này? Bạn không thể khôi phục dữ liệu nếu đã xóa.</string>
     <string name="cancel">Hủy bỏ</string>
     <string name="create_stage">Tạo đợt</string>
-    <string name="photos">Hình ảnh</string>
+    <string name="photos">Mẫu đã thu</string>
     <string name="no_members">Không có thành viên</string>
     <string name="modify_stage">Chỉnh sửa đợt</string>
     <string name="modify_form">Chỉnh sửa biểu mẫu</string>
@@ -64,7 +64,7 @@
     <string name="creating_stage">Đang tạo đợt…</string>
     <string name="cancel_selections">Hủy chọn</string>
     <string name="alert_adding_form">Bạn không phải chủ dự án này để có quyền thêm biểu mẫu, tạo dự án cho riêng mình?</string>
-    <string name="add_photo">Thêm hình ảnh</string>
+    <string name="add_photo">Thu mẫu</string>
     <string name="loading">Đang tải…</string>
     <string name="no_internet">Vui lòng kiểm tra kết nối internet của bạn và thử lại.</string>
     <string name="written_by">"Được viết bởi: "</string>
@@ -159,8 +159,8 @@
     <string name="expert_answer">Trả lời của chuyên gia</string>
     <string name="no_answer">Chưa có câu trả lời.</string>
     <string name="expert_conclusion">Kết luận tổng thể của chuyên gia</string>
-    <string name="no_post">Không có bài đăng nào!</string>
-    <string name="answered_post">Các bài đăng đã trả lời</string>
+    <string name="no_post">Không có câu hỏi nào được gửi đến!</string>
+    <string name="answered_post">Các câu hỏi đã trả lời</string>
     <string name="no_comment">Chưa có nội dung.</string>
 
 </resources>

@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -84,12 +85,12 @@ fun FieldProject(
         ) {
             Text(
                 text = name ?: "Title",
-                fontSize = 24.sp,
-                fontFamily = FontFamily.Serif,
+                fontSize = 16.sp,
+                color = colorResource(id = R.color.main_green),
                 fontWeight = FontWeight.W500
             )
-            Text(text = owner ?: "Owner", fontSize = 16.sp)
-            Text(text = description ?: "No description", fontSize = 16.sp)
+            Text(text = owner ?: "Owner", fontSize = 14.sp, )
+            Text(text = description ?: "No description", fontSize = 14.sp)
         }
     }
 

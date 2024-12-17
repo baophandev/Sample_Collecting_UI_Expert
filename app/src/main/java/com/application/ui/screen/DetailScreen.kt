@@ -33,13 +33,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -254,7 +257,13 @@ fun DetailScreen(
                             Spacer(modifier = Modifier.size(40.dp))
                             state.project?.name?.let {
                                 Text(
-                                    text = it, fontSize = 30.sp, color = Color.White
+                                    text = it, fontSize = 30.sp, color = Color.White,style = TextStyle(
+                                        shadow = Shadow(
+                                            color = Color.Black, // Màu của bóng
+                                            offset = Offset(4f, 4f), // Vị trí đổ bóng (x, y)
+                                            blurRadius = 8f // Độ mờ của bóng
+                                        )
+                                    )
                                 )
                             }
                         }

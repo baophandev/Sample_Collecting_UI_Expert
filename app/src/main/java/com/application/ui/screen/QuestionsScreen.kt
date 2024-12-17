@@ -124,7 +124,7 @@ fun QuestionsScreen(
                     )
                     TitleText(
                         text = stringResource(id = R.string.no_post),
-                        textSize = 20.sp,
+                        textSize = 15.sp,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
