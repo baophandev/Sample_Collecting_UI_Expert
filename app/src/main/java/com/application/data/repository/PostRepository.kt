@@ -98,12 +98,14 @@ class PostRepository(
 
     suspend fun getPostsByExpert(
         expertId: String,
+        title: String,
         isAnswered: Boolean = false,
         pageNumber: Int = 0,
         pageSize: Int = 6,
     ): Result<PagingResponse<Post>> = runCatching {
         val response = service.getPostsByExpert(
             expertId = expertId,
+            title = title,
             isAnswered = isAnswered,
             pageNumber = pageNumber,
             pageSize = pageSize

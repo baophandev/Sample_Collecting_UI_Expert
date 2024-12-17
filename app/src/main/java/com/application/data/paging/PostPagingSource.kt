@@ -6,6 +6,7 @@ import com.sc.library.user.repository.UserRepository
 
 class PostPagingSource(
     private val isAnswered: Boolean,
+    private val title: String,
     private val userRepository: UserRepository,
     private val postRepository: PostRepository,
 ) : AbstractPagingSource<Post>() {
@@ -17,6 +18,7 @@ class PostPagingSource(
 
         val response = postRepository.getPostsByExpert(
             expertId = expertId,
+            title = title,
             isAnswered = isAnswered,
             pageNumber = nextPageNumber,
             pageSize = params.loadSize
