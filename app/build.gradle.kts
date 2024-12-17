@@ -14,7 +14,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.application"
+        applicationId = "sc.expert"
         minSdk = 33
         targetSdk = 34
         versionCode = 1

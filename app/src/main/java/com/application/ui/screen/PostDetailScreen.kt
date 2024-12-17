@@ -164,14 +164,11 @@ fun PostDetailScreen(
                     items = state.files,
                     key = { _, file -> file.id },
                 ) { index, file ->
-                    val newAttachments = state.newComments[file.id]
-
                     FileInPostTemplate(
                         readOnly = state.post?.isResolved == true,
                         image = file.image,
                         description = file.description,
                         comment = file.comment,
-                        newAttachments = newAttachments?.attachments,
                         onCommentChange = { viewModel.updateComment(index, file.id, it) },
                         onAddAttachment = { viewModel.updateComment(index, file.id, it) },
                         onAttachmentClick = viewModel::startDownload,
@@ -183,7 +180,6 @@ fun PostDetailScreen(
                     ConclusionSection(
                         readOnly = state.post?.isResolved == true,
                         generalComment = state.post?.generalComment,
-                        newGeneralAttachments = state.newGeneralComment?.attachments,
                         onCommentChange = viewModel::updateGeneralComment,
                         onAddAttachment = viewModel::updateGeneralComment,
                         onAttachmentClick = viewModel::startDownload
@@ -264,7 +260,6 @@ private fun HeaderSection(post: Post) {
 private fun ConclusionSection(
     readOnly: Boolean = false,
     generalComment: GeneralComment? = null,
-    newGeneralAttachments: List<Attachment>? = null,
     onCommentChange: (String) -> Unit,
     onAddAttachment: (List<Attachment>) -> Unit,
     onAttachmentClick: (Attachment) -> Unit,
@@ -331,13 +326,6 @@ private fun ConclusionSection(
                             )
                         }
                     }
-                    newGeneralAttachments?.forEach { attachment ->
-                        FileItem(
-                            fileName = attachment.name,
-                            iconRes = R.drawable.ic_document,
-                            onClick = { onAttachmentClick(attachment) }
-                        )
-                    }
                 }
 
                 if (!readOnly) {
@@ -364,7 +352,6 @@ private fun FileInPostTemplate(
     image: Uri,
     description: String? = null,
     comment: Comment? = null,
-    newAttachments: List<Attachment>? = null,
     onCommentChange: (String) -> Unit,
     onAddAttachment: (List<Attachment>) -> Unit,
     onAttachmentClick: (Attachment) -> Unit,
@@ -453,13 +440,6 @@ private fun FileInPostTemplate(
                             onClick = { onAttachmentClick(attachment) }
                         )
                     }
-                }
-                newAttachments?.forEach { attachment ->
-                    FileItem(
-                        fileName = attachment.name,
-                        iconRes = R.drawable.ic_document,
-                        onClick = { onAttachmentClick(attachment) }
-                    )
                 }
             }
 
