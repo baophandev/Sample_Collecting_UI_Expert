@@ -241,21 +241,7 @@ fun ModifyProjectScreen(
                                 newEmailMember
                             )
                         },
-                        onRemoveField = { index ->
-                            val userIdToRemove = state.projectUsers[index].id
-                            state.project?.let {
-                                viewModel.checkMemberInAnyStage(
-                                    it.id,
-                                    userIdToRemove
-                                ) { isMemberInStage ->
-                                    if (isMemberInStage) {
-                                        viewModel.setError(R.string.error_member_in_stage)
-                                    } else {
-                                        viewModel.removeMemberEmail(index)
-                                    }
-                                }
-                            }
-                        }
+                        onRemoveField = viewModel::removeMemberEmail
                     )
 
                     val updateFailed = stringResource(R.string.error_modify_project)

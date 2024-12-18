@@ -299,7 +299,11 @@ class ModifyStageViewModel @Inject constructor(
                 ).awaitAll()
             }
 
-            viewModelScope.launch { successHandler(results.all { it }) }
+            viewModelScope.launch {
+                val result = results.all { it }
+                if (result) _state.update { ModifyStageUiState() }
+                successHandler(result)
+            }
         }
     }
 

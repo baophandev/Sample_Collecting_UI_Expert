@@ -22,7 +22,10 @@ import com.sc.library.utility.client.response.PagingResponse
 
 interface IProjectService {
 
-    //Check member in stage
+    /**
+     * Check if userId is in any stages in the project.
+     * @return `true` if the user is in any stages, `false` otherwise.
+     */
     suspend fun checkMemberInAnyStage(projectId: String, userId: String): Boolean
 
     //Project

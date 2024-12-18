@@ -189,7 +189,10 @@ fun AppNavigationGraph() {
                 navigateToLogin = popBackToLogin,
                 navigateToHome = popBackToHome,
                 navigateToDetail = { isModified ->
-                    if (isModified) detailVM.reload(ReloadSignal.RELOAD_PROJECT)
+                    if (isModified) {
+                        detailVM.reload(ReloadSignal.RELOAD_PROJECT)
+                        homeScreenVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
+                    }
                     popBackToDetailScreen()
                 },
                 navigateToQuestions = navigateToQuestions,
