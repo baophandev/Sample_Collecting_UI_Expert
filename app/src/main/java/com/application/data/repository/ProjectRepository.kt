@@ -33,6 +33,23 @@ class ProjectRepository(
 ) {
     private val cachedProjects: MutableMap<String, Project> = mutableMapOf()
 
+    fun checkMemberInAnyStage(
+        projectId: String,
+        userId: String
+    ): Flow<ResourceState<Boolean>>{
+        return flow<ResourceState<Boolean>> {
+            val checkResult = projectService.checkMemberInAnyStage(projectId = projectId, userId = userId)
+            if (checkResult) emit(ResourceState.Success(checkResult))
+        }.catch { exception ->
+            Log.e(TAG, exception.message, exception)
+            emit(
+                ResourceState.Error(
+                    message = "Cannot check member",
+                )
+            )
+        }
+    }
+
     /**
      * Create a new project.
      * @param thumbnail If it is not uploaded to server successfully, the creating process will be failed.

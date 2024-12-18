@@ -1,6 +1,7 @@
 package com.application.ui.viewmodel
 
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.R
@@ -23,8 +24,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ModifyProjectViewModel @Inject constructor(
-    private val repository: ProjectRepository,
-    private val userRepository: UserRepository
+    private val projectRepository: ProjectRepository,
+    private val userRepository: UserRepository,
 ) : ViewModel() {
     private val _state = MutableStateFlow(ModifyProjectUiState())
     val state = _state.asStateFlow()
@@ -32,7 +33,7 @@ class ModifyProjectViewModel @Inject constructor(
     fun loadProject(projectId: String) {
         _state.update { it.copy(status = UiStatus.LOADING, isUpdated = false) }
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getProject(projectId).collectLatest { resourceState ->
+            projectRepository.getProject(projectId).collectLatest { resourceState ->
                 when (resourceState) {
                     is ResourceState.Success -> _state.update {
                         it.copy(
@@ -153,7 +154,7 @@ class ModifyProjectViewModel @Inject constructor(
         updatedProject: Project,
         successHandler: (Boolean) -> Unit
     ) {
-        repository.updateProject(
+        projectRepository.updateProject(
             projectId = updatedProject.id,
             thumbnail = if (state.value.isThumbnailUpdated) updatedProject.thumbnail else null,
             name = updatedProject.name,
@@ -185,7 +186,7 @@ class ModifyProjectViewModel @Inject constructor(
         successHandler: (Boolean) -> Unit
     ) {
         addedMembers.forEach { addedMember ->
-            repository.updateProjectMember(
+            projectRepository.updateProjectMember(
                 projectId = projectId,
                 memberId = addedMember.id,
                 operator = MemberOperator.ADD
@@ -218,7 +219,7 @@ class ModifyProjectViewModel @Inject constructor(
         successHandler: (Boolean) -> Unit
     ) {
         deleteMemberIds.forEach { memberId ->
-            repository.updateProjectMember(
+            projectRepository.updateProjectMember(
                 projectId = projectId,
                 memberId = memberId,
                 operator = MemberOperator.REMOVE
@@ -282,6 +283,32 @@ class ModifyProjectViewModel @Inject constructor(
                     )
                 }
             }
+        }
+    }
+
+    fun checkMemberInAnyStage(projectId: String, userId: String, successHandler: (Boolean) -> Unit){
+        viewModelScope.launch {
+            projectRepository.checkMemberInAnyStage(projectId, userId)
+                .collectLatest { resourceState ->
+                    when (resourceState) {
+                        is ResourceState.Success -> {
+                            _state.update { it.copy(status = UiStatus.SUCCESS) }
+                            successHandler(resourceState.data)
+                        }
+
+                        is ResourceState.Error -> {
+                            _state.update {
+                                it.copy(error = R.string.error_checking_member_in_stage)
+                            }
+                        }
+                    }
+                }
+        }
+    }
+
+    fun setError(@StringRes errorResId: Int) {
+        _state.update {
+            it.copy(error = errorResId)
         }
     }
 

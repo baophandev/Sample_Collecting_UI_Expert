@@ -38,6 +38,11 @@ class ProjectServiceImpl(
 ) : IProjectService, AbstractClient() {
     private val client = getClient(baseUrl = baseUrl, timeout = timeout)
 
+    override suspend fun checkMemberInAnyStage(projectId: String, userId: String): Boolean {
+        val response = client.patch(urlString = "project/$projectId/stage/$userId")
+        return response.status == HttpStatusCode.NoContent
+    }
+
     //Project
     override suspend fun createProject(body: CreateProjectRequest): String {
         return client.post("project") {

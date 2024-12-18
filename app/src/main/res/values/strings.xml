@@ -79,6 +79,8 @@
     <string name="error_not_a_member_of_project">Email vừa nhập không phải là một thành viên của dự án</string>
     <string name="error_is_a_member_of_project">Email vừa nhập đã là một thành viên của dự án</string>
     <string name="error_is_a_member_of_stage">Email vừa nhập đã là một thành viên của đợt này</string>
+    <string name="error_member_in_stage">Thành viên này đã thuộc một đợt trong dự án.</string>
+    <string name="error_checking_member_in_stage">Lỗi khi kiểm tra thành viên có thuộc bất kỳ đợt nào hay không</string>
 
     <string name="login_button">Đăng nhập</string>
     <string name="enter_password">Mật khẩu</string>
