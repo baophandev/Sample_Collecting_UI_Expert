@@ -188,7 +188,7 @@ class ModifyProjectViewModel @Inject constructor(
             repository.updateProjectMember(
                 projectId = projectId,
                 memberId = addedMember.id,
-                operator = MemberOperator.ADD.toString()
+                operator = MemberOperator.ADD
             ).collectLatest { resourceState ->
                 when (resourceState) {
                     is ResourceState.Error -> _state.update {
@@ -221,7 +221,7 @@ class ModifyProjectViewModel @Inject constructor(
             repository.updateProjectMember(
                 projectId = projectId,
                 memberId = memberId,
-                operator = MemberOperator.REMOVE.toString()
+                operator = MemberOperator.REMOVE
             ).collectLatest { resourceState ->
                 when (resourceState) {
                     is ResourceState.Error -> _state.update {
@@ -258,7 +258,7 @@ class ModifyProjectViewModel @Inject constructor(
         _state.update { it.copy(status = UiStatus.LOADING) }
         if (currentProject != null) {
             viewModelScope.launch(Dispatchers.IO) {
-                if (state.value.isUpdated) {
+                if (currentState.isUpdated) {
                     updateProjectToRepository(
                         updatedProject = currentProject,
                         successHandler = successHandler

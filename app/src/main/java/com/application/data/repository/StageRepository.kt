@@ -2,6 +2,7 @@ package com.application.data.repository
 
 import android.util.Log
 import com.application.R
+import com.application.constant.MemberOperator
 import com.application.data.datasource.IProjectService
 import com.application.data.entity.Form
 import com.application.data.entity.Stage
@@ -136,7 +137,7 @@ class StageRepository(
     fun updateStageMember(
         stageId: String,
         memberId: String,
-        operator: String
+        operator: MemberOperator
     ): Flow<ResourceState<Boolean>> {
         val updateRequest = UpdateMemberRequest(
             memberId = memberId,

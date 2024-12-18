@@ -22,7 +22,11 @@ import com.sc.library.user.entity.User
 import com.sc.library.user.repository.UserRepository
 import com.sc.library.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -45,30 +49,33 @@ class ModifyStageViewModel @Inject constructor(
 
     lateinit var flow: Flow<PagingData<Form>>
 
-    fun loadStage(projectId: String, stageId: String) {
+    fun fetchStage(projectId: String, stageId: String) {
         _state.update { it.copy(status = UiStatus.LOADING, isUpdated = false) }
+
         viewModelScope.launch(Dispatchers.IO) {
             stageRepository.getStage(stageId).collectLatest { rsState ->
                 when (rsState) {
-                    is ResourceState.Success ->
-                        {
+                    is ResourceState.Success -> {
                         val stage = rsState.data
-                        _state.update {
-                            it.copy(
-                                status = UiStatus.SUCCESS,
-                                stage = stage,
-                                stageUsers = stage.members
-                            )
-                        }
-                        if (stage.formId != null) {
-                            when (val formRsState = formRepository.getForm(stage.formId).last()) {
-                                is ResourceState.Error -> _state.update { it.copy(status = UiStatus.ERROR) }
-                                is ResourceState.Success -> _state.update {
-                                    it.copy(selectedForm = formRsState.data)
-                                }
+                        when (val formRsState = formRepository.getForm(stage.formId).last()) {
+                            is ResourceState.Error -> _state.update {
+                                it.copy(
+                                    status = UiStatus.ERROR,
+                                    error = formRsState.resId
+                                )
+                            }
+
+                            is ResourceState.Success -> _state.update {
+                                it.copy(
+                                    status = UiStatus.SUCCESS,
+                                    selectedForm = formRsState.data,
+                                    stage = stage,
+                                    stageUsers = stage.members
+                                )
                             }
                         }
                     }
+
                     is ResourceState.Error -> _state.update {
                         it.copy(status = UiStatus.ERROR, error = rsState.resId)
                     }
@@ -88,6 +95,21 @@ class ModifyStageViewModel @Inject constructor(
         }.flow
             .cachedIn(viewModelScope)
             .catch { Log.e(TAG, it.message, it) }
+    }
+
+    fun fetchProjectMembers(projectId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            projectRepository.getProject(projectId).collectLatest { rsState ->
+                when (rsState) {
+                    is ResourceState.Success -> {
+                        val project = rsState.data
+                        _state.update { it.copy(projectMembers = project.members) }
+                    }
+
+                    is ResourceState.Error -> _state.update { it.copy(status = UiStatus.ERROR) }
+                }
+            }
+        }
     }
 
     fun updateStageName(name: String) {
@@ -123,21 +145,6 @@ class ModifyStageViewModel @Inject constructor(
 
     fun updateFormId(form: Form) {
         _state.update { it.copy(selectedForm = form, isUpdated = true) }
-    }
-
-    fun fetchProjectMembers(projectId: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            projectRepository.getProject(projectId).collectLatest { rsState ->
-                when (rsState) {
-                    is ResourceState.Success -> {
-                        val project = rsState.data
-                        _state.update { it.copy(projectMembers = project.members) }
-                    }
-
-                    is ResourceState.Error -> _state.update { it.copy(status = UiStatus.ERROR) }
-                }
-            }
-        }
     }
 
     fun addNewStageMember(memberEmail: String) {
@@ -205,65 +212,35 @@ class ModifyStageViewModel @Inject constructor(
         }
     }
 
-    private suspend fun updateStageToRepository(
-        updatedStage: Stage,
-        successHandler: (Boolean) -> Unit
-    ) {
-        stageRepository.updateStage(
+    private suspend fun updateStageToRepository(updatedStage: Stage): Boolean {
+        val resourceState = stageRepository.updateStage(
             stageId = updatedStage.id,
             name = updatedStage.name,
             formId = updatedStage.formId,
             description = updatedStage.description,
             startDate = updatedStage.startDate,
             endDate = updatedStage.endDate
-        )
-            .collectLatest { resourceState ->
-                when (resourceState) {
-                    is ResourceState.Error -> _state.update {
-                        it.copy(
-                            status = UiStatus.SUCCESS,
-                            error = resourceState.resId
-                        )
-                    }
-
-                    is ResourceState.Success -> {
-                        _state.update { it.copy(status = UiStatus.SUCCESS) }
-                        viewModelScope.launch {
-                            successHandler(resourceState.data)
-                        }
-                    }
-                }
-            }
+        ).last()
+        return when (resourceState) {
+            is ResourceState.Error -> false
+            is ResourceState.Success -> true
+        }
     }
 
     private suspend fun addMemberToRepository(
         stageId: String,
         addedMembers: List<User>,
-        successHandler: (Boolean) -> Unit
-    ) {
-        addedMembers.forEach { addedMember ->
-            stageRepository.updateStageMember(
-                stageId = stageId,
-                memberId = addedMember.id,
-                operator = MemberOperator.ADD.toString()
-            ).collectLatest { resourceState ->
+    ): List<Deferred<Boolean>> = coroutineScope {
+        addedMembers.map { addedMember ->
+            async {
+                val resourceState = stageRepository.updateStageMember(
+                    stageId = stageId,
+                    memberId = addedMember.id,
+                    operator = MemberOperator.ADD
+                ).last()
                 when (resourceState) {
-                    is ResourceState.Error -> _state.update {
-                        it.copy(
-                            status = UiStatus.SUCCESS,
-                            error = resourceState.resId
-                        )
-                    }
-
-                    is ResourceState.Success -> {
-                        _state.update {
-                            it.copy(
-                                status = UiStatus.SUCCESS,
-                                stageUsers = it.stageUsers + addedMember
-                            )
-                        }
-                        successHandler(resourceState.data)
-                    }
+                    is ResourceState.Error -> false
+                    is ResourceState.Success -> true
                 }
             }
         }
@@ -272,34 +249,17 @@ class ModifyStageViewModel @Inject constructor(
     private suspend fun deleteMemberToRepository(
         stageId: String,
         deleteMemberIds: List<String>,
-        successHandler: (Boolean) -> Unit
-    ) {
-        deleteMemberIds.forEach { memberId ->
-            stageRepository.updateStageMember(
-                stageId = stageId,
-                memberId = memberId,
-                operator = MemberOperator.REMOVE.toString()
-            ).collectLatest { resourceState ->
+    ): List<Deferred<Boolean>> = coroutineScope {
+        deleteMemberIds.map { memberId ->
+            async {
+                val resourceState = stageRepository.updateStageMember(
+                    stageId = stageId,
+                    memberId = memberId,
+                    operator = MemberOperator.REMOVE
+                ).last()
                 when (resourceState) {
-                    is ResourceState.Error -> _state.update {
-                        it.copy(
-                            status = UiStatus.SUCCESS,
-                            error = resourceState.resId
-                        )
-                    }
-
-                    is ResourceState.Success -> {
-                        _state.update {
-                            val updatedUsers = it.stageUsers.filter { user ->
-                                user.id != memberId // filter ra cac user co id khac voi id trong deleteMemberIds
-                            }
-                            it.copy(
-                                status = UiStatus.SUCCESS,
-                                stageUsers = updatedUsers
-                            )
-                        }
-                        successHandler(resourceState.data)
-                    }
+                    is ResourceState.Error -> false
+                    is ResourceState.Success -> true
                 }
             }
         }
@@ -309,36 +269,37 @@ class ModifyStageViewModel @Inject constructor(
         if (!validate() || state.value.stage == null || !state.value.isUpdated) return
         val currentState = state.value
 
-        val currentStage = currentState.stage
+        val currentStage = currentState.stage!!
         val currentMembers = currentState.stageUsers
 
         _state.update { it.copy(status = UiStatus.LOADING) }
-        if (currentStage != null) {
-            viewModelScope.launch(Dispatchers.IO) {
-                if (state.value.isUpdated) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val results = mutableListOf<Boolean>()
+
+            if (currentState.isUpdated) {
+                results += async {
                     updateStageToRepository(
                         updatedStage = currentStage,
-                        successHandler = successHandler
                     )
-                }
-                if (currentState.addedMemberIds.isNotEmpty()) {
-                    val addedMemberIds = currentState.addedMemberIds
-                    val addedMembers = currentMembers.filter { addedMemberIds.contains(it.id) }
-                    addMemberToRepository(
-                        stageId = currentStage.id,
-                        addedMembers = addedMembers,
-                        successHandler = successHandler
-                    )
-                }
-                if (currentState.deletedMemberIds.isNotEmpty()) {
-                    val deletedMemberIds = currentState.deletedMemberIds
-                    deleteMemberToRepository(
-                        stageId = currentStage.id,
-                        deleteMemberIds = deletedMemberIds,
-                        successHandler = successHandler
-                    )
-                }
+                }.await()
             }
+            if (currentState.addedMemberIds.isNotEmpty()) {
+                val addedMemberIds = currentState.addedMemberIds
+                val addedMembers = currentMembers.filter { addedMemberIds.contains(it.id) }
+                results += addMemberToRepository(
+                    stageId = currentStage.id,
+                    addedMembers = addedMembers,
+                ).awaitAll()
+            }
+            if (currentState.deletedMemberIds.isNotEmpty()) {
+                val deletedMemberIds = currentState.deletedMemberIds
+                results += deleteMemberToRepository(
+                    stageId = currentStage.id,
+                    deleteMemberIds = deletedMemberIds,
+                ).awaitAll()
+            }
+
+            viewModelScope.launch { successHandler(results.all { it }) }
         }
     }
 

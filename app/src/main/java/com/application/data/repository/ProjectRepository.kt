@@ -3,6 +3,7 @@ package com.application.data.repository
 import android.net.Uri
 import android.util.Log
 import com.application.R
+import com.application.constant.MemberOperator
 import com.application.constant.ProjectQueryType
 import com.application.constant.ProjectStatus
 import com.application.data.datasource.IProjectService
@@ -162,7 +163,7 @@ class ProjectRepository(
     fun updateProjectMember(
         projectId: String,
         memberId: String,
-        operator: String
+        operator: MemberOperator
     ): Flow<ResourceState<Boolean>> {
         val updateRequest = UpdateMemberRequest(
             memberId = memberId,

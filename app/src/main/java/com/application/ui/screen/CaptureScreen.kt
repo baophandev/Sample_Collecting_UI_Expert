@@ -4,7 +4,6 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
-import android.provider.OpenableColumns
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -73,7 +72,7 @@ import java.util.Locale
 fun CaptureScreen(
     viewModel: CaptureViewModel = hiltViewModel(),
     popBackToStage: () -> Unit,
-    navigateToCreateSample: (String, Pair<String, Uri>) -> Unit
+    navigateToCreateSample: (String, Uri) -> Unit
 ) {
     val context = LocalContext.current
     val controller = remember {
@@ -114,7 +113,7 @@ fun CaptureScreen(
                         activeImageIdx = it
                     }
                 },
-                onPhotosSelected = { isSelecting ->
+                onPhotosSelecting = { isSelecting ->
                     if (isSelecting &&
                         scaffoldState.bottomSheetState.currentValue != SheetValue.Expanded
                     ) {
@@ -123,10 +122,9 @@ fun CaptureScreen(
                     }
                 },
                 onPhotosDeleted = { removeList ->
-                    removeList.forEach { id ->
-                        sampleImages.find { it.first == id }?.let { pair ->
-                            if (deleteImage(context, pair.second)) sampleImages.remove(pair)
-                        }
+                    removeList.forEach { uri ->
+                        if (deleteImage(context, uri))
+                            sampleImages.remove(uri)
                     }
                 }
             )
@@ -200,19 +198,7 @@ fun CaptureScreen(
                             takePhoto(
                                 context = context,
                                 controller = controller,
-                                onPhotoTaken = { uri ->
-                                    context.contentResolver
-                                        .query(uri, null, null, null)
-                                        .use { cursor ->
-                                            val nameIndex =
-                                                cursor?.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                                            cursor?.moveToFirst()
-                                            nameIndex?.let {
-                                                val fileName = cursor.getString(it)
-                                                sampleImages.add(Pair(fileName, uri))
-                                            }
-                                        }
-                                }
+                                onPhotoTaken = sampleImages::add
                             )
 
                             delay(300)
@@ -261,7 +247,7 @@ fun CaptureScreen(
             AnimatedVisibility(
                 visible = capturing,
                 enter = fadeIn(animationSpec = tween(200), initialAlpha = .8f),
-                exit = scaleOut(animationSpec = tween(500), targetScale = .8f) + fadeOut()
+                exit = scaleOut(animationSpec = tween(200), targetScale = .8f) + fadeOut()
             ) {
                 Box(
                     modifier = Modifier
@@ -271,8 +257,10 @@ fun CaptureScreen(
             }
 
             if (activeImageIdx != null) {
+                val uri = sampleImages[activeImageIdx!!]
+
                 FullScreenImage(
-                    uri = sampleImages[activeImageIdx!!].second,
+                    uri = uri,
                     onDismiss = { activeImageIdx = null }
                 )
 
@@ -295,7 +283,6 @@ fun CaptureScreen(
                             border = BorderStroke(1.dp, colorResource(id = R.color.red)),
                             shape = RoundedCornerShape(25.dp),
                             onClick = {
-                                val uri = sampleImages[activeImageIdx!!].second
                                 if (deleteImage(context, uri)) {
                                     sampleImages.removeAt(activeImageIdx!!)
                                     activeImageIdx = null

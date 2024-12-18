@@ -1,5 +1,6 @@
 package com.application.ui.screen
 
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -58,7 +59,7 @@ import com.application.ui.viewmodel.CreateSampleViewModel
 @Composable
 fun CreateSampleScreen(
     viewModel: CreateSampleViewModel = hiltViewModel(),
-    navigateToCapture: (String?) -> Unit,
+    navigateToCapture: (Uri?) -> Unit,
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
@@ -189,7 +190,7 @@ fun CreateSampleScreen(
 
                     UiStatus.SUCCESS -> AsyncImage(
                         model = ImageRequest.Builder(context)
-                            .data(state.sampleImage?.second)
+                            .data(state.sampleImage)
                             .build(),
                         contentDescription = "Sample Image",
                         modifier = Modifier
