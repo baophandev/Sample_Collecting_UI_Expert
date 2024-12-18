@@ -46,7 +46,7 @@ class PostDetailViewModel @Inject constructor(
                 }
             }.await()
             val files = async {
-                when (val rsState = postRepository.getFilesInPost(postId, skipCached).last()) {
+                when (val rsState = postRepository.getFilesInPost(postId).last()) {
                     is ResourceState.Success -> rsState.data
                     is ResourceState.Error -> null
                 }
