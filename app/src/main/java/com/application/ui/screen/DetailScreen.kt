@@ -202,7 +202,7 @@ fun DetailScreen(
                                         onFormModifyClick = { formId ->
                                             val isFormUsed = stagePagingItems.itemSnapshotList
                                                 .any { it?.formId == formId }
-                                            if (!isFormUsed) navigateToModifyForm
+                                            if (!isFormUsed) navigateToModifyForm(formId)
                                             else alertType = AlertType.CANNOT_MODIFY_FORM
                                         },
                                         onFormDeleteClicked = { formId ->

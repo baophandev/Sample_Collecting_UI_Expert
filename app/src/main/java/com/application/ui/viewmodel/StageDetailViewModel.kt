@@ -181,6 +181,12 @@ class StageDetailViewModel @Inject constructor(
         }
     }
 
+    fun isMemberOfStage(): Boolean {
+        val loggedUserId = userRepository.loggedUser?.id
+        val members = state.value.stage?.members
+        return loggedUserId != null && members?.any { it.id == loggedUserId } == true
+    }
+
     companion object {
         const val TAG = "StageDetailViewModel"
     }

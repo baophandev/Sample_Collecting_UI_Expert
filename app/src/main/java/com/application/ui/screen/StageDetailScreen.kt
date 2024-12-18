@@ -223,7 +223,7 @@ fun StageDetailScreen(
                             )
                         }
 
-                        StageTab.PHOTOS -> if (showAddPhoto) {
+                        StageTab.PHOTOS -> if (showAddPhoto && viewModel.isMemberOfStage()) {
                             CustomButton(
                                 modifier = Modifier.fillMaxWidth(.7f),
                                 text = stringResource(id = R.string.add_photo),
