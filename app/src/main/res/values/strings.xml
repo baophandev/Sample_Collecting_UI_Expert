@@ -63,6 +63,9 @@
     <string name="cannot_delete_form">Cannot delete form</string>
     <string name="cannot_delete_form_description">Cannot delete because form is in use</string>
     <string name="cannot_delete_form_submit">Exit</string>
+    <string name="cannot_modify_form">Không thể chỉnh sửa biểu mẫu</string>
+    <string name="cannot_modify_form_description">Không thể chỉnh sửa vì biểu mẫu đang được sử dụng</string>
+    <string name="cannot_modify_form_submit">Thoát</string>
     <string name="error_cannot_get_stage">Lỗi khi tải dữ liệu của đợt từ server</string>
     <string name="error_cannot_get_project">Lỗi khi tải dữ liệu của dự án từ server</string>
     <string name="error_empty_project_name">Tên dự án không được để trống</string>
