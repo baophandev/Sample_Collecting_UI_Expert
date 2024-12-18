@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="login_info_not_blank">Thông tin đăng nhập không được bỏ trống</string>
+    <string name="app_name">SCA Chuyên gia</string>
     <string name="sample_description_default">Thêm mô tả ngắn</string>
     <string name="recapture_button">Chụp lại</string>
     <string name="save_button">Lưu</string>

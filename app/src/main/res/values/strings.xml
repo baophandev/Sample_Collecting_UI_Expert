@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">Sample Collecting Application</string>
+    <string name="app_name">SCA Expert</string>
     <string name="sample_description_default">Add short description</string>
     <string name="recapture_button">Re-capture</string>
     <string name="save_button">Save</string>
