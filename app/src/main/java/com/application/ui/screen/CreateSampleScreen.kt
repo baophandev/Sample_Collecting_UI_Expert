@@ -86,61 +86,88 @@ fun CreateSampleScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
-                    itemsIndexed(
-                        items = state.answers,
-                        key = { index, _ -> index }
-                    ) { index, data ->
-                        Spacer(modifier = Modifier.size(4.dp))
-                        BlockField(
-                            fieldName = data.field.name,
-                            onValueChange = { newValue ->
-                                viewModel.updateAnswer(index, newValue)
-                            }
-                        )
-                        Spacer(modifier = Modifier.size(4.dp))
-                    }
+                    when (state.status) {
+                        UiStatus.LOADING -> item {
+                            LoadingScreen(
+                                modifier = Modifier.fillMaxSize()
+                                    .background(Color.LightGray.copy(alpha = .8f)),
+                                text = stringResource(id = R.string.loading)
+                            )
+                        }
 
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconButton(
-                                modifier = Modifier
-                                    .padding(0.dp)
-                                    .size(50.dp),
-                                onClick = viewModel::addDynamicField
-                            ) {
-                                Icon(
-                                    modifier = Modifier.fillMaxSize(),
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Add flex field",
-                                    tint = colorResource(id = R.color.main_green)
+                        UiStatus.ERROR -> item {
+                            val error = stringResource(id = state.error ?: R.string.unknown_error)
+                            LaunchedEffect(state.error) {
+                                val result = snackBarHostState.showSnackbar(
+                                    message = error,
+                                    withDismissAction = true,
+                                    duration = SnackbarDuration.Short
                                 )
+                                if (result == SnackbarResult.Dismissed)
+                                    viewModel.gotError()
                             }
                         }
-                    }
 
-                    itemsIndexed(
-                        items = state.dynamicFields,
-                        key = { _, field -> field.id }
-                    ) { index, data ->
-                        Spacer(modifier = Modifier.size(4.dp))
-                        DynamicField(
-                            fieldName = data.name,
-                            onFieldNameChange = { fieldName ->
-                                viewModel.updateDynamicFieldName(index, fieldName)
-                            },
-                            fieldValue = data.value,
-                            onFieldValueChange = { fieldValue ->
-                                viewModel.updateDynamicFieldValue(index, fieldValue)
-                            },
-                            onDeleteClicked = {
-                                viewModel.deleteDynamicField(index)
+                        UiStatus.SUCCESS -> {
+                            itemsIndexed(
+                                items = state.answers,
+                                key = { index, _ -> index }
+                            ) { index, data ->
+                                Spacer(modifier = Modifier.size(4.dp))
+                                BlockField(
+                                    fieldName = data.field.name,
+                                    onValueChange = { newValue ->
+                                        viewModel.updateAnswer(index, newValue)
+                                    }
+                                )
+                                Spacer(modifier = Modifier.size(4.dp))
                             }
-                        )
-                        Spacer(modifier = Modifier.size(4.dp))
+
+                            item {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.End,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    IconButton(
+                                        modifier = Modifier
+                                            .padding(0.dp)
+                                            .size(50.dp),
+                                        onClick = viewModel::addDynamicField
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier.fillMaxSize(),
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = "Add flex field",
+                                            tint = colorResource(id = R.color.main_green)
+                                        )
+                                    }
+                                }
+                            }
+
+                            itemsIndexed(
+                                items = state.dynamicFields,
+                                key = { _, field -> field.id }
+                            ) { index, data ->
+                                Spacer(modifier = Modifier.size(4.dp))
+                                DynamicField(
+                                    fieldName = data.name,
+                                    onFieldNameChange = { fieldName ->
+                                        viewModel.updateDynamicFieldName(index, fieldName)
+                                    },
+                                    fieldValue = data.value,
+                                    onFieldValueChange = { fieldValue ->
+                                        viewModel.updateDynamicFieldValue(index, fieldValue)
+                                    },
+                                    onDeleteClicked = {
+                                        viewModel.deleteDynamicField(index)
+                                    }
+                                )
+                                Spacer(modifier = Modifier.size(4.dp))
+                            }
+                        }
+
+                        else -> {}
                     }
                 }
             },
@@ -169,28 +196,10 @@ fun CreateSampleScreen(
             }
         ) { _ ->
             Box(modifier = Modifier.fillMaxSize()) {
-                when (state.status) {
-                    UiStatus.LOADING -> LoadingScreen(
-                        modifier = Modifier.background(Color.Gray.copy(alpha = .5f)),
-                        text = stringResource(id = R.string.loading)
-                    )
-
-                    UiStatus.ERROR -> {
-                        val error = stringResource(id = state.error ?: R.string.unknown_error)
-                        LaunchedEffect(state.error) {
-                            val result = snackBarHostState.showSnackbar(
-                                message = error,
-                                withDismissAction = true,
-                                duration = SnackbarDuration.Short
-                            )
-                            if (result == SnackbarResult.Dismissed)
-                                viewModel.gotError()
-                        }
-                    }
-
-                    UiStatus.SUCCESS -> AsyncImage(
+                state.sampleImage?.let {
+                    AsyncImage(
                         model = ImageRequest.Builder(context)
-                            .data(state.sampleImage)
+                            .data(it)
                             .build(),
                         contentDescription = "Sample Image",
                         modifier = Modifier
@@ -199,8 +208,6 @@ fun CreateSampleScreen(
                         contentScale = ContentScale.Crop,
                         alignment = Alignment.TopCenter,
                     )
-
-                    else -> {}
                 }
 
                 Box(

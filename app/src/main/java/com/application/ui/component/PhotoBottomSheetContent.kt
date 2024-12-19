@@ -126,7 +126,7 @@ fun PhotoBottomSheetContent(
                                 .clip(RoundedCornerShape(10.dp))
                                 .combinedClickable(
                                     onClick = onImageClick,
-                                    onLongClick = onImageLongClick
+                                    onLongClick = if (enableFunctionalMenu) onImageLongClick else null
                                 ),
                             contentDescription = null
                         )
