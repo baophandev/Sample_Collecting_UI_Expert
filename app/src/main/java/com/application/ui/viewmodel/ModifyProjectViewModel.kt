@@ -13,10 +13,15 @@ import com.sc.library.user.entity.User
 import com.sc.library.user.repository.UserRepository
 import com.sc.library.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -131,82 +136,78 @@ class ModifyProjectViewModel @Inject constructor(
     }
 
     fun removeMemberEmail(index: Int) {
-        val currentMembers = _state.value.projectUsers
+        val currentState = state.value
+        if (currentState.project == null) return
+
+        val currentMembers = currentState.projectUsers
         currentMembers.getOrNull(index)?.let { member ->
-            val mutableMembers = currentMembers.toMutableList()
-            mutableMembers.removeAt(index)
+            viewModelScope.launch(Dispatchers.IO) {
+                _state.update { it.copy(status = UiStatus.LOADING) }
+                when (val rsState = repository.checkMemberInAnyStage(
+                    projectId = currentState.project.id,
+                    userId = member.id
+                ).last()) {
+                    is ResourceState.Error -> _state.update {
+                        it.copy(
+                            status = UiStatus.SUCCESS,
+                            error = R.string.unknown_error
+                        )
+                    }
 
-            val deletedMemberIds = state.value.deletedMemberIds.toMutableList()
-            deletedMemberIds.add(member.id)
-            _state.update {
-                it.copy(
-                    projectUsers = mutableMembers,
-                    deletedMemberIds = deletedMemberIds,
-                    isUpdated = true
-                )
+                    is ResourceState.Success -> {
+                        _state.update {
+                            if (!rsState.data) {
+                                val mutableMembers = currentMembers.toMutableList()
+                                mutableMembers.removeAt(index)
+
+                                val deletedMemberIds = state.value.deletedMemberIds.toMutableList()
+                                deletedMemberIds.add(member.id)
+                                it.copy(
+                                    status = UiStatus.SUCCESS,
+                                    projectUsers = mutableMembers,
+                                    deletedMemberIds = deletedMemberIds,
+                                    isUpdated = true
+                                )
+                            } else it.copy(
+                                status = UiStatus.SUCCESS,
+                                error = R.string.error_member_in_stage
+                            )
+                        }
+                    }
+                }
             }
-
         }
     }
 
-    private suspend fun updateProjectToRepository(
-        updatedProject: Project,
-        successHandler: (Boolean) -> Unit
-    ) {
-        repository.updateProject(
+    private suspend fun updateProjectToRepository(updatedProject: Project): Boolean {
+        val resourceState = repository.updateProject(
             projectId = updatedProject.id,
             thumbnail = if (state.value.isThumbnailUpdated) updatedProject.thumbnail else null,
             name = updatedProject.name,
             description = updatedProject.description,
             startDate = updatedProject.startDate,
             endDate = updatedProject.endDate
-        ).collectLatest { resourceState ->
-            when (resourceState) {
-                is ResourceState.Error -> _state.update {
-                    it.copy(
-                        status = UiStatus.SUCCESS,
-                        error = resourceState.resId
-                    )
-                }
-
-                is ResourceState.Success -> {
-                    _state.update { it.copy(status = UiStatus.SUCCESS) }
-                    viewModelScope.launch {
-                        successHandler(resourceState.data)
-                    }
-                }
-            }
+        ).last()
+        return when (resourceState) {
+            is ResourceState.Error -> false
+            is ResourceState.Success -> true
         }
     }
 
     private suspend fun addMemberToRepository(
         projectId: String,
-        addedMembers: List<User>,
-        successHandler: (Boolean) -> Unit
-    ) {
-        addedMembers.forEach { addedMember ->
-            repository.updateProjectMember(
-                projectId = projectId,
-                memberId = addedMember.id,
-                operator = MemberOperator.ADD.toString()
-            ).collectLatest { resourceState ->
+        addedMembers: List<User>
+    ): List<Deferred<Boolean>> = coroutineScope {
+        addedMembers.map { addedMember ->
+            async {
+                val resourceState = repository.updateProjectMember(
+                    projectId = projectId,
+                    memberId = addedMember.id,
+                    operator = MemberOperator.ADD
+                ).last()
                 when (resourceState) {
-                    is ResourceState.Error -> _state.update {
-                        it.copy(
-                            status = UiStatus.SUCCESS,
-                            error = resourceState.resId
-                        )
-                    }
-
-                    is ResourceState.Success -> {
-                        _state.update {
-                            it.copy(
-                                status = UiStatus.SUCCESS,
-                                projectUsers = it.projectUsers + addedMember // Thêm user mới
-                            )
-                        }
-                        successHandler(resourceState.data)
-                    }
+                    is ResourceState.Error -> false
+                    is ResourceState.Success -> true
                 }
             }
         }
@@ -215,72 +216,57 @@ class ModifyProjectViewModel @Inject constructor(
     private suspend fun deleteMemberToRepository(
         projectId: String,
         deleteMemberIds: List<String>,
-        successHandler: (Boolean) -> Unit
-    ) {
-        deleteMemberIds.forEach { memberId ->
-            repository.updateProjectMember(
-                projectId = projectId,
-                memberId = memberId,
-                operator = MemberOperator.REMOVE.toString()
-            ).collectLatest { resourceState ->
+    ): List<Deferred<Boolean>> = coroutineScope {
+        deleteMemberIds.map { memberId ->
+            async {
+                val resourceState = repository.updateProjectMember(
+                    projectId = projectId,
+                    memberId = memberId,
+                    operator = MemberOperator.REMOVE
+                ).last()
                 when (resourceState) {
-                    is ResourceState.Error -> _state.update {
-                        it.copy(
-                            status = UiStatus.SUCCESS,
-                            error = resourceState.resId
-                        )
-                    }
-
-                    is ResourceState.Success -> {
-                        _state.update {
-                            val updatedUsers = it.projectUsers.filter { user ->
-                                user.id != memberId // filter ra cac user co id khac voi id trong deleteMemberIds
-                            }
-                            it.copy(
-                                status = UiStatus.SUCCESS,
-                                projectUsers = updatedUsers
-                            )
-                        }
-                        successHandler(resourceState.data)
-                    }
+                    is ResourceState.Error -> false
+                    is ResourceState.Success -> true
                 }
             }
         }
     }
 
     fun submit(successHandler: (Boolean) -> Unit) {
-        if (!validate() || state.value.project == null || !state.value.isUpdated) return
         val currentState = state.value
+        if (!validate() || currentState.project == null || !currentState.isUpdated) return
 
         val currentProject = currentState.project
         val currentMembers = currentState.projectUsers
 
         _state.update { it.copy(status = UiStatus.LOADING) }
-        if (currentProject != null) {
-            viewModelScope.launch(Dispatchers.IO) {
-                if (state.value.isUpdated) {
-                    updateProjectToRepository(
-                        updatedProject = currentProject,
-                        successHandler = successHandler
-                    )
-                }
-                if (currentState.addedMemberIds.isNotEmpty()) {
-                    val addedMemberIds = currentState.addedMemberIds
-                    val addedMembers = currentMembers.filter { addedMemberIds.contains(it.id) }
-                    addMemberToRepository(
-                        projectId = currentProject.id,
-                        addedMembers = addedMembers,
-                        successHandler = successHandler
-                    )
-                }
-                if (currentState.deletedMemberIds.isNotEmpty()) {
-                    val deletedMemberIds = currentState.deletedMemberIds
-                    deleteMemberToRepository(
-                        projectId = currentProject.id,
-                        deleteMemberIds = deletedMemberIds,
-                        successHandler = successHandler
-                    )
-                }
+        viewModelScope.launch(Dispatchers.IO) {
+            val results = mutableListOf<Boolean>()
+
+            results += updateProjectToRepository(
+                updatedProject = currentProject,
+            )
+
+            if (currentState.addedMemberIds.isNotEmpty()) {
+                val addedMemberIds = currentState.addedMemberIds
+                val addedMembers = currentMembers.filter { addedMemberIds.contains(it.id) }
+                results += addMemberToRepository(
+                    projectId = currentProject.id,
+                    addedMembers = addedMembers,
+                ).awaitAll()
+            }
+            if (currentState.deletedMemberIds.isNotEmpty()) {
+                val deletedMemberIds = currentState.deletedMemberIds
+                results += deleteMemberToRepository(
+                    projectId = currentProject.id,
+                    deleteMemberIds = deletedMemberIds,
+                ).awaitAll()
+            }
+
+            viewModelScope.launch {
+                val finalResult = results.all { it }
+                if (finalResult) _state.update { ModifyProjectUiState() }
+                successHandler(finalResult)
             }
         }
     }

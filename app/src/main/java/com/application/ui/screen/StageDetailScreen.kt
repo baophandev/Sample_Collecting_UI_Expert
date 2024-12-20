@@ -1,5 +1,6 @@
 package com.application.ui.screen
 
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -102,6 +103,8 @@ fun StageDetailScreen(
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
         UiStatus.SUCCESS -> {
             val sampleLazyPagingItems = viewModel.sampleFlow.collectAsLazyPagingItems()
+            val isProjectOwner = viewModel.isProjectOwner()
+            val isMemberOfStage = viewModel.isMemberOfStage()
 
             Box {
                 BottomSheetScaffold(
@@ -116,18 +119,20 @@ fun StageDetailScreen(
                             )
 
                             StageTab.PHOTOS -> PhotoTab(
-                                isProjectOwner = viewModel.isProjectOwner(),
                                 pagingItems = sampleLazyPagingItems,
                                 onPhotoPress = { imageIdx ->
                                     sampleLazyPagingItems[imageIdx]?.let { sample ->
-//                                        activeImageIdx = imageIdx
-//                                        viewModel.loadSampleData(sampleId = sample.id)
                                         navigateToSampleDetail(sample.id)
                                     }
                                 },
-                                onImagesSelected = { isSelecting -> showAddPhoto = !isSelecting },
-                                onImagesDeleted = { deletedIds ->
-                                    deletedIds.forEach(viewModel::deleteSample)
+                                onImagesSelecting = { isSelecting -> showAddPhoto = !isSelecting },
+                                onImagesDeleted = { deletedUris ->
+                                    val deletedSamples =
+                                        sampleLazyPagingItems.itemSnapshotList
+                                            .filter { it?.image in deletedUris }
+                                            .filterNotNull()
+                                            .map { it.id }
+                                    viewModel.deleteSamples(deletedSamples)
                                 }
                             )
                         }
@@ -163,7 +168,7 @@ fun StageDetailScreen(
                                     viewModel.updateStageInDetail(successHandler = navigateToDetail)
                                 }
                             ) {
-                                if (viewModel.isProjectOwner()) {
+                                if (isProjectOwner) {
                                     DropdownMenuItem(
                                         leadingIcon = {
                                             Icon(
@@ -202,7 +207,7 @@ fun StageDetailScreen(
                     contentAlignment = Alignment.BottomCenter
                 ) {
                     when (currentTab) {
-                        StageTab.DETAIL -> if (viewModel.isProjectOwner()) {
+                        StageTab.DETAIL -> if (isProjectOwner) {
                             CustomButton(
                                 modifier = Modifier.fillMaxWidth(.7f),
                                 text = stringResource(id = R.string.modify),
@@ -219,7 +224,7 @@ fun StageDetailScreen(
                             )
                         }
 
-                        StageTab.PHOTOS -> if (showAddPhoto) {
+                        StageTab.PHOTOS -> if (showAddPhoto && (isProjectOwner || isMemberOfStage)) {
                             CustomButton(
                                 modifier = Modifier.fillMaxWidth(.7f),
                                 text = stringResource(id = R.string.add_photo),
@@ -313,11 +318,10 @@ private fun TabButtons(
 
 @Composable
 private fun PhotoTab(
-    isProjectOwner: Boolean,
     pagingItems: LazyPagingItems<Sample>,
     onPhotoPress: (Int) -> Unit,
-    onImagesSelected: (Boolean) -> Unit,
-    onImagesDeleted: (List<String>) -> Unit
+    onImagesSelecting: (Boolean) -> Unit,
+    onImagesDeleted: (List<Uri>) -> Unit
 ) {
     val items = pagingItems.itemSnapshotList.items
     var isRefreshing by remember { mutableStateOf(false) }
@@ -326,23 +330,18 @@ private fun PhotoTab(
         isRefreshing = pagingItems.loadState.refresh is LoadState.Loading
     }
 
-    Column(
+    PhotoBottomSheetContent(
+        isRefreshing = isRefreshing,
+        onRefresh = { pagingItems.refresh() },
+        uris = items.map { it.image },
+        enableFunctionalMenu = false,
         modifier = Modifier
-            .padding(horizontal = 15.dp, vertical = 5.dp)
-            .fillMaxSize()
-    ) {
-        PhotoBottomSheetContent(
-            isRefreshing = isRefreshing,
-            onRefresh = { pagingItems.refresh() },
-            uris = items.map { Pair(it.id, it.image) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(if (items.isEmpty()) .2f else .9f),
-            onPhotoPress = onPhotoPress,
-            onPhotosSelected = if (isProjectOwner) onImagesSelected else null,
-            onPhotosDeleted = if (isProjectOwner) onImagesDeleted else null,
-        )
-    }
+            .fillMaxWidth()
+            .fillMaxHeight(if (items.isEmpty()) .2f else .9f),
+        onPhotoPress = onPhotoPress,
+        onPhotosSelecting = onImagesSelecting,
+        onPhotosDeleted = onImagesDeleted,
+    )
 }
 
 @Composable

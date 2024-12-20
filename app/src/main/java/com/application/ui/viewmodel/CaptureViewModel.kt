@@ -11,10 +11,7 @@ import javax.inject.Inject
 class CaptureViewModel @Inject constructor(
 ) : ViewModel() {
 
-    /**
-     * Pair(imageName, imageUri)
-     */
-    val sampleImages: SnapshotStateList<Pair<String, Uri>> = mutableStateListOf()
+    val sampleImages: SnapshotStateList<Uri> = mutableStateListOf()
 
     lateinit var stageId: String
 
@@ -22,8 +19,8 @@ class CaptureViewModel @Inject constructor(
         this.stageId = stageId
     }
 
-    fun removeCreatedSampleImage(imageName: String) {
-        sampleImages.removeIf { it.first == imageName }
+    fun removeCreatedSampleImage(uri: Uri) {
+        sampleImages.remove(uri)
     }
 
 }

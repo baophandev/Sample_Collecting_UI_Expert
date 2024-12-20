@@ -32,7 +32,6 @@ class PostRepository(
     private val service: IPostService
 ) {
     private val cachedPosts: MutableMap<String, Post> = mutableMapOf()
-    private val cachedFilesInPost: MutableMap<String, FileInPost> = mutableMapOf()
 
     /**
      * Retrieves a post by its ID, optionally skipping the cached version.
@@ -68,42 +67,35 @@ class PostRepository(
     }
 
     suspend fun getFilesInPost(
-        postId: String,
-        skipCached: Boolean = false
-    ): Flow<ResourceState<List<FileInPost>>> {
-        if (!skipCached && cachedFilesInPost.isNotEmpty()) {
-            val files = cachedFilesInPost.filter { it.value.postId == postId }.values.toList()
-            return flowOf(ResourceState.Success(files))
-        }
-
-        return flow<ResourceState<List<FileInPost>>> {
-            val totalElements = service
-                .getFilesInPost(postId = postId, pageNumber = 0, pageSize = 1)
-                .totalElements
-            val files = service
-                .getFilesInPost(postId = postId, pageNumber = 0, pageSize = totalElements.toInt())
-                .content.map { mapResponseToFilesInPost(postId, it) }
-            cachedFilesInPost.putAll(files.map { Pair(it.id, it) })
-            emit(ResourceState.Success(files))
-        }.catch { exception ->
-            Log.e(TAG, exception.message, exception)
-            emit(
-                ResourceState.Error(
-                    message = "Cannot get all files in post.",
-                    resId = R.string.get_files_in_post_error,
-                )
+        postId: String
+    ): Flow<ResourceState<List<FileInPost>>> = flow<ResourceState<List<FileInPost>>> {
+        val totalElements = service
+            .getFilesInPost(postId = postId, pageNumber = 0, pageSize = 1)
+            .totalElements
+        val files = service
+            .getFilesInPost(postId = postId, pageNumber = 0, pageSize = totalElements.toInt())
+            .content.map { mapResponseToFilesInPost(postId, it) }
+        emit(ResourceState.Success(files))
+    }.catch { exception ->
+        Log.e(TAG, exception.message, exception)
+        emit(
+            ResourceState.Error(
+                message = "Cannot get all files in post.",
+                resId = R.string.get_files_in_post_error,
             )
-        }
+        )
     }
 
     suspend fun getPostsByExpert(
         expertId: String,
+        title: String,
         isAnswered: Boolean = false,
         pageNumber: Int = 0,
         pageSize: Int = 6,
     ): Result<PagingResponse<Post>> = runCatching {
         val response = service.getPostsByExpert(
             expertId = expertId,
+            title = title,
             isAnswered = isAnswered,
             pageNumber = pageNumber,
             pageSize = pageSize

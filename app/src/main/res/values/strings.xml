@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">Sample Collecting Application</string>
+    <string name="app_name">SCA Expert</string>
     <string name="sample_description_default">Add short description</string>
     <string name="recapture_button">Re-capture</string>
     <string name="save_button">Save</string>
@@ -63,6 +63,9 @@
     <string name="cannot_delete_form">Cannot delete form</string>
     <string name="cannot_delete_form_description">Cannot delete because form is in use</string>
     <string name="cannot_delete_form_submit">Exit</string>
+    <string name="cannot_modify_form">Không thể chỉnh sửa biểu mẫu</string>
+    <string name="cannot_modify_form_description">Không thể chỉnh sửa vì biểu mẫu đang được sử dụng</string>
+    <string name="cannot_modify_form_submit">Thoát</string>
     <string name="error_cannot_get_stage">Lỗi khi tải dữ liệu của đợt từ server</string>
     <string name="error_cannot_get_project">Lỗi khi tải dữ liệu của dự án từ server</string>
     <string name="error_empty_project_name">Tên dự án không được để trống</string>
@@ -76,6 +79,8 @@
     <string name="error_not_a_member_of_project">Email vừa nhập không phải là một thành viên của dự án</string>
     <string name="error_is_a_member_of_project">Email vừa nhập đã là một thành viên của dự án</string>
     <string name="error_is_a_member_of_stage">Email vừa nhập đã là một thành viên của đợt này</string>
+    <string name="error_member_in_stage">Thành viên này đã thuộc một đợt trong dự án.</string>
+    <string name="error_checking_member_in_stage">Lỗi khi kiểm tra thành viên có thuộc bất kỳ đợt nào hay không</string>
 
     <string name="login_button">Đăng nhập</string>
     <string name="enter_password">Mật khẩu</string>

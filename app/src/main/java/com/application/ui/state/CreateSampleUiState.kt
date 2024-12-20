@@ -8,7 +8,7 @@ import com.application.data.entity.DynamicField
 
 data class CreateSampleUiState(
     val formId: String? = null,
-    val sampleImage: Pair<String, Uri>? = null,
+    val sampleImage: Uri? = null,
     val answers: List<Answer> = listOf(),
     val dynamicFields: List<DynamicField> = listOf(),
     val status: UiStatus = UiStatus.INIT,

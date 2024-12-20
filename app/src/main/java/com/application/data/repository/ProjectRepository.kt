@@ -3,6 +3,7 @@ package com.application.data.repository
 import android.net.Uri
 import android.util.Log
 import com.application.R
+import com.application.constant.MemberOperator
 import com.application.constant.ProjectQueryType
 import com.application.constant.ProjectStatus
 import com.application.data.datasource.IProjectService
@@ -16,6 +17,8 @@ import com.sc.library.attachment.repository.AttachmentRepository
 import com.sc.library.user.repository.UserRepository
 import com.sc.library.utility.client.response.PagingResponse
 import com.sc.library.utility.state.ResourceState
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
@@ -31,6 +34,23 @@ class ProjectRepository(
     private val attachmentRepository: AttachmentRepository
 ) {
     private val cachedProjects: MutableMap<String, Project> = mutableMapOf()
+
+    fun checkMemberInAnyStage(
+        projectId: String,
+        userId: String
+    ): Flow<ResourceState<Boolean>>{
+        return flow<ResourceState<Boolean>> {
+            val checkResult = projectService.checkMemberInAnyStage(projectId = projectId, userId = userId)
+            emit(ResourceState.Success(checkResult))
+        }.catch { exception ->
+            Log.e(TAG, exception.message, exception)
+            emit(
+                ResourceState.Error(
+                    message = "Cannot check member",
+                )
+            )
+        }
+    }
 
     /**
      * Create a new project.
@@ -159,28 +179,38 @@ class ProjectRepository(
             )
         }
     }
+
     fun updateProjectMember(
         projectId: String,
         memberId: String,
-        operator: String
+        operator: MemberOperator
     ): Flow<ResourceState<Boolean>> {
         val updateRequest = UpdateMemberRequest(
             memberId = memberId,
             operator = operator
         )
         return flow<ResourceState<Boolean>> {
-            val updateResult = projectService.updateProjectMember(projectId = projectId, updateMemberRequest = updateRequest)
+            val updateResult = projectService.updateProjectMember(
+                projectId = projectId,
+                updateMemberRequest = updateRequest
+            )
             // get updated project member from server
             if (updateResult) getProject(projectId, true)
             emit(ResourceState.Success(true))
         }.catch { exception ->
             Log.e(TAG, exception.message, exception)
-            emit(
-                ResourceState.Error(
-                    message = "Cannot add member in modifyProject",
-                    resId = R.string.error_modify_project
-                )
+
+            if (exception is ClientRequestException &&
+                exception.response.status == HttpStatusCode.Conflict
             )
+                emit(ResourceState.Success(true))
+            else
+                emit(
+                    ResourceState.Error(
+                        message = "Cannot add member in modifyProject",
+                        resId = R.string.error_modify_project
+                    )
+                )
         }
     }
 

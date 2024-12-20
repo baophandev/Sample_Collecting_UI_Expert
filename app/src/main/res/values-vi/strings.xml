@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="login_info_not_blank">Thông tin đăng nhập không được bỏ trống</string>
+    <string name="app_name">SCA Chuyên gia</string>
     <string name="sample_description_default">Thêm mô tả ngắn</string>
     <string name="recapture_button">Chụp lại</string>
     <string name="save_button">Lưu</string>
@@ -58,8 +59,11 @@
     <string name="not_exist_form">Không có biểu mẫu khả dụng. Bạn có muốn tạo một cái mới?</string>
     <string name="text_not_valid">Dữ liệu trường không hợp lệ. Vui lòng kiểm tra lại.</string>
     <string name="cannot_delete_form">Không thể xóa biểu mẫu</string>
+    <string name="cannot_modify_form">Không thể chỉnh sửa biểu mẫu</string>
     <string name="cannot_delete_form_description">Không thể xóa vì biểu mẫu đang được sử dụng</string>
+    <string name="cannot_modify_form_description">Không thể chỉnh sửa vì biểu mẫu đang được sử dụng</string>
     <string name="cannot_delete_form_submit">Thoát</string>
+    <string name="cannot_modify_form_submit">Thoát</string>
 
     <string name="error_empty_project_name">Tên dự án không được để trống</string>
     <string name="error_empty_stage_name">Tên đợt không được để trống</string>
@@ -78,6 +82,8 @@
     <string name="error_not_a_member_of_project">Email vừa nhập không phải là một thành viên của dự án</string>
     <string name="error_is_a_member_of_project">Email vừa nhập đã là một thành viên của dự án</string>
     <string name="error_is_a_member_of_stage">Email vừa nhập đã là một thành viên của đợt này</string>
+    <string name="error_member_in_stage">Thành viên này đã thuộc một đợt trong dự án.</string>
+    <string name="error_checking_member_in_stage">Lỗi khi kiểm tra thành viên có thuộc bất kỳ đợt nào hay không</string>
 
 
 

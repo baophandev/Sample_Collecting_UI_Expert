@@ -93,173 +93,182 @@ fun ModifyProjectScreen(
     when (state.status) {
         UiStatus.INIT -> {}
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
-        UiStatus.SUCCESS -> Scaffold(
-            modifier = Modifier,
-            snackbarHost = {
-                CustomSnackBarHost(
-                    snackBarHostState = snackBarHostState,
-                    dismissAction = {
+        UiStatus.SUCCESS -> {
+            Scaffold(
+                modifier = Modifier,
+                snackbarHost = {
+                    CustomSnackBarHost(
+                        snackBarHostState = snackBarHostState,
+                        dismissAction = {
+                            IconButton(
+                                modifier = Modifier
+                                    .padding(end = 10.dp)
+                                    .size(30.dp),
+                                onClick = viewModel::gotError
+                            ) {
+                                Icon(
+                                    modifier = Modifier.fillMaxSize(),
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = "Close"
+                                )
+                            }
+                        }
+                    )
+                },
+                topBar = {
+                    TopBar(
+                        title = R.string.modify_project,
+                        signOutClicked = navigateToLogin
+                    )
+                },
+                bottomBar = {
+                    BotNavigationBar(
+                        onQuestionsClick = navigateToQuestions,
+                        onExpertChatClick = navigateToConversations
+                    ) {
                         IconButton(
-                            modifier = Modifier
-                                .padding(end = 10.dp)
-                                .size(30.dp),
-                            onClick = viewModel::gotError
+                            modifier = Modifier.size(38.dp),
+                            onClick = navigateToHome
                         ) {
                             Icon(
-                                modifier = Modifier.fillMaxSize(),
-                                imageVector = Icons.Default.Clear,
-                                contentDescription = "Close"
+                                modifier = Modifier.fillMaxSize(.75f),
+                                painter = painterResource(id = R.drawable.ic_home),
+                                contentDescription = null,
+                                tint = Color.White
                             )
                         }
                     }
-                )
-            },
-            topBar = { TopBar(title = R.string.modify_project, signOutClicked = navigateToLogin) },
-            bottomBar = {
-                BotNavigationBar(
-                    onQuestionsClick = navigateToQuestions,
-                    onExpertChatClick = navigateToConversations
-                ) {
-                    IconButton(
-                        modifier = Modifier.size(38.dp),
-                        onClick = navigateToHome
-                    ) {
-                        Icon(
-                            modifier = Modifier.fillMaxSize(.75f),
-                            painter = painterResource(id = R.drawable.ic_home),
-                            contentDescription = null,
-                            tint = Color.White
-                        )
-                    }
                 }
-            }
-        ) { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceAround
-            ) {
-                Card(
+            ) { padding ->
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth(.95f),
-                    colors = CardDefaults.cardColors(
-                        containerColor = colorResource(id = R.color.gray_color)
-                    ),
-                    shape = RoundedCornerShape(20.dp)
+                        .fillMaxSize()
+                        .padding(padding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceAround
                 ) {
-                    Button(
+                    Card(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp),
-                        elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 10.dp,
-                            pressedElevation = 12.dp
+                            .fillMaxWidth(.95f),
+                        colors = CardDefaults.cardColors(
+                            containerColor = colorResource(id = R.color.gray_color)
                         ),
-                        shape = RoundedCornerShape(20.dp),
-                        contentPadding = PaddingValues(
-                            horizontal = 0.dp,
-                            vertical = 0.dp
-                        ),
-                        onClick = { pickPictureLauncher.launch("image/*") }
+                        shape = RoundedCornerShape(20.dp)
                     ) {
-                        Box(
+                        Button(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .background(colorResource(id = R.color.gray_100)),
-                            contentAlignment = Alignment.Center
+                                .fillMaxWidth()
+                                .height(180.dp),
+                            elevation = ButtonDefaults.buttonElevation(
+                                defaultElevation = 10.dp,
+                                pressedElevation = 12.dp
+                            ),
+                            shape = RoundedCornerShape(20.dp),
+                            contentPadding = PaddingValues(
+                                horizontal = 0.dp,
+                                vertical = 0.dp
+                            ),
+                            onClick = { pickPictureLauncher.launch("image/*") }
                         ) {
-                            Icon(
-                                modifier = Modifier
-                                    .fillMaxSize(.3f),
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Add Icon",
-                                tint = colorResource(id = R.color.main_green)
-                            )
-                            AsyncImage(
-                                model = ImageRequest.Builder(context)
-                                    .data(state.project?.thumbnail)
-                                    .build(),
+                            Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .zIndex(0f), // Place background image below
-                                contentScale = ContentScale.Crop,
-                                contentDescription = "Thumbnail",
+                                    .background(colorResource(id = R.color.gray_100)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    modifier = Modifier
+                                        .fillMaxSize(.3f),
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Add Icon",
+                                    tint = colorResource(id = R.color.main_green)
+                                )
+                                AsyncImage(
+                                    model = ImageRequest.Builder(context)
+                                        .data(state.project?.thumbnail)
+                                        .build(),
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .zIndex(0f), // Place background image below
+                                    contentScale = ContentScale.Crop,
+                                    contentDescription = "Thumbnail",
+                                )
+                            }
+                        }
+                    }
+                    CustomTextField(
+                        modifier = Modifier
+                            .fillMaxWidth(.95f)
+                            .height(60.dp),
+                        placeholder = { Text(text = stringResource(id = R.string.add_title)) },
+                        singleLine = true,
+                        value = state.project?.name
+                            ?: stringResource(id = R.string.unknown_project),
+                        onValueChange = viewModel::updateProjectName
+                    )
+                    CustomTextField(
+                        modifier = Modifier
+                            .fillMaxWidth(.95f)
+                            .height(100.dp),
+                        placeholder = { Text(text = stringResource(id = R.string.sample_description_default)) },
+                        value = state.project?.description
+                            ?: stringResource(R.string.no_description),
+                        onValueChange = viewModel::updateDescription
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(.95f),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        CustomDatePicker(
+                            fieldName = stringResource(id = R.string.start_date),
+                            initValue = state.project?.startDate,
+                            modifier = Modifier.width(160.dp)
+                        ) { viewModel.updateDate(date = it, isStartDate = true) }
+                        CustomDatePicker(
+                            fieldName = stringResource(id = R.string.end_date),
+                            initValue = state.project?.endDate,
+                            modifier = Modifier.width(160.dp)
+                        ) { viewModel.updateDate(date = it, isStartDate = false) }
+                    }
+
+                    FieldToList(
+                        fieldDataList = state.projectUsers.map { it.email },
+                        textValidator = { email -> email.contains(RegexValidation.EMAIL) },
+                        onAddField = { newEmailMember ->
+                            viewModel.addNewProjectMember(
+                                newEmailMember
                             )
+                        },
+                        onRemoveField = viewModel::removeMemberEmail
+                    )
+
+                    val updateFailed = stringResource(R.string.error_modify_project)
+                    Button(
+                        modifier = Modifier
+                            .fillMaxWidth(.95f)
+                            .height(40.dp),
+                        enabled = state.isUpdated,
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 6.dp,
+                            pressedElevation = 8.dp
+                        ),
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(0.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorResource(id = R.color.main_green),
+                            contentColor = colorResource(id = R.color.black)
+                        ),
+                        onClick = {
+                            viewModel.submit { result ->
+                                if (result) navigateToDetail(true)
+                                else Toast.makeText(context, updateFailed, Toast.LENGTH_LONG).show()
+                            }
                         }
+                    ) {
+                        Text(color = Color.White, text = stringResource(id = R.string.save_button))
                     }
-                }
-                CustomTextField(
-                    modifier = Modifier
-                        .fillMaxWidth(.95f)
-                        .height(60.dp),
-                    placeholder = { Text(text = stringResource(id = R.string.add_title)) },
-                    singleLine = true,
-                    value = state.project?.name ?: stringResource(id = R.string.unknown_project),
-                    onValueChange = viewModel::updateProjectName
-                )
-                CustomTextField(
-                    modifier = Modifier
-                        .fillMaxWidth(.95f)
-                        .height(100.dp),
-                    placeholder = { Text(text = stringResource(id = R.string.sample_description_default)) },
-                    value = state.project?.description ?: stringResource(R.string.no_description),
-                    onValueChange = viewModel::updateDescription
-                )
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(.95f),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    CustomDatePicker(
-                        fieldName = stringResource(id = R.string.start_date),
-                        initValue = state.project?.startDate,
-                        modifier = Modifier.width(160.dp)
-                    ) { viewModel.updateDate(date = it, isStartDate = true) }
-                    CustomDatePicker(
-                        fieldName = stringResource(id = R.string.end_date),
-                        initValue = state.project?.endDate,
-                        modifier = Modifier.width(160.dp)
-                    ) { viewModel.updateDate(date = it, isStartDate = false) }
-                }
-
-                FieldToList(
-                    fieldDataList = state.projectUsers.map { it.email },
-                    textValidator = { email -> email.contains(RegexValidation.EMAIL) },
-                    onAddField = { newEmailMember ->
-                        viewModel.addNewProjectMember(
-                            newEmailMember
-                        )
-                    },
-                    onRemoveField = { index -> viewModel.removeMemberEmail(index) }
-                )
-
-                val updateFailed = stringResource(R.string.error_modify_project)
-                Button(
-                    modifier = Modifier
-                        .fillMaxWidth(.95f)
-                        .height(40.dp),
-                    enabled = state.isUpdated,
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 6.dp,
-                        pressedElevation = 8.dp
-                    ),
-                    shape = RoundedCornerShape(10.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(id = R.color.main_green),
-                        contentColor = colorResource(id = R.color.black)
-                    ),
-                    onClick = {
-                        viewModel.submit { result ->
-                            if (result) navigateToDetail(true)
-                            else Toast.makeText(context, updateFailed, Toast.LENGTH_LONG).show()
-                        }
-                    }
-                ) {
-                    Text(color = Color.White, text = stringResource(id = R.string.save_button))
                 }
             }
         }

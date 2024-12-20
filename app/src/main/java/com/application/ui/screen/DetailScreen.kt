@@ -67,7 +67,7 @@ import com.application.ui.theme.SampleCollectingApplicationTheme
 import com.application.ui.viewmodel.DetailViewModel
 
 private enum class ScreenTab { DETAIL, STAGES, FORMS }
-private enum class AlertType { CREATE_NEW_PROJECT, DELETE, ADD_FORM, NONE, CANNOT_DELETE_FORM }
+private enum class AlertType { CREATE_NEW_PROJECT, DELETE, ADD_FORM, NONE, CANNOT_DELETE_FORM, CANNOT_MODIFY_FORM }
 
 /**
  * @param navigateToHome (isProjectDeleted) -> Unit
@@ -117,6 +117,12 @@ fun DetailScreen(
                         R.string.cannot_delete_form,
                         R.string.cannot_delete_form_description,
                         R.string.cannot_delete_form_submit
+                    )
+
+                    AlertType.CANNOT_MODIFY_FORM -> arrayOf(
+                        R.string.cannot_modify_form,
+                        R.string.cannot_modify_form_description,
+                        R.string.cannot_modify_form_submit
                     )
 
                     AlertType.DELETE -> arrayOf(
@@ -193,7 +199,12 @@ fun DetailScreen(
                                     ScreenTab.FORMS -> FormTab(
                                         isProjectOwner = isProjectOwner,
                                         pagingItems = formPagingItems,
-                                        onFormModifyClick = navigateToModifyForm,
+                                        onFormModifyClick = { formId ->
+                                            val isFormUsed = stagePagingItems.itemSnapshotList
+                                                .any { it?.formId == formId }
+                                            if (!isFormUsed) navigateToModifyForm(formId)
+                                            else alertType = AlertType.CANNOT_MODIFY_FORM
+                                        },
                                         onFormDeleteClicked = { formId ->
                                             val isFormUsed = stagePagingItems.itemSnapshotList
                                                 .any { it?.formId == formId }

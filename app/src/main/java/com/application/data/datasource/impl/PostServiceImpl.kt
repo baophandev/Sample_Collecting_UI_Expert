@@ -29,6 +29,7 @@ class PostServiceImpl(
      */
     override suspend fun getPostsByExpert(
         expertId: String,
+        title: String,
         isAnswered: Boolean,
         pageNumber: Int,
         pageSize: Int
@@ -36,6 +37,7 @@ class PostServiceImpl(
         client.get(urlString = "getByExpertId/$expertId") {
             url {
                 encodedParameters.append("isAnswered", "$isAnswered")
+                encodedParameters.append("title", title)
                 encodedParameters.append("pageNumber", "$pageNumber")
                 encodedParameters.append("pageSize", "$pageSize")
             }

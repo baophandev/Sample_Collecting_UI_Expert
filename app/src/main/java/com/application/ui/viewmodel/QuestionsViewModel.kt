@@ -31,21 +31,24 @@ class QuestionsViewModel @Inject constructor(
 
     lateinit var postFlow: Flow<PagingData<Post>>
     private var isAnswered = false
+    private var title = ""
 
-    private val _state = MutableStateFlow(QuestionsUiState(isAnswered = isAnswered))
+    private val _state = MutableStateFlow(QuestionsUiState(isAnswered = isAnswered, title = title))
     val state = _state.asStateFlow()
 
     private lateinit var debounceFlow: Flow<QuestionsUiState>
 
     @OptIn(FlowPreview::class)
     suspend fun initCheckAnsweredDebounce(refreshCallback: () -> Unit) {
-        if (::debounceFlow.isInitialized) return
-
         debounceFlow = _state.debounce(300)
         debounceFlow.collect {
             if (it.isAnswered != isAnswered) {
                 isAnswered = it.isAnswered
                 refreshCallback()
+            }
+            if (it.title != title) {
+              title = it.title
+              refreshCallback()
             }
         }
     }
@@ -61,8 +64,8 @@ class QuestionsViewModel @Inject constructor(
         _state.update { it.copy(isAnswered = isAnswered) }
     }
 
-    fun searchPost(value: String) {
-        Log.d(TAG, "onSearchChange: $value")
+    fun searchPost(title: String) {
+        _state.update { it.copy(title = title) }
     }
 
     private fun initFlow(): Flow<PagingData<Post>> {
@@ -76,6 +79,7 @@ class QuestionsViewModel @Inject constructor(
         ) {
             PostPagingSource(
                 isAnswered = isAnswered,
+                title = title,
                 postRepository = postRepository,
                 userRepository = userRepository
             )

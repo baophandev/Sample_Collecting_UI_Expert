@@ -18,6 +18,8 @@ import com.sc.library.user.repository.UserRepository
 import com.sc.library.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -148,20 +150,41 @@ class StageDetailViewModel @Inject constructor(
         }
     }
 
-    fun deleteSample(sampleId: String) {
+    fun deleteSamples(sampleIds: List<String>) {
         viewModelScope.launch(Dispatchers.IO) {
-            sampleRepository.deleteSample(sampleId)
-                .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
-                .collectLatest { }
+            _state.update { it.copy(status = UiStatus.LOADING) }
+
+            val results = sampleIds.map { id ->
+                async {
+                    val result = sampleRepository.deleteSample(id).last()
+                    result is ResourceState.Success
+                }
+            }.awaitAll()
+
+            _state.update { currentState ->
+                currentState.copy(
+                    status = if (results.all { it }) UiStatus.SUCCESS else UiStatus.ERROR
+                )
+            }
         }
     }
 
     fun reload(signal: ReloadSignal) {
         when (signal) {
             ReloadSignal.RELOAD_ALL_SAMPLES -> initSamplePagingFlow(state.value.stage!!.id)
-            ReloadSignal.RELOAD_STAGE -> loadStage(state.value.stage!!.id)
+            ReloadSignal.RELOAD_STAGE -> loadStage(
+                stageId = state.value.stage!!.id,
+                skipCached = true
+            )
+
             else -> {}
         }
+    }
+
+    fun isMemberOfStage(): Boolean {
+        val loggedUserId = userRepository.loggedUser?.id
+        val members = state.value.stage?.members
+        return loggedUserId != null && members?.any { it.id == loggedUserId } == true
     }
 
     companion object {

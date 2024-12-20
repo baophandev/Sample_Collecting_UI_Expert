@@ -16,12 +16,14 @@ interface IPostService {
      *
      * @param expertId The ID of the expert for which to retrieve posts.
      * @param isAnswered A boolean flag indicating whether to retrieve only answered posts (`true`) or only unanswered posts (`false`, default).
+     * @param title The title of post (default empty).
      * @param pageNumber The page number to retrieve (defaults to 0).
      * @param pageSize The number of posts per page (defaults to 6).
      * @return A [PagingResponse] object containing a list of [PostResponse] objects and pagination information.
      */
     suspend fun getPostsByExpert(
         expertId: String,
+        title: String = "",
         isAnswered: Boolean = false,
         pageNumber: Int = 0,
         pageSize: Int = 6

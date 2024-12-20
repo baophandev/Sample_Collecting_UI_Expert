@@ -72,8 +72,8 @@ class CreateSampleViewModel @Inject constructor(
         }
     }
 
-    fun loadSampleImage(sampleImage: Pair<String, Uri>) {
-        _state.update { it.copy(sampleImage = sampleImage) }
+    fun loadSampleImage(uri: Uri) {
+        _state.update { it.copy(sampleImage = uri) }
     }
 
     fun gotError() {
@@ -83,7 +83,7 @@ class CreateSampleViewModel @Inject constructor(
     /**
      * @param successHandler (imageName) -> Unit
      */
-    fun submit(successHandler: (String) -> Unit) {
+    fun submit(successHandler: (Uri) -> Unit) {
         val currentState = state.value
         if (!validate()) {
             _state.update { it.copy(error = R.string.fields_not_validate) }
@@ -94,7 +94,7 @@ class CreateSampleViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             sampleRepository.createSample(
                 stageId = stageId,
-                attachmentUri = sampleImage.second,
+                attachmentUri = sampleImage,
                 position = "",
                 answers = currentState.answers,
                 dynamicFields = currentState.dynamicFields
@@ -107,8 +107,8 @@ class CreateSampleViewModel @Inject constructor(
                         }
 
                         is ResourceState.Success -> {
-                            _state.update { it.copy(status = UiStatus.SUCCESS) }
-                            viewModelScope.launch { successHandler(sampleImage.first) }
+                            _state.update { CreateSampleUiState() }
+                            viewModelScope.launch { successHandler(sampleImage) }
                         }
                     }
                 }

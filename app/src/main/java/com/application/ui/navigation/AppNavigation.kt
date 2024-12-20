@@ -189,7 +189,10 @@ fun AppNavigationGraph() {
                 navigateToLogin = popBackToLogin,
                 navigateToHome = popBackToHome,
                 navigateToDetail = { isModified ->
-                    if (isModified) detailVM.reload(ReloadSignal.RELOAD_PROJECT)
+                    if (isModified) {
+                        detailVM.reload(ReloadSignal.RELOAD_PROJECT)
+                        homeScreenVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
+                    }
                     popBackToDetailScreen()
                 },
                 navigateToQuestions = navigateToQuestions,
@@ -199,7 +202,7 @@ fun AppNavigationGraph() {
 
         composable(Routes.STAGE_DETAIL_SCREEN) {
             val navigateToModifyStage: (String, String) -> Unit = { projectId, stageId ->
-                modifyStageVM.loadStage(projectId, stageId)
+                modifyStageVM.fetchStage(projectId, stageId)
                 modifyStageVM.fetchProjectMembers(projectId)
                 navController.navigateSingleTop(Routes.MODIFY_STAGE_SCREEN)
             }
@@ -291,9 +294,9 @@ fun AppNavigationGraph() {
         }
 
         composable(Routes.CAPTURE_SCREEN) {
-            val navigateToCreateSample: (String, Pair<String, Uri>) -> Unit = { stageId, sample ->
+            val navigateToCreateSample: (String, Uri) -> Unit = { stageId, uri ->
                 createSampleVM.loadFormFromStage(stageId)
-                createSampleVM.loadSampleImage(sample)
+                createSampleVM.loadSampleImage(uri)
                 navController.navigateSingleTop(Routes.CREATE_SAMPLE_SCREEN)
             }
 
@@ -308,7 +311,7 @@ fun AppNavigationGraph() {
         }
 
         composable(Routes.CREATE_SAMPLE_SCREEN) {
-            val navigateToCapture: (String?) -> Unit = {
+            val navigateToCapture: (Uri?) -> Unit = {
                 it?.let(captureVM::removeCreatedSampleImage)
                 navController.popBackStack(
                     route = Routes.CAPTURE_SCREEN,
