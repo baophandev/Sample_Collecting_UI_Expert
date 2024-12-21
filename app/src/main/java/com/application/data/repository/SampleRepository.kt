@@ -124,22 +124,10 @@ class SampleRepository(
         stageId: String,
         pageNumber: Int = 0,
         pageSize: Int = 6
-    ): Result<PagingResponse<Sample>> {
-        return runCatching {
-            val response = projectService.getAllSamplesOfStage(stageId, pageNumber, pageSize)
-            val samples = response.content.map { mapResponseToSample(it) }
-            PagingResponse(
-                totalPages = response.totalPages,
-                totalElements = response.totalElements,
-                number = response.number,
-                size = response.size,
-                numberOfElements = response.numberOfElements,
-                first = response.first,
-                last = response.last,
-                content = samples
-            )
-        }.onFailure { Log.e(TAG, it.message, it) }
-    }
+    ): Result<PagingResponse<Sample>> = runCatching {
+        projectService.getAllSamplesOfStage(stageId, pageNumber, pageSize)
+            .map(::mapResponseToSample)
+    }.onFailure { Log.e(TAG, it.message, it) }
 
     private fun mapResponseToSample(response: SampleResponse): Sample {
         val (image, answers, dynamicFields) = runBlocking {

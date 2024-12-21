@@ -93,24 +93,13 @@ class PostRepository(
         pageNumber: Int = 0,
         pageSize: Int = 6,
     ): Result<PagingResponse<Post>> = runCatching {
-        val response = service.getPostsByExpert(
+        service.getPostsByExpert(
             expertId = expertId,
             title = title,
             isAnswered = isAnswered,
             pageNumber = pageNumber,
             pageSize = pageSize
-        )
-        val posts = response.content.map(::mapResponseToPost)
-        PagingResponse(
-            totalPages = response.totalPages,
-            totalElements = response.totalElements,
-            number = response.number,
-            size = response.size,
-            numberOfElements = response.numberOfElements,
-            first = response.first,
-            last = response.last,
-            content = posts
-        )
+        ).map(::mapResponseToPost)
     }.onFailure { Log.e(TAG, it.message, it) }
 
     suspend fun createGeneralComment(

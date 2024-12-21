@@ -35,22 +35,11 @@ class FormRepository(
         pageNumber: Int = 0,
         pageSize: Int = 6
     ): Result<PagingResponse<Form>> = runCatching {
-        val response = projectService.getAllForms(
+        projectService.getAllForms(
             projectId = projectId,
             pageNumber = pageNumber,
             pageSize = pageSize
-        )
-        val forms = response.content.map(::mapResponseToForm)
-        PagingResponse(
-            totalPages = response.totalPages,
-            totalElements = response.totalElements,
-            number = response.number,
-            size = response.size,
-            numberOfElements = response.numberOfElements,
-            first = response.first,
-            last = response.last,
-            content = forms
-        )
+        ).map(::mapResponseToForm)
     }.onFailure { Log.e(TAG, it.message, it) }
 
     /**

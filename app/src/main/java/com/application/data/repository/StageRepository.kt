@@ -65,22 +65,11 @@ class StageRepository(
         pageNumber: Int = 0,
         pageSize: Int = 6
     ): Result<PagingResponse<Stage>> = runCatching {
-        val response = projectService.getAllStages(
+        projectService.getAllStages(
             projectId = projectId,
             pageNumber = pageNumber,
             pageSize = pageSize
-        )
-        val stages = response.content.map { mapResponseToStage(it) }
-        PagingResponse(
-            totalPages = response.totalPages,
-            totalElements = response.totalElements,
-            number = response.number,
-            size = response.size,
-            numberOfElements = response.numberOfElements,
-            first = response.first,
-            last = response.last,
-            content = stages
-        )
+        ).map(::mapResponseToStage)
     }.onFailure { Log.e(TAG, it.message, it) }
 
     /**

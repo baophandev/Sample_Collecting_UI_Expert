@@ -122,24 +122,13 @@ class ProjectRepository(
         pageNumber: Int = 0,
         pageSize: Int = 6,
     ): Result<PagingResponse<Project>> = runCatching {
-        val response = projectService.getAllProjects(
+        projectService.getAllProjects(
             userId = userId,
             query = query,
             status = status,
             pageNumber = pageNumber,
             pageSize = pageSize
-        )
-        val projects = response.content.map { mapResponseToProject(it) }
-        PagingResponse(
-            totalPages = response.totalPages,
-            totalElements = response.totalElements,
-            number = response.number,
-            size = response.size,
-            numberOfElements = response.numberOfElements,
-            first = response.first,
-            last = response.last,
-            content = projects
-        )
+        ).map(::mapResponseToProject)
     }.onFailure { Log.e(TAG, it.message, it) }
 
     fun updateProject(
