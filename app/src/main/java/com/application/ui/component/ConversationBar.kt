@@ -2,7 +2,6 @@ package com.application.ui.component
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,37 +23,24 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private fun truncateStringChat(s: String, maxLength: Int = 25, maxWords: Int = 8): String {
-    val words = s.split(" ")
-    return if (words.size > maxWords) {
-        words.take(maxWords).joinToString(" ") + "..."
-    } else if (s.length > maxLength) {
-        s.take(maxLength - 3) + "..."
-    } else {
-        s
-    }
-}
-
 @Composable
-fun UserConversationBar(
+fun ConversationBar(
     userAvatar: Int,
     userName: String,
     userLastMessage: String,
-    messageSentTime: String,
+    updatedAt: String,
     read: Boolean,
-    onUserConversationClick: () -> Unit
+    onClick: () -> Unit
 ) {
-    val shortenUserName = truncateStringChat(userName, 17, 4)
-    val shortenMessage = truncateStringChat(userLastMessage)
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
-            .background(Color.White)
-            .clickable(onClick = onUserConversationClick)
+            .clickable(onClick = onClick)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -91,16 +77,18 @@ fun UserConversationBar(
                         .padding(start = 5.dp)
                 ) {
                     Text(
-                        text = shortenUserName,
+                        text = userName,
                         style = TextStyle(
                             fontSize = 16.sp,
                             fontWeight = if (read) FontWeight.Medium else FontWeight.ExtraBold
                         ),
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
                         modifier = Modifier
                             .fillMaxWidth(0.68f)
                     )
                     Text(
-                        text = messageSentTime,
+                        text = updatedAt,
                         style = TextStyle(
                             fontWeight = if (read) FontWeight.Medium else FontWeight.ExtraBold
                         ),
@@ -115,11 +103,13 @@ fun UserConversationBar(
                         .padding(top = 40.dp, start = 5.dp)
                 ) {
                     Text(
-                        text = shortenMessage,
+                        text = userLastMessage,
                         style = TextStyle(
                             color = if (read) Color.Gray else Color.Black,
                             fontSize = 12.sp,
                         ),
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
                         modifier = Modifier
                             .fillMaxWidth(0.8f)
                     )

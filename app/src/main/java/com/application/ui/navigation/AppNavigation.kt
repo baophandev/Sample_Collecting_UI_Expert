@@ -26,6 +26,8 @@ import com.application.ui.screen.SampleDetailScreen
 import com.application.ui.screen.StageDetailScreen
 import com.application.ui.screen.QuestionsScreen
 import com.application.ui.viewmodel.CaptureViewModel
+import com.application.ui.viewmodel.ChatViewModel
+import com.application.ui.viewmodel.ConversationsViewModel
 import com.application.ui.viewmodel.CreateFormViewModel
 import com.application.ui.viewmodel.CreateSampleViewModel
 import com.application.ui.viewmodel.CreateStageViewModel
@@ -58,6 +60,8 @@ fun AppNavigationGraph() {
     val createSampleVM: CreateSampleViewModel = hiltViewModel()
     val postDetailVM: PostDetailViewModel = hiltViewModel()
     val questionsVM: QuestionsViewModel = hiltViewModel()
+    val conversationsVM: ConversationsViewModel = hiltViewModel()
+    val chatVM: ChatViewModel = hiltViewModel()
 
     val navController = rememberNavController()
 
@@ -106,6 +110,7 @@ fun AppNavigationGraph() {
             LoginScreen {
                 homeScreenVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
                 questionsVM.reload(ReloadSignal.RELOAD_ALL_POSTS)
+                conversationsVM.reload(ReloadSignal.RELOAD_ALL_CONVERSATIONS)
                 detailVM.renewState()
 
                 navController.navigateSingleTop(Routes.HOME_SCREEN)
@@ -357,10 +362,12 @@ fun AppNavigationGraph() {
         }
 
         composable(Routes.CONVERSATIONS_SCREEN) {
-            val navigateToChat: () -> Unit = {
+            val navigateToChat: (Long) -> Unit = { conversationId ->
+                chatVM.fetchMessages(conversationId)
                 navController.navigateSingleTop(Routes.CHAT_SCREEN)
             }
             ConversationsScreen(
+                viewModel = conversationsVM,
                 navigateToHome = popBackToHome,
                 navigateToChat = navigateToChat
             )
@@ -375,6 +382,7 @@ fun AppNavigationGraph() {
                 )
             }
             ChatScreen(
+                viewModel = chatVM,
                 navigateToConversations = popBackToConversations
             )
         }

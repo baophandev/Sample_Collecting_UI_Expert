@@ -125,5 +125,5 @@
     <string name="get_files_in_post_error">Getting files process has occurred an error.</string>
     <string name="submit_post_error">Please fill in a general comment for this post.</string>
     <string name="back">Back</string>
-
+    <string name="no_conversation">No conversations</string>
 </resources>

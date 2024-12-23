@@ -4,29 +4,25 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color.rgb
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -39,19 +35,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -65,9 +55,52 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.application.R
-import com.application.data.entity.ChatData
-import kotlinx.coroutines.launch
+import com.application.ui.component.PagingLayout
+import com.application.ui.viewmodel.ChatViewModel
+import com.sc.library.chat.data.entity.ReceivingMessage
+
+@Composable
+fun ChatScreen(
+    viewModel: ChatViewModel = hiltViewModel(),
+    navigateToConversations: () -> Unit
+) {
+    val state by viewModel.state.collectAsState()
+    val messagesFlow = viewModel.messagesFlow.collectAsLazyPagingItems()
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            TopChatBar(
+                title = state.conversation?.title ?: "",
+                modifier = Modifier.padding(bottom = 3.dp),
+                route = navigateToConversations
+            )
+        }, bottomBar = {
+            ReplyBar(
+                modifier = Modifier.fillMaxWidth(),
+                message = state.text,
+                onMessageChange = viewModel::updateMessage,
+                onSendClick = viewModel::sendMessage,
+                onSendImage = { imageBitmap ->
+
+                }
+            )
+        }
+    ) { innerPadding ->
+        Column(modifier = Modifier.padding(innerPadding)) {
+            CaptionBar(text = stringResource(id = R.string.caption_question))
+            ChatList(pagingItems = messagesFlow)
+        }
+    }
+
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -103,12 +136,12 @@ fun TopChatBar(
 
 @Composable
 fun ReplyBar(
-    modifier: Modifier = Modifier, onSendImage: (Bitmap) -> Unit, onSendText: (String) -> Unit
+    modifier: Modifier = Modifier,
+    message: String = "",
+    onMessageChange: (String) -> Unit,
+    onSendImage: (Bitmap) -> Unit,
+    onSendClick: () -> Unit
 ) {
-    var value by remember {
-        mutableStateOf("")
-    }
-
     val context = LocalContext.current
 
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -174,10 +207,8 @@ fun ReplyBar(
                 )
                 .fillMaxWidth(.8f)
                 .fillMaxHeight(.7f),
-            value = value,
-            onValueChange = { newText ->
-                value = newText
-            },
+            value = message,
+            onValueChange = onMessageChange,
             textStyle = TextStyle(
                 textAlign = TextAlign.Start
             ),
@@ -193,7 +224,7 @@ fun ReplyBar(
                         Modifier.weight(1f),
                         contentAlignment = Alignment.CenterStart
                     ) {
-                        if (value.isEmpty()) {
+                        if (message.isEmpty()) {
                             Text(
                                 text = stringResource(id = R.string.message_placeholder),
                                 style = LocalTextStyle.current.copy(
@@ -208,13 +239,12 @@ fun ReplyBar(
             },
         )
         Spacer(modifier = Modifier.size(5.dp))
-        IconButton(modifier = Modifier.size(35.dp), onClick = {
-            Log.i("ReplyBar_ChatScreen", "Sending event")
-            if (value.isNotBlank()) {
-                onSendText(value)
-                value = ""
+        IconButton(
+            modifier = Modifier.size(35.dp),
+            onClick = {
+                if (message.isNotBlank()) onSendClick()
             }
-        }) {
+        ) {
             Icon(
                 modifier = Modifier.fillMaxSize(.85f),
                 painter = painterResource(id = R.drawable.send_icon),
@@ -256,147 +286,111 @@ fun CaptionBar(
 @Composable
 fun ChatList(
     modifier: Modifier = Modifier,
-    state: LazyListState,
-    messages: List<ChatData>
+    pagingItems: LazyPagingItems<ReceivingMessage>,
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(), state = state
-        ) {
-            item {
-                Spacer(modifier = Modifier.height(32.dp))
-            }
-            items(messages){ message ->
-                val isOwnMessage = true //username
-                Box(
-                    contentAlignment = if (isOwnMessage) {
-                        Alignment.CenterEnd
-                    } else Alignment.CenterStart, modifier = Modifier.fillMaxWidth()
-                ) {
-                    message.text?.let {
-                        Column(modifier = Modifier
-                            .drawBehind {
-                                val trianglePath = Path().apply {
-                                    if (isOwnMessage) {
-                                        moveTo(size.width, size.height)
-                                        lineTo(size.width, size.height)
-                                        lineTo(
-                                            size.width, size.height
-                                        )
-                                        close()
-                                    } else {
-                                        moveTo(0f, size.height)
-                                        lineTo(0f, size.height)
-                                        lineTo(0.dp.toPx(), size.height)
-                                        close()
-                                    }
-                                }
-                                drawPath(
-                                    path = trianglePath, color = if (isOwnMessage) Color(
-                                        rgb(
-                                            229, 239, 255
-                                        )
-                                    ) else Color.White
-                                )
-                            }
-                            .background(
-                                color = if (isOwnMessage) Color(
-                                    rgb(
-                                        229, 239, 255
-                                    )
-                                ) else Color.White, shape = RoundedCornerShape(15.dp)
-                            )
-                            .padding(8.dp)) {
-                            Text(
-                                text = it, color = Color.Black
-                            )
+    val context = LocalContext.current
 
-                            Text(
-                                modifier = Modifier.align(Alignment.End),
-                                text = "00:00",
-                                color = Color.Gray,
-                                fontSize = 12.sp
-                            )
-                        }
-                    }
-                    message.imageBitmap?.let {
-                        Column(
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            Image(
-                                bitmap = it.asImageBitmap(),
+    PagingLayout(
+        modifier = modifier,
+        pagingItems = pagingItems,
+        itemsContent = { message ->
+            val isOwnMessage = true //username
+            Box(
+                contentAlignment = if (isOwnMessage) {
+                    Alignment.CenterEnd
+                } else Alignment.CenterStart, modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                    ) {
+                        items(message.attachments) { image ->
+                            AsyncImage(
+                                model = ImageRequest.Builder(context)
+                                    .data(image.url)
+                                    .fallback(drawableResId = R.drawable.ic_launcher_background)
+                                    .error(drawableResId = R.drawable.ic_launcher_background)
+                                    .build(),
                                 contentDescription = null,
                                 modifier = Modifier
-                                    .padding(end = 5.dp)
-                                    .fillMaxWidth()
-                                    .aspectRatio(1f),
+                                    .sizeIn(
+                                        maxWidth = 160.dp,
+                                        minWidth = 16.dp,
+                                        maxHeight = 90.dp,
+                                        minHeight = 9.dp,
+                                    )
+                                    .background(Color.Gray.copy(alpha = .4f)),
                                 contentScale = ContentScale.Fit,
                                 alignment = Alignment.TopEnd
                             )
-
-                            Text(
-                                modifier = Modifier
-                                    .align(Alignment.End)
-                                    .padding(5.dp, 0.dp),
-                                text = "00:00",
-                                color = Color.Gray,
-                                fontSize = 12.sp
-                            )
                         }
                     }
 
+                    Text(
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .padding(5.dp, 0.dp),
+                        text = "00:00",
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
                 }
-                Spacer(modifier = Modifier.size(10.dp))
+                Column(
+                    modifier = Modifier
+                        .drawBehind {
+                            val trianglePath = Path().apply {
+                                if (isOwnMessage) {
+                                    moveTo(size.width, size.height)
+                                    lineTo(size.width, size.height)
+                                    lineTo(
+                                        size.width, size.height
+                                    )
+                                    close()
+                                } else {
+                                    moveTo(0f, size.height)
+                                    lineTo(0f, size.height)
+                                    lineTo(0.dp.toPx(), size.height)
+                                    close()
+                                }
+                            }
+                            drawPath(
+                                path = trianglePath, color = if (isOwnMessage) Color(
+                                    rgb(
+                                        229, 239, 255
+                                    )
+                                ) else Color.White
+                            )
+                        }
+                        .background(
+                            color = if (isOwnMessage) Color(
+                                rgb(
+                                    229, 239, 255
+                                )
+                            ) else Color.White, shape = RoundedCornerShape(15.dp)
+                        )
+                        .padding(8.dp)
+                ) {
+                    Text(
+                        text = message.text,
+                        color = Color.Black
+                    )
+
+                    Text(
+                        modifier = Modifier.align(Alignment.End),
+                        text = "00:00",
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
+                }
             }
+            Spacer(modifier = Modifier.size(10.dp))
+        },
+        itemKey = pagingItems.itemKey { it.id },
+        noItemContent = {
+
         }
-    }
-}
-
-
-@Composable
-fun ChatScreen(
-    modifier: Modifier = Modifier,
-    navigateToConversations: () -> Unit
-) {
-    val messages: SnapshotStateList<ChatData> = remember { mutableStateListOf() }
-    val chatState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
-
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            TopChatBar(
-                title = "Chuyên gia MiMi",
-                modifier = Modifier.padding(bottom = 3.dp),
-                route = navigateToConversations
-            )
-        }, bottomBar = {
-            ReplyBar(
-                modifier = Modifier.fillMaxWidth(),
-                onSendText = { newMessage ->
-                    messages.add(ChatData(text = newMessage))
-                    coroutineScope.launch {
-                        chatState.scrollToItem(messages.size)
-                    }
-                },
-                onSendImage = { imageBitmap ->
-                    messages.add(ChatData(imageBitmap = imageBitmap))
-                    coroutineScope.launch {
-                        chatState.scrollToItem(messages.size)
-                    }
-                })
-        }) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
-            CaptionBar(text = stringResource(id = R.string.caption_question))
-            ChatList(state = chatState, messages = messages)
-        }
-    }
-
+    )
 }
 

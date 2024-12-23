@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.application.R
 import com.application.constant.UiStatus
 import com.application.ui.state.LoginUiState
+import com.sc.library.chat.data.repository.MessageRepository
 import com.sc.library.user.repository.UserRepository
 import com.sc.library.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -20,7 +22,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val messageRepository: MessageRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginUiState())
@@ -46,8 +49,21 @@ class LoginViewModel @Inject constructor(
                 .collectLatest { result ->
                     when (result) {
                         is ResourceState.Success -> {
-                            _state.update { it.copy(status = UiStatus.SUCCESS) }
-                            viewModelScope.launch { loginSuccessful() }
+                            val userId = userRepository.loggedUser?.id!!
+                            when (val rsState =
+                                messageRepository.connectChatServer(userId).last()) {
+                                is ResourceState.Error -> _state.update {
+                                    it.copy(
+                                        status = UiStatus.ERROR,
+                                        error = rsState.resId
+                                    )
+                                }
+
+                                is ResourceState.Success -> {
+                                    _state.update { it.copy(status = UiStatus.SUCCESS) }
+                                    viewModelScope.launch { loginSuccessful() }
+                                }
+                            }
                         }
 
                         is ResourceState.Error -> {

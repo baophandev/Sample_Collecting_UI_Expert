@@ -129,5 +129,6 @@
     <string name="get_files_in_post_error">Quá trình lấy các hình ảnh đã xảy ra lỗi.</string>
     <string name="submit_post_error">Vui lòng điền bình luận tổng quát cho bài đăng này.</string>
     <string name="back">Trở lại</string>
+    <string name="no_conversation">Không có cuộc hội thoại</string>
 
 </resources>
