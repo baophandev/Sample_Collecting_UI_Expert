@@ -1,5 +1,6 @@
 package com.application.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.R
@@ -14,10 +15,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -50,20 +51,23 @@ class LoginViewModel @Inject constructor(
                     when (result) {
                         is ResourceState.Success -> {
                             val userId = userRepository.loggedUser?.id!!
-                            when (val rsState =
-                                messageRepository.connectChatServer(userId).last()) {
-                                is ResourceState.Error -> _state.update {
-                                    it.copy(
-                                        status = UiStatus.ERROR,
-                                        error = rsState.resId
-                                    )
-                                }
-
-                                is ResourceState.Success -> {
-                                    _state.update { it.copy(status = UiStatus.SUCCESS) }
-                                    viewModelScope.launch { loginSuccessful() }
-                                }
-                            }
+                            messageRepository.connectChatServer(userId)
+                                .timeout(50000, TimeUnit.MILLISECONDS)
+                                .subscribe(
+                                    {
+                                        _state.update { it.copy(status = UiStatus.SUCCESS) }
+                                        viewModelScope.launch { loginSuccessful() }
+                                    },
+                                    { exception ->
+                                        Log.e(TAG, exception.message, exception)
+                                        _state.update {
+                                            it.copy(
+                                                status = UiStatus.ERROR,
+                                                error = com.sc.library.R.string.connect_server_error
+                                            )
+                                        }
+                                    }
+                                )
                         }
 
                         is ResourceState.Error -> {
@@ -91,6 +95,10 @@ class LoginViewModel @Inject constructor(
     private fun validateFields(): Boolean {
         val currentState = state.value
         return currentState.username.isNotBlank() && currentState.password.isNotBlank()
+    }
+
+    companion object {
+        const val TAG = "LoginViewModel"
     }
 
 }
