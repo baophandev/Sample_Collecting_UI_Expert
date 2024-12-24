@@ -14,6 +14,7 @@ import com.sc.library.chat.data.entity.ReceivingMessage
 import com.sc.library.chat.data.entity.SendingMessage
 import com.sc.library.chat.data.repository.ConversationRepository
 import com.sc.library.chat.data.repository.MessageRepository
+import com.sc.library.user.repository.UserRepository
 import com.sc.library.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -24,25 +25,35 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val conversationRepository: ConversationRepository,
-    private val messageRepository: MessageRepository
+    private val messageRepository: MessageRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ChatUiState())
     val state = _state.asStateFlow()
 
-    lateinit var messagesFlow: Flow<PagingData<ReceivingMessage>>
+    private val _messages = MutableStateFlow<List<ReceivingMessage>>(emptyList())
+    val messages = _messages.asStateFlow()
+
+    lateinit var messagePagingFlow: Flow<PagingData<ReceivingMessage>>
 
     fun fetchMessages(conversationId: Long) {
-        _state.update { it.copy(status = UiStatus.LOADING, text = "") }
+        _state.update {
+            it.copy(
+                status = UiStatus.LOADING,
+                text = "",
+            )
+        }
 
-        viewModelScope.launch {
-            when (val rsState =
-                conversationRepository.getConversation(conversationId = conversationId).last()) {
+        viewModelScope.launch(Dispatchers.IO) {
+            when (val rsState = conversationRepository
+                .getConversation(conversationId = conversationId).last()) {
                 is ResourceState.Error -> _state.update {
                     it.copy(
                         status = UiStatus.ERROR,
@@ -60,21 +71,8 @@ class ChatViewModel @Inject constructor(
             }
         }
 
-        messagesFlow = Pager(
-            PagingConfig(
-                pageSize = 8,
-                enablePlaceholders = false,
-                prefetchDistance = 1,
-                initialLoadSize = 3,
-            )
-        ) {
-            MessagePagingSource(
-                conversationId = conversationId,
-                messageRepository = messageRepository
-            )
-        }.flow
-            .cachedIn(viewModelScope)
-            .catch { Log.e(TAG, it.message, it) }
+        initMessagePagingFlow(conversationId)
+        subscribeConversation(conversationId)
     }
 
     fun updateMessage(text: String) {
@@ -100,8 +98,8 @@ class ChatViewModel @Inject constructor(
                     )
                 }
 
-                is ResourceState.Success -> rsState.data
-                    .doOnComplete {
+                is ResourceState.Success -> {
+                    val onComplete = {
                         _state.update {
                             it.copy(
                                 sendingStatus = UiStatus.SUCCESS,
@@ -109,7 +107,7 @@ class ChatViewModel @Inject constructor(
                             )
                         }
                     }
-                    .doOnError { exception ->
+                    val onError: (Throwable) -> Unit = { exception ->
                         Log.e(TAG, exception.message, exception)
                         _state.update {
                             it.copy(
@@ -117,9 +115,49 @@ class ChatViewModel @Inject constructor(
                                 error = null
                             )
                         }
-                    }.blockingAwait()
+                    }
+
+                    rsState.data
+                        .timeout(50000, TimeUnit.MILLISECONDS)
+                        .subscribe(onComplete, onError)
+                }
             }
         }
+    }
+
+    fun isSendingMessage(senderId: String): Boolean {
+        val userId = userRepository.loggedUser?.id ?: return false
+        return senderId == userId
+    }
+
+    private fun initMessagePagingFlow(conversationId: Long) {
+        messagePagingFlow = Pager(
+            PagingConfig(
+                pageSize = 8,
+                enablePlaceholders = false,
+                initialLoadSize = 10,
+            )
+        ) {
+            MessagePagingSource(
+                conversationId = conversationId,
+                messageRepository = messageRepository
+            )
+        }.flow
+            .cachedIn(viewModelScope)
+            .catch { Log.e(TAG, it.message, it) }
+    }
+
+    private fun subscribeConversation(conversationId: Long) {
+        messageRepository.subscribeConversation(
+            conversationId = conversationId,
+            incomingHandler = { newMessage ->
+                _messages.update {
+                    val current = it.toMutableList()
+                    current.add(newMessage)
+                    current
+                }
+            },
+            errorHandler = { exception -> Log.e(TAG, exception.message, exception) })
     }
 
     companion object {

@@ -55,7 +55,12 @@ class LoginViewModel @Inject constructor(
                                 .timeout(50000, TimeUnit.MILLISECONDS)
                                 .subscribe(
                                     {
-                                        _state.update { it.copy(status = UiStatus.SUCCESS) }
+                                        _state.update {
+                                            it.copy(
+                                                status = UiStatus.SUCCESS,
+                                                password = ""
+                                            )
+                                        }
                                         viewModelScope.launch { loginSuccessful() }
                                     },
                                     { exception ->
@@ -81,6 +86,13 @@ class LoginViewModel @Inject constructor(
 
                     }
                 }
+        }
+    }
+
+    fun logout() {
+        userRepository.loggedUser?.let {
+            messageRepository.disconnectChatServer(it.id)
+            userRepository.logout()
         }
     }
 

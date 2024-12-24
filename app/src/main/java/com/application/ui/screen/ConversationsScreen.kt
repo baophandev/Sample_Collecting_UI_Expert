@@ -16,6 +16,7 @@ import com.application.ui.component.ConversationBar
 import com.application.ui.component.ExpertChatTopNavigationBar
 import com.application.ui.component.PagingLayout
 import com.application.ui.viewmodel.ConversationsViewModel
+import com.sc.library.chat.constant.MessageType
 import java.time.format.DateTimeFormatter
 
 @Composable
@@ -34,15 +35,20 @@ fun ConversationsScreen(
             pagingItems = convFlow,
             itemsContent = { conversation ->
                 /*TODO("Format updateAt")*/
-                DateTimeFormatter.ofPattern("dd/MM/yy H:mm a")
+                DateTimeFormatter.ofPattern("dd/MM/yy H:mma")
                     .withLocale(Locale.current.platformLocale)
+                val lastMessage = conversation.lastMessage?.let {
+                    when (it.type) {
+                        MessageType.TEXT -> it.text
+                        else -> "[${stringResource(R.string.file)}]"
+                    }
+                } ?: ""
 
                 ConversationBar(
-                    userAvatar = R.drawable.ic_launcher_background,
-                    userName = conversation.title,
-                    userLastMessage = "",
-                    updatedAt = "22/12/24 8:07 PM",
-                    read = true,
+                    title = conversation.title,
+                    lastMessage = lastMessage,
+                    updatedAt = "22/12/24 8:07PM",
+                    read = conversation.isRead,
                     onClick = { navigateToChat(conversation.id) }
                 )
             },
@@ -56,7 +62,3 @@ fun ConversationsScreen(
         )
     }
 }
-
-
-
-

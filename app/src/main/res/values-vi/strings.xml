@@ -130,5 +130,7 @@
     <string name="submit_post_error">Vui lòng điền bình luận tổng quát cho bài đăng này.</string>
     <string name="back">Trở lại</string>
     <string name="no_conversation">Không có cuộc hội thoại</string>
+    <string name="file">Tập tin</string>
+    <string name="no_messages">Không có tin nhắn.</string>
 
 </resources>

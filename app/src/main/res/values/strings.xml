@@ -126,4 +126,6 @@
     <string name="submit_post_error">Please fill in a general comment for this post.</string>
     <string name="back">Back</string>
     <string name="no_conversation">No conversations</string>
+    <string name="file">File</string>
+    <string name="no_messages">No messages.</string>
 </resources>

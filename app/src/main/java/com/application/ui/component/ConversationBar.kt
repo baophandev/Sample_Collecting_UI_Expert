@@ -1,10 +1,13 @@
 package com.application.ui.component
 
+import android.net.Uri
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,22 +23,30 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.application.R
+import com.application.ui.theme.SampleCollectingApplicationTheme
 
 @Composable
 fun ConversationBar(
-    userAvatar: Int,
-    userName: String,
-    userLastMessage: String,
-    updatedAt: String,
+    userAvatar: Uri? = null,
     read: Boolean,
+    title: String,
+    lastMessage: String,
+    updatedAt: String,
     onClick: () -> Unit
 ) {
+    val context = LocalContext.current
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -48,8 +59,19 @@ fun ConversationBar(
             modifier = Modifier
                 .size(90.dp)
         ) {
-            Image(
-                painter = painterResource(id = userAvatar),
+            if (userAvatar != null) AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(userAvatar)
+                    .error(R.drawable.ic_launcher_background)
+                    .build(),
+                contentDescription = "view answer",
+                contentScale = ContentScale.Inside,
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(CircleShape)
+            )
+            else Image(
+                painter = painterResource(R.drawable.ic_launcher_background),
                 contentDescription = "view answer",
                 contentScale = ContentScale.Inside,
                 colorFilter = ColorFilter.tint(Color(0xFF007E2F)),
@@ -77,7 +99,7 @@ fun ConversationBar(
                         .padding(start = 5.dp)
                 ) {
                     Text(
-                        text = userName,
+                        text = title,
                         style = TextStyle(
                             fontSize = 16.sp,
                             fontWeight = if (read) FontWeight.Medium else FontWeight.ExtraBold
@@ -103,7 +125,7 @@ fun ConversationBar(
                         .padding(top = 40.dp, start = 5.dp)
                 ) {
                     Text(
-                        text = userLastMessage,
+                        text = lastMessage,
                         style = TextStyle(
                             color = if (read) Color.Gray else Color.Black,
                             fontSize = 12.sp,
@@ -129,6 +151,29 @@ fun ConversationBar(
                         .fillMaxWidth()
                 )
             }
+        }
+    }
+}
+
+@Preview(widthDp = 450)
+@Composable
+private fun Test() {
+    SampleCollectingApplicationTheme {
+        Column(Modifier.background(Color.White)) {
+            ConversationBar(
+                title = "test",
+                lastMessage = "1234567",
+                updatedAt = "22/12/24 8:07 PM",
+                read = true,
+                onClick = { }
+            )
+            ConversationBar(
+                title = "test",
+                lastMessage = "1234567",
+                updatedAt = "22/12/24 8:07 PM",
+                read = true,
+                onClick = { }
+            )
         }
     }
 }
