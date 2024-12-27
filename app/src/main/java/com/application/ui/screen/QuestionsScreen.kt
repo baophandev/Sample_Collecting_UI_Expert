@@ -214,7 +214,7 @@ fun QuestionTemplate(
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
-    val fullName = "${post.owner.firstName} ${post.owner.lastName}"
+    val fullName = "${post.owner.lastName} ${post.owner.firstName}"
 
     Card(
         colors = CardColors(Color.White, Color.White, Color.White, Color.White),

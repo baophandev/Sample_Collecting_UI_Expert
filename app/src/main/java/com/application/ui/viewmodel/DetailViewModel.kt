@@ -71,12 +71,9 @@ class DetailViewModel @Inject constructor(
                     when (rsState) {
                         is ResourceState.Error -> _state.update { it.copy(status = UiStatus.ERROR) }
                         is ResourceState.Success -> {
-                            val loggedUser = userRepository.loggedUser
-
                             _state.update {
                                 it.copy(
                                     project = rsState.data,
-                                    loggedUser = loggedUser,
                                     status = UiStatus.SUCCESS
                                 )
                             }
@@ -140,8 +137,8 @@ class DetailViewModel @Inject constructor(
     }
 
     fun isProjectOwner(): Boolean {
-        val currentState = state.value
-        return currentState.loggedUser?.id == currentState.project?.owner?.id
+        val loggedUser = userRepository.loggedUser
+        return loggedUser?.id == state.value.project?.owner?.id
     }
 
     fun reload(signal: ReloadSignal) {
@@ -160,10 +157,6 @@ class DetailViewModel @Inject constructor(
 
             else -> {}
         }
-    }
-
-    fun renewState() {
-        _state.update { DetailUiState() }
     }
 
     companion object {

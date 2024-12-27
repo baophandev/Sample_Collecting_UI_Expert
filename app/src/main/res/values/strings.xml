@@ -128,4 +128,6 @@
     <string name="no_conversation">No conversations</string>
     <string name="file">File</string>
     <string name="no_messages">No messages.</string>
+    <string name="notify_chat_channel" translatable="false">Chat</string>
+    <string name="notify_chat_channel_description" translatable="false">Make status bar, notification drawer and heads-up notification</string>
 </resources>

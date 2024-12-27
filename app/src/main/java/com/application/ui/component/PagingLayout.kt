@@ -9,11 +9,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,18 +29,13 @@ fun <T : Any> PagingLayout(
     itemsContent: @Composable (LazyItemScope.(item: T) -> Unit),
     noItemContent: (@Composable (LazyItemScope.() -> Unit))? = null
 ) {
-    var isRefreshing by remember { mutableStateOf(false) }
     val refreshState = rememberPullToRefreshState()
-
-    LaunchedEffect(pagingItems.loadState.refresh) {
-        isRefreshing = pagingItems.loadState.refresh is LoadState.Loading
-    }
 
     PullToRefreshBox(
         state = refreshState,
         modifier = modifier.fillMaxSize(),
         contentAlignment = contentAlignment,
-        isRefreshing = isRefreshing,
+        isRefreshing = pagingItems.loadState.refresh is LoadState.Loading,
         onRefresh = pagingItems::refresh
     ) {
         LazyColumn(

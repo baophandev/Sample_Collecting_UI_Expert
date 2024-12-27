@@ -26,7 +26,6 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -324,14 +323,9 @@ private fun PhotoTab(
     onImagesDeleted: (List<Uri>) -> Unit
 ) {
     val items = pagingItems.itemSnapshotList.items
-    var isRefreshing by remember { mutableStateOf(false) }
-
-    LaunchedEffect(pagingItems.loadState.refresh) {
-        isRefreshing = pagingItems.loadState.refresh is LoadState.Loading
-    }
 
     PhotoBottomSheetContent(
-        isRefreshing = isRefreshing,
+        isRefreshing = pagingItems.loadState.refresh is LoadState.Loading,
         onRefresh = { pagingItems.refresh() },
         uris = items.map { it.image },
         enableFunctionalMenu = false,

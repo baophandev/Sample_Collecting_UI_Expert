@@ -10,12 +10,20 @@ class MessagePagingSource(
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ReceivingMessage> {
         val nextPageNumber = params.key ?: 0
-        val result = messageRepository.getAllMessages(
+        return messageRepository.getAllMessages(
             conversationId = conversationId,
             pageNumber = nextPageNumber,
             pageSize = params.loadSize
-        )
-        return retrievePagingForward(nextPageNumber, result)
+        ).map {
+            val nextKey = if (!it.last) nextPageNumber + 1 else null
+            val data = it.content
+
+            return LoadResult.Page(
+                data = data,
+                prevKey = null, // Only paging forward but reverse direction.
+                nextKey = nextKey
+            )
+        }.getOrElse { LoadResult.Error(it) }
     }
 
     companion object {

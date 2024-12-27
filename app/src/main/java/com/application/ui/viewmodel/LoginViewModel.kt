@@ -6,10 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.application.R
 import com.application.constant.UiStatus
 import com.application.ui.state.LoginUiState
-import com.sc.library.chat.data.repository.MessageRepository
+import com.sc.library.chat.data.datasource.IChatService
 import com.sc.library.user.repository.UserRepository
 import com.sc.library.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,14 +24,23 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
+//    @ApplicationContext private val context: Context,
     private val userRepository: UserRepository,
-    private val messageRepository: MessageRepository
+    private val chatService: IChatService,
+//    private val messageRepository: MessageRepository
 ) : ViewModel() {
+
+    private val requiredScopes = listOf("expert")
 
     private val _state = MutableStateFlow(LoginUiState())
     val state: StateFlow<LoginUiState> = _state.asStateFlow()
 
-    private val requiredScopes = listOf("expert")
+    private val notificationDisposable: Disposable? = null
+
+    override fun onCleared() {
+        logout()
+        super.onCleared()
+    }
 
     fun login(loginSuccessful: () -> Unit) {
         val currentState = state.value
@@ -50,29 +60,8 @@ class LoginViewModel @Inject constructor(
                 .collectLatest { result ->
                     when (result) {
                         is ResourceState.Success -> {
-                            val userId = userRepository.loggedUser?.id!!
-                            messageRepository.connectChatServer(userId)
-                                .timeout(50000, TimeUnit.MILLISECONDS)
-                                .subscribe(
-                                    {
-                                        _state.update {
-                                            it.copy(
-                                                status = UiStatus.SUCCESS,
-                                                password = ""
-                                            )
-                                        }
-                                        viewModelScope.launch { loginSuccessful() }
-                                    },
-                                    { exception ->
-                                        Log.e(TAG, exception.message, exception)
-                                        _state.update {
-                                            it.copy(
-                                                status = UiStatus.ERROR,
-                                                error = com.sc.library.R.string.connect_server_error
-                                            )
-                                        }
-                                    }
-                                )
+                            connectChatServer(loginSuccessful)
+                            subscribeNotification()
                         }
 
                         is ResourceState.Error -> {
@@ -89,11 +78,55 @@ class LoginViewModel @Inject constructor(
         }
     }
 
+    private fun connectChatServer(loginSuccessful: () -> Unit) {
+        val onComplete: () -> Unit = {
+            _state.update {
+                it.copy(
+                    status = UiStatus.SUCCESS,
+                    password = ""
+                )
+            }
+            viewModelScope.launch { loginSuccessful() }
+        }
+        val onError: (Throwable) -> Unit = { exception ->
+            Log.e(TAG, exception.message, exception)
+            _state.update {
+                it.copy(
+                    status = UiStatus.ERROR,
+                    error = com.sc.library.R.string.connect_server_error
+                )
+            }
+        }
+        chatService.run {
+            connectWebSocketServer(userRepository.loggedUser?.id!!)
+                .timeout(60, TimeUnit.SECONDS)
+                .subscribe(onComplete, onError)
+        }
+    }
+
+    private fun subscribeNotification() {
+//        var builder = NotificationCompat.Builder(
+//            context,
+//            MainActivity.NOTIFY_CHAT_CHANNEL_ID
+//        )
+//            .setSmallIcon(R.drawable.splash_logo)
+//            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+//
+//        messageRepository.subscribeNotification(
+//            incomingHandler = {
+//                builder = builder.setContentTitle(it.sender.name)
+//                    .setContentText(it.content)
+//            },
+//            errorHandler = {}
+//        )
+    }
+
     fun logout() {
         userRepository.loggedUser?.let {
-            messageRepository.disconnectChatServer(it.id)
+            chatService.disconnectWebSocketServer(it.id)
             userRepository.logout()
         }
+        notificationDisposable?.dispose()
     }
 
     fun updateUsername(newUserName: String) {

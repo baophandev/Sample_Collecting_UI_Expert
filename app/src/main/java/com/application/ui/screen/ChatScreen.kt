@@ -1,15 +1,21 @@
 package com.application.ui.screen
 
 import android.Manifest
+import android.content.ContentValues
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color.rgb
+import android.net.Uri
+import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,14 +23,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -38,10 +45,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -55,7 +64,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -66,10 +74,13 @@ import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
-import com.application.ui.theme.SampleCollectingApplicationTheme
 import com.application.ui.viewmodel.ChatViewModel
+import com.sc.library.attachment.entity.Attachment
 import com.sc.library.chat.constant.MessageType
 import com.sc.library.chat.data.entity.ReceivingMessage
+import java.sql.Timestamp
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun ChatScreen(
@@ -96,11 +107,18 @@ fun ChatScreen(
             }
         }, bottomBar = {
             ReplyBar(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 4.dp, end = 4.dp)
+                    .background(Color.White)
+                    .height(50.dp),
                 message = state.text,
                 onMessageChange = viewModel::updateMessage,
                 onSendClick = viewModel::sendMessage,
-                onSendImage = { }
+                onCameraResult = { viewModel.sendMessage(listOf(it)) },
+                onGalleryResult = viewModel::sendMessage,
+//                onRecordResult = {
+//                }
             )
         }
     ) { innerPadding ->
@@ -122,11 +140,21 @@ private fun MessageList(
     messages: List<ReceivingMessage>,
     isSendingMessage: (ReceivingMessage) -> Boolean,
 ) {
+    val state = rememberLazyListState()
+
+    LaunchedEffect(null) {
+        state.scrollToItem(pagingItems.itemCount)
+    }
+
     LazyColumn(
-        modifier = modifier.padding(start = 2.dp, end = 2.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        state = state,
+        modifier = modifier
+            .padding(start = 2.dp, end = 2.dp)
+            .wrapContentHeight(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        reverseLayout = true
     ) {
-        if (messages.isEmpty()) item {
+        if (pagingItems.itemCount == 0 && messages.isEmpty()) item {
             Text(
                 text = stringResource(R.string.no_messages),
                 style = MaterialTheme.typography.labelMedium,
@@ -134,22 +162,18 @@ private fun MessageList(
             )
         }
         else {
-            items(
-                count = pagingItems.itemCount,
-                key = pagingItems.itemKey { it.id }
-            ) {
+            items(count = pagingItems.itemCount, key = pagingItems.itemKey { it.id }) {
                 val message = pagingItems[it] ?: return@items
-
                 MessageTemplate(
                     message = message,
                     isSendingMessage = isSendingMessage(message)
                 )
                 Spacer(modifier = Modifier.size(10.dp))
             }
-            items(items = messages, key = { it.id }) {
+            items(items = messages, key = { it.id }) { message ->
                 MessageTemplate(
-                    message = it,
-                    isSendingMessage = isSendingMessage(it)
+                    message = message,
+                    isSendingMessage = isSendingMessage(message)
                 )
                 Spacer(modifier = Modifier.size(10.dp))
             }
@@ -160,8 +184,8 @@ private fun MessageList(
 @Composable
 private fun MessageTemplate(
     modifier: Modifier = Modifier,
-    isSendingMessage: Boolean = true,
     message: ReceivingMessage,
+    isSendingMessage: Boolean = true
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -170,13 +194,37 @@ private fun MessageTemplate(
     ) {
         when (message.type) {
             MessageType.TEXT -> MessageText(message = message, isSendingMessage = isSendingMessage)
-            MessageType.FILE -> MessageFile(message = message)
+            MessageType.FILE -> {
+                message.attachments?.forEach {
+                    MessageFile(
+                        modifier = Modifier
+                            .sizeIn(
+                                maxWidth = 300.dp,
+                                maxHeight = 400.dp
+                            )
+                            .wrapContentSize(),
+                        attachment = it,
+                        createdAt = message.createdAt
+                    )
+                }
+            }
+
             MessageType.BOTH -> {
-                MessageFile(message = message)
+                message.attachments?.forEach {
+                    MessageFile(
+                        modifier = Modifier
+                            .sizeIn(
+                                maxWidth = 300.dp,
+                                maxHeight = 400.dp
+                            )
+                            .wrapContentSize(),
+                        attachment = it,
+                        createdAt = null
+                    )
+                }
                 MessageText(message = message, isSendingMessage = isSendingMessage)
             }
         }
-
     }
 }
 
@@ -186,8 +234,10 @@ private fun MessageText(
     isSendingMessage: Boolean,
     message: ReceivingMessage
 ) {
-//    val time = DateTimeFormatter.ofPattern("H:mma")
-//        .format(message.createdAt.toInstant())
+    val time = DateTimeFormatter.ofPattern("dd/MM/yy H:mma")
+        .withZone(ZoneOffset.UTC)
+        .format(message.createdAt.toInstant())
+    val messageText = message.text ?: return
 
     Column(
         modifier = modifier
@@ -222,13 +272,13 @@ private fun MessageText(
             .padding(8.dp)
     ) {
         Text(
-            text = message.text,
+            text = messageText,
             color = Color.Black
         )
 
         Text(
             modifier = Modifier.align(Alignment.End),
-            text = "00:00AM",
+            text = time,
             color = Color.Gray,
             fontSize = 12.sp
         )
@@ -238,46 +288,43 @@ private fun MessageText(
 @Composable
 private fun MessageFile(
     modifier: Modifier = Modifier,
-    message: ReceivingMessage
+    attachment: Attachment,
+    createdAt: Timestamp?
 ) {
     val context = LocalContext.current
-//    val time = DateTimeFormatter.ofPattern("H:mma")
-//        .format(message.createdAt.toInstant())
+    val time = createdAt?.let {
+        DateTimeFormatter.ofPattern("dd/MM/yy H:mma")
+            .withZone(ZoneOffset.UTC)
+            .format(createdAt.toInstant())
+    }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-        ) {
-            items(message.attachments) { image ->
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(image.url)
-                        .fallback(drawableResId = R.drawable.ic_launcher_background)
-                        .error(drawableResId = R.drawable.ic_launcher_background)
-                        .build(),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .sizeIn(
-                            maxWidth = 160.dp,
-                            minWidth = 16.dp,
-                            maxHeight = 90.dp,
-                            minHeight = 9.dp,
-                        )
-                        .background(Color.Gray.copy(alpha = .4f)),
-                    contentScale = ContentScale.Fit,
-                    alignment = Alignment.TopEnd
-                )
-            }
-        }
-
-        Text(
+    Column(modifier = modifier.background(Color.Transparent)) {
+        AsyncImage(
+            model = ImageRequest.Builder(context)
+                .data(attachment.url)
+                .placeholder(drawableResId = R.drawable.ic_launcher_background)
+                .fallback(drawableResId = R.drawable.ic_launcher_background)
+                .error(drawableResId = R.drawable.ic_launcher_background)
+                .build(),
+            contentDescription = null,
             modifier = Modifier
-                .align(Alignment.End)
-                .padding(5.dp, 0.dp),
-            text = "00:00AM",
-            color = Color.Gray,
-            fontSize = 12.sp
+                .fillMaxSize(.7f)
+                .background(Color.Gray.copy(alpha = .4f))
+                .clip(RoundedCornerShape(5.dp)),
+            contentScale = ContentScale.FillBounds,
+            alignment = Alignment.Center
         )
+
+        time?.let {
+            Text(
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(5.dp, 0.dp),
+                text = time,
+                color = Color.Gray,
+                fontSize = 12.sp
+            )
+        }
     }
 }
 
@@ -318,65 +365,30 @@ private fun ReplyBar(
     modifier: Modifier = Modifier,
     message: String = "",
     onMessageChange: (String) -> Unit,
-    onSendImage: (Bitmap) -> Unit,
+    onCameraResult: (Uri) -> Unit,
+    onGalleryResult: (List<Uri>) -> Unit,
+//    onRecordResult: (Bitmap) -> Unit,
     onSendClick: () -> Unit
 ) {
-    val context = LocalContext.current
-
-    val cameraLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.TakePicturePreview()
-    ) { it?.let(onSendImage) }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) Toast.makeText(context, "Permission Granted", Toast.LENGTH_SHORT).show()
-        else Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
-    }
-
     Row(
-        modifier = modifier
-            .background(Color.White)
-            .size(50.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceAround
     ) {
-        IconButton(
+        CameraButton(
             modifier = Modifier.size(35.dp),
-            onClick = {
-                val permissionCheckResult =
-                    ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                    cameraLauncher.launch()
-                } else {
-                    // Request a permission
-                    permissionLauncher.launch(Manifest.permission.CAMERA)
-                }
-            }) {
-            Icon(
-                modifier = Modifier.fillMaxSize(.85f),
-                painter = painterResource(id = R.drawable.camera_icon),
-                contentDescription = null,
-                tint = Color.Unspecified
-            )
-        }
+            onCameraResult = onCameraResult
+        )
         Spacer(modifier = Modifier.size(5.dp))
-        IconButton(modifier = Modifier.size(35.dp), onClick = { /*TODO*/ }) {
-            Icon(
-                modifier = Modifier.fillMaxSize(.85f),
-                painter = painterResource(id = R.drawable.image_icon),
-                contentDescription = null,
-                tint = Color.Unspecified
-            )
-        }
+        GalleryButton(
+            modifier = Modifier.size(35.dp),
+            onGalleryResult = onGalleryResult
+        )
         Spacer(modifier = Modifier.size(5.dp))
-        IconButton(modifier = Modifier.size(35.dp), onClick = { /*TODO*/ }) {
-            Icon(
-                modifier = Modifier.fillMaxSize(.8f),
-                painter = painterResource(id = R.drawable.mic_icon),
-                contentDescription = null,
-                tint = Color.Unspecified
-            )
-        }
+//        RecordButton(
+//            modifier = Modifier.size(35.dp),
+//            onRecordResult = onRecordResult
+//        )
         Spacer(modifier = Modifier.size(10.dp))
         BasicTextField(
             modifier = Modifier
@@ -420,9 +432,7 @@ private fun ReplyBar(
         Spacer(modifier = Modifier.size(5.dp))
         IconButton(
             modifier = Modifier.size(35.dp),
-            onClick = {
-                if (message.isNotBlank()) onSendClick()
-            }
+            onClick = { if (message.isNotBlank()) onSendClick() }
         ) {
             Icon(
                 modifier = Modifier.fillMaxSize(.85f),
@@ -434,6 +444,122 @@ private fun ReplyBar(
     }
 }
 
+@Composable
+private fun CameraButton(
+    modifier: Modifier = Modifier,
+    onCameraResult: (Uri) -> Unit
+) {
+    val context = LocalContext.current
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicturePreview()
+    ) { it?.let { bitmap -> saveBitmapImage(context, bitmap)?.let(onCameraResult) } }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
+    }
+
+    IconButton(
+        modifier = modifier,
+        onClick = {
+            val cameraPermissionCheckResult =
+                ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+            if (cameraPermissionCheckResult == PackageManager.PERMISSION_GRANTED)
+                cameraLauncher.launch()
+            else permissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    ) {
+        Icon(
+            modifier = Modifier.fillMaxSize(.85f),
+            painter = painterResource(id = R.drawable.camera_icon),
+            contentDescription = null,
+            tint = Color.Unspecified
+        )
+    }
+}
+
+private fun saveBitmapImage(context: Context, bitmap: Bitmap): Uri? {
+    val timestamp = System.currentTimeMillis()
+    val tag = "ChatScreen.saveBitmapImage"
+    val resolver = context.contentResolver
+
+    //Tell the media scanner about the new file so that it is immediately available to the user.
+    val values = ContentValues().apply {
+        put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+        put(MediaStore.Images.Media.DATE_ADDED, timestamp)
+        put(MediaStore.Images.Media.DATE_TAKEN, timestamp)
+        put(MediaStore.Images.Media.IS_PENDING, true)
+    }
+
+    val cleanup: (Uri, Throwable) -> Unit = { uri, exception ->
+        uri.let { resolver.delete(uri, null, null) }
+        Log.e(tag, exception.localizedMessage, exception)
+        Toast.makeText(context, "Cannot save image.", Toast.LENGTH_LONG).show()
+    }
+
+    return resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)?.let { uri ->
+        try {
+            resolver.openOutputStream(uri)?.use { outputStream ->
+                try {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                    outputStream.close()
+                } catch (e: Exception) {
+                    cleanup(uri, e)
+                }
+                values.put(MediaStore.Images.Media.IS_PENDING, false)
+                resolver.update(uri, values, null, null)
+            }
+        } catch (e: Exception) {
+            cleanup(uri, e)
+        }
+        uri
+    }
+}
+
+@Composable
+private fun GalleryButton(
+    modifier: Modifier = Modifier,
+    onGalleryResult: (List<Uri>) -> Unit
+) {
+    val contentsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents(),
+        onResult = onGalleryResult
+    )
+
+    IconButton(
+        modifier = modifier,
+        onClick = { contentsLauncher.launch("image/*") }
+    ) {
+        Icon(
+            modifier = Modifier.fillMaxSize(.85f),
+            painter = painterResource(id = R.drawable.image_icon),
+            contentDescription = null,
+            tint = Color.Unspecified
+        )
+    }
+}
+
+//@Composable
+//private fun RecordButton(
+//    modifier: Modifier = Modifier,
+//    onRecordResult: (Bitmap) -> Unit
+//) {
+//    IconButton(
+//        modifier = modifier,
+//        onClick = {
+//
+//        }
+//    ) {
+//        Icon(
+//            modifier = Modifier.fillMaxSize(.85f),
+//            painter = painterResource(id = R.drawable.mic_icon),
+//            contentDescription = null,
+//            tint = Color.Unspecified
+//        )
+//    }
+//}
 
 @Composable
 private fun CaptionBar(
@@ -461,34 +587,4 @@ private fun CaptionBar(
             )
         }
     )
-}
-
-@Preview
-@Composable
-private fun Test() {
-    SampleCollectingApplicationTheme {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            topBar = {
-                TopBar(
-                    title = "Title",
-                    modifier = Modifier.padding(bottom = 3.dp),
-                    route = {}
-                )
-            }, bottomBar = {
-                ReplyBar(
-                    modifier = Modifier.fillMaxWidth(),
-                    message = "",
-                    onMessageChange = { },
-                    onSendClick = {},
-                    onSendImage = { }
-                )
-            }
-        ) { innerPadding ->
-            Column(modifier = Modifier.padding(innerPadding)) {
-//                CaptionBar(text = stringResource(id = R.string.caption_question))
-//                ChatList(pagingItems = )
-            }
-        }
-    }
 }

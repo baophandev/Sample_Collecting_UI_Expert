@@ -19,8 +19,8 @@ import com.application.data.entity.response.FormResponse
 import com.application.data.entity.response.ProjectResponse
 import com.application.data.entity.response.SampleResponse
 import com.application.data.entity.response.StageResponse
-import com.sc.library.utility.client.AbstractClient
 import com.sc.library.utility.client.response.PagingResponse
+import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -33,17 +33,16 @@ import io.ktor.http.contentType
 import io.ktor.http.parameters
 
 class ProjectServiceImpl(
-    baseUrl: String,
-    timeout: Long = 5000,
-) : IProjectService, AbstractClient() {
-    private val client = getClient(baseUrl = baseUrl, timeout = timeout)
+    private val client: HttpClient,
+    private val prefixPath: String = "api/v1",
+) : IProjectService {
 
     override suspend fun checkMemberInAnyStage(projectId: String, userId: String): Boolean =
-        client.get(urlString = "project/$projectId/stage/$userId").body()
+        client.get(urlString = "$prefixPath/project/$projectId/stage/$userId").body()
 
     //Project
     override suspend fun createProject(body: CreateProjectRequest): String {
-        return client.post("project") {
+        return client.post("$prefixPath/project") {
             setBody(body)
         }.body()
     }
@@ -55,7 +54,7 @@ class ProjectServiceImpl(
         pageNumber: Int,
         pageSize: Int
     ): PagingResponse<ProjectResponse> = runCatching<PagingResponse<ProjectResponse>> {
-        client.get(urlString = "project/$userId/user") {
+        client.get(urlString = "$prefixPath/project/$userId/user") {
             url {
                 encodedParameters.append("query", query.name)
                 encodedParameters.append("status", status.name)
@@ -66,7 +65,7 @@ class ProjectServiceImpl(
     }.getOrDefault(PagingResponse())
 
     override suspend fun getProject(projectId: String): ProjectResponse {
-        return client.get(urlString = "project/$projectId")
+        return client.get(urlString = "$prefixPath/project/$projectId")
             .body()
     }
 
@@ -74,7 +73,7 @@ class ProjectServiceImpl(
         projectId: String,
         updateRequestData: UpdateProjectRequest
     ): Boolean {
-        val response = client.patch(urlString = "project/$projectId") {
+        val response = client.patch(urlString = "$prefixPath/project/$projectId") {
             contentType(ContentType.Application.Json)
             setBody(updateRequestData)
         }
@@ -85,7 +84,7 @@ class ProjectServiceImpl(
         projectId: String,
         updateMemberRequest: UpdateMemberRequest
     ): Boolean {
-        val response = client.patch(urlString = "project/$projectId/member") {
+        val response = client.patch(urlString = "$prefixPath/project/$projectId/member") {
             contentType(ContentType.Application.Json)
             setBody(updateMemberRequest)
         }
@@ -93,14 +92,14 @@ class ProjectServiceImpl(
     }
 
     override suspend fun deleteProject(projectId: String): Boolean {
-        val response = client.delete(urlString = "project/$projectId")
+        val response = client.delete(urlString = "$prefixPath/project/$projectId")
         return response.status == HttpStatusCode.NoContent
     }
 
 
     //Stage
     override suspend fun createStage(body: CreateStageRequest): String {
-        return client.post("stage") {
+        return client.post("$prefixPath/stage") {
             setBody(body)
         }.body()
     }
@@ -110,7 +109,7 @@ class ProjectServiceImpl(
         pageNumber: Int,
         pageSize: Int
     ): PagingResponse<StageResponse> = runCatching<PagingResponse<StageResponse>> {
-        client.get(urlString = "stage/$projectId/project") {
+        client.get(urlString = "$prefixPath/stage/$projectId/project") {
             url {
                 parameters {
                     append("pageNumber", "$pageNumber")
@@ -121,14 +120,14 @@ class ProjectServiceImpl(
     }.getOrDefault(PagingResponse())
 
     override suspend fun getStage(stageId: String): StageResponse {
-        return client.get(urlString = "stage/$stageId").body()
+        return client.get(urlString = "$prefixPath/stage/$stageId").body()
     }
 
     override suspend fun updateStage(
         stageId: String,
         updateRequestData: UpdateStageRequest
     ): Boolean {
-        val response = client.patch(urlString = "stage/$stageId") {
+        val response = client.patch(urlString = "$prefixPath/stage/$stageId") {
             contentType(ContentType.Application.Json)
             setBody(updateRequestData)
         }
@@ -139,7 +138,7 @@ class ProjectServiceImpl(
         stageId: String,
         updateMemberRequest: UpdateMemberRequest
     ): Boolean {
-        val response = client.patch(urlString = "stage/$stageId/member") {
+        val response = client.patch(urlString = "$prefixPath/stage/$stageId/member") {
             contentType(ContentType.Application.Json)
             setBody(updateMemberRequest)
         }
@@ -147,14 +146,14 @@ class ProjectServiceImpl(
     }
 
     override suspend fun deleteStage(stageId: String): Boolean {
-        val response = client.delete(urlString = "stage/$stageId")
+        val response = client.delete(urlString = "$prefixPath/stage/$stageId")
         return response.status == HttpStatusCode.NoContent
     }
 
 
     //Form
     override suspend fun createForm(body: CreateFormRequest): String {
-        return client.post("form") {
+        return client.post("$prefixPath/form") {
             setBody(body)
         }.body()
     }
@@ -164,7 +163,7 @@ class ProjectServiceImpl(
         pageNumber: Int,
         pageSize: Int
     ): PagingResponse<FormResponse> = runCatching<PagingResponse<FormResponse>> {
-        client.get(urlString = "form/$projectId/project") {
+        client.get(urlString = "$prefixPath/form/$projectId/project") {
             url {
                 parameters {
                     append("pageNumber", "$pageNumber")
@@ -175,11 +174,11 @@ class ProjectServiceImpl(
     }.getOrDefault(PagingResponse())
 
     override suspend fun getForm(formId: String): FormResponse {
-        return client.get(urlString = "form/$formId").body()
+        return client.get(urlString = "$prefixPath/form/$formId").body()
     }
 
     override suspend fun updateForm(formId: String, updateRequestData: UpdateFormRequest): Boolean {
-        val response = client.patch(urlString = "form/$formId") {
+        val response = client.patch(urlString = "$prefixPath/form/$formId") {
             contentType(ContentType.Application.Json)
             setBody(updateRequestData)
         }
@@ -187,68 +186,68 @@ class ProjectServiceImpl(
     }
 
     override suspend fun deleteForm(formId: String): Boolean {
-        val response = client.delete(urlString = "form/$formId")
+        val response = client.delete(urlString = "$prefixPath/form/$formId")
         return response.status == HttpStatusCode.NoContent
     }
 
 
     //Field
     override suspend fun createField(formId: String, body: CreateFieldRequest): String =
-        client.post("field/$formId") {
+        client.post("$prefixPath/field/$formId") {
             setBody(body)
         }.body()
 
     override suspend fun createDynamicField(sampleId: String, body: CreateFieldRequest): String =
-        client.post("field/$sampleId/dynamic") {
+        client.post("$prefixPath/field/$sampleId/dynamic") {
             setBody(body)
         }.body()
 
     override suspend fun getAllFields(formId: String): List<FieldResponse> =
-        client.get(urlString = "field/$formId/form")
+        client.get(urlString = "$prefixPath/field/$formId/form")
             .body()
 
     override suspend fun getField(formId: String): FieldResponse {
-        return client.get(urlString = "field/$formId").body()
+        return client.get(urlString = "$prefixPath/field/$formId").body()
     }
 
     override suspend fun updateField(
         fieldId: String,
         updateRequestData: UpdateFieldRequest
     ): Boolean = client
-        .patch(urlString = "field/$fieldId") {
+        .patch(urlString = "$prefixPath/field/$fieldId") {
             contentType(ContentType.Application.Json)
             setBody(updateRequestData)
         }
         .status == HttpStatusCode.NoContent
 
     override suspend fun deleteField(fieldId: String): Boolean = client
-        .delete(urlString = "field/$fieldId")
+        .delete(urlString = "$prefixPath/field/$fieldId")
         .status == HttpStatusCode.NoContent
 
     override suspend fun deleteDynamicField(fieldId: String): Boolean = client
-        .delete(urlString = "field/$fieldId/dynamic")
+        .delete(urlString = "$prefixPath/field/$fieldId/dynamic")
         .status == HttpStatusCode.NoContent
 
     override suspend fun updateDynamicField(
         fieldId: String,
         body: UpdateDynamicFieldRequest
     ): Boolean = client
-        .patch("field/$fieldId/dynamic") {
+        .patch("$prefixPath/field/$fieldId/dynamic") {
             setBody(body)
         }.body()
 
     //Sample
     override suspend fun createSample(body: CreateSampleRequest): String = client
-        .post("sample") {
+        .post("$prefixPath/sample") {
             setBody(body)
         }.body()
 
     override suspend fun getSample(sampleId: String): SampleResponse = client
-        .get(urlString = "sample/$sampleId")
+        .get(urlString = "$prefixPath/sample/$sampleId")
         .body()
 
     override suspend fun deleteSample(sampleId: String): Boolean = client
-        .delete(urlString = "sample/$sampleId")
+        .delete(urlString = "$prefixPath/sample/$sampleId")
         .status == HttpStatusCode.NoContent
 
     override suspend fun getAllSamplesOfStage(
@@ -257,7 +256,7 @@ class ProjectServiceImpl(
         pageSize: Int
     ): PagingResponse<SampleResponse> = runCatching<PagingResponse<SampleResponse>> {
         client
-            .get(urlString = "sample/$stageId/stage") {
+            .get(urlString = "$prefixPath/sample/$stageId/stage") {
                 url {
                     parameters {
                         append("pageNumber", "$pageNumber")
@@ -274,7 +273,7 @@ class ProjectServiceImpl(
         pageSize: Int
     ): PagingResponse<SampleResponse> = runCatching<PagingResponse<SampleResponse>> {
         client
-            .get(urlString = "sample/$projectId/project") {
+            .get(urlString = "$prefixPath/sample/$projectId/project") {
                 url {
                     parameters {
                         append("pageNumber", "$pageNumber")

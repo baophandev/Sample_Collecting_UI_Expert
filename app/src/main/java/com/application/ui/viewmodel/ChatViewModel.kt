@@ -1,5 +1,6 @@
 package com.application.ui.viewmodel
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,6 +18,7 @@ import com.sc.library.chat.data.repository.MessageRepository
 import com.sc.library.user.repository.UserRepository
 import com.sc.library.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,7 +45,11 @@ class ChatViewModel @Inject constructor(
 
     lateinit var messagePagingFlow: Flow<PagingData<ReceivingMessage>>
 
+    private var conversationDisposable: Disposable? = null
+
     fun fetchMessages(conversationId: Long) {
+        cleanup()
+
         _state.update {
             it.copy(
                 status = UiStatus.LOADING,
@@ -71,7 +77,8 @@ class ChatViewModel @Inject constructor(
             }
         }
 
-        initMessagePagingFlow(conversationId)
+        initNewMessageFlow()
+        initOldMessagePagingFlow(conversationId)
         subscribeConversation(conversationId)
     }
 
@@ -86,10 +93,7 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             _state.update { it.copy(sendingStatus = UiStatus.LOADING) }
 
-            val message = SendingMessage(
-                text = currentState.text,
-                attachments = currentState.selectedAttachments
-            )
+            val message = SendingMessage(text = currentState.text)
             when (val rsState = messageRepository.sendMessage(conversation.id, message).last()) {
                 is ResourceState.Error -> _state.update {
                     it.copy(
@@ -118,7 +122,45 @@ class ChatViewModel @Inject constructor(
                     }
 
                     rsState.data
-                        .timeout(50000, TimeUnit.MILLISECONDS)
+                        .timeout(60, TimeUnit.SECONDS)
+                        .subscribe(onComplete, onError)
+                }
+            }
+        }
+    }
+
+    fun sendMessage(uris: List<Uri>) {
+        val currentState = state.value
+        val conversation = currentState.conversation ?: return
+
+        viewModelScope.launch(Dispatchers.IO) {
+            _state.update { it.copy(sendingStatus = UiStatus.LOADING) }
+
+            val message = SendingMessage(attachments = uris)
+            when (val rsState = messageRepository.sendMessage(conversation.id, message).last()) {
+                is ResourceState.Error -> _state.update {
+                    it.copy(
+                        sendingStatus = UiStatus.ERROR,
+                        error = rsState.resId
+                    )
+                }
+
+                is ResourceState.Success -> {
+                    val onComplete = {
+                        _state.update { it.copy(sendingStatus = UiStatus.SUCCESS) }
+                    }
+                    val onError: (Throwable) -> Unit = { exception ->
+                        Log.e(TAG, exception.message, exception)
+                        _state.update {
+                            it.copy(
+                                sendingStatus = UiStatus.ERROR,
+                                error = null
+                            )
+                        }
+                    }
+
+                    rsState.data
+                        .timeout(60, TimeUnit.SECONDS)
                         .subscribe(onComplete, onError)
                 }
             }
@@ -130,10 +172,14 @@ class ChatViewModel @Inject constructor(
         return senderId == userId
     }
 
-    private fun initMessagePagingFlow(conversationId: Long) {
+    private fun initNewMessageFlow() {
+        _messages.update { emptyList() }
+    }
+
+    private fun initOldMessagePagingFlow(conversationId: Long) {
         messagePagingFlow = Pager(
             PagingConfig(
-                pageSize = 8,
+                pageSize = 10,
                 enablePlaceholders = false,
                 initialLoadSize = 10,
             )
@@ -148,7 +194,7 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun subscribeConversation(conversationId: Long) {
-        messageRepository.subscribeConversation(
+        conversationDisposable = messageRepository.subscribeConversation(
             conversationId = conversationId,
             incomingHandler = { newMessage ->
                 _messages.update {
@@ -158,6 +204,15 @@ class ChatViewModel @Inject constructor(
                 }
             },
             errorHandler = { exception -> Log.e(TAG, exception.message, exception) })
+    }
+
+    private fun cleanup() {
+        conversationDisposable?.dispose()
+    }
+
+    override fun onCleared() {
+        cleanup()
+        super.onCleared()
     }
 
     companion object {

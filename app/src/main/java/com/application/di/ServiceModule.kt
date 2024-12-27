@@ -15,6 +15,20 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.Charsets
+import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.DEFAULT
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.http.HttpHeaders
+import io.ktor.serialization.gson.gson
+import io.ktor.util.appendIfNameAbsent
 import javax.inject.Singleton
 
 @Module
@@ -23,38 +37,69 @@ object ServiceModule {
 
     @Provides
     @Singleton
-    fun provideUserService() : IUserService {
-        val baseUrl = "http://${ServiceHost.GATEWAY_SERVER}/api/v1/user/"
-        return UserServiceImpl(baseUrl = baseUrl, timeout = 50000)
+    fun provideHttpClient() : HttpClient {
+        val baseUrl = "http://${ServiceHost.GATEWAY_SERVER}/"
+        return HttpClient(OkHttp) {
+            Charsets {
+                register(Charsets.UTF_8)
+                sendCharset = Charsets.UTF_8
+            }
+            expectSuccess = true
+            install(Logging) {
+                logger = Logger.DEFAULT
+                level = LogLevel.ALL
+                sanitizeHeader { header -> header == HttpHeaders.Authorization }
+            }
+            install(DefaultRequest) {
+                url(baseUrl)
+                headers.appendIfNameAbsent(HttpHeaders.ContentType, "application/json")
+            }
+            install(HttpRequestRetry) {
+                retryOnServerErrors(maxRetries = maxRetries)
+                exponentialDelay()
+            }
+            install(ContentNegotiation) {
+                gson()
+            }
+            install(HttpTimeout) {
+                requestTimeoutMillis = 50000
+            }
+        }
     }
 
     @Provides
     @Singleton
-    fun provideProjectService() : IProjectService {
-        val baseUrl = "http://${ServiceHost.GATEWAY_SERVER}/api/v1/"
-        return ProjectServiceImpl(baseUrl = baseUrl, timeout = 50000)
+    fun provideUserService(client: HttpClient) : IUserService {
+        val prefixPath = "api/v1/user"
+        return UserServiceImpl(client, prefixPath)
     }
 
     @Provides
     @Singleton
-    fun provideChatService() : IChatService {
-//        val baseUrl = "http://${ServiceHost.GATEWAY_SERVER}/api/v1/chat/"
-        val baseUrl = "http://10.0.2.2:8080/api/v1/chat/"
-        return ChatServiceImpl(baseUrl = baseUrl, timeout = 50000)
+    fun provideProjectService(client: HttpClient) : IProjectService {
+        val prefixPath = "api/v1"
+        return ProjectServiceImpl(client, prefixPath)
     }
 
     @Provides
     @Singleton
-    fun providePostService() : IPostService {
-        val baseUrl = "http://${ServiceHost.GATEWAY_SERVER}/api/post/"
-        return PostServiceImpl(baseUrl)
+    fun provideChatService(client: HttpClient) : IChatService {
+        val prefixPath = "api/v1/chat"
+        return ChatServiceImpl(client, prefixPath)
     }
 
     @Provides
     @Singleton
-    fun provideAttachmentService() : IAttachmentService {
-        val baseUrl = "http://${ServiceHost.GATEWAY_SERVER}/api/file/"
-        return AttachmentServiceImpl(baseUrl = baseUrl, timeout = 50000)
+    fun providePostService(client: HttpClient) : IPostService {
+        val prefixPath = "api/post"
+        return PostServiceImpl(client, prefixPath)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAttachmentService(client: HttpClient) : IAttachmentService {
+        val prefixPath = "api/file"
+        return AttachmentServiceImpl(client, prefixPath)
     }
 
 }

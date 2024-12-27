@@ -115,7 +115,6 @@ fun AppNavigationGraph() {
                 homeVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
                 questionsVM.reload(ReloadSignal.RELOAD_ALL_POSTS)
                 conversationsVM.reload(ReloadSignal.RELOAD_ALL_CONVERSATIONS)
-                detailVM.renewState()
 
                 navController.navigateSingleTop(Routes.HOME_SCREEN)
             }
