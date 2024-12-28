@@ -180,6 +180,49 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
+    fun removeAttachment(index: Int, fileId: String, attachmentIndex: Int) {
+        _state.update { currentState ->
+            val currentFile = currentState.files.getOrNull(index) ?: return@update currentState
+            val currentComment = currentFile.comment ?: return@update currentState
+            val updatedAttachments = currentComment.attachments?.toMutableList()?.apply {
+                if (attachmentIndex in indices) {
+                    removeAt(attachmentIndex)
+                }
+            }
+
+            val updatedComment = currentComment.copy(attachments = updatedAttachments)
+            val updatedFiles = currentState.files.toMutableList().apply {
+                val updatedFile = currentFile.copy(comment = updatedComment)
+                this[index] = updatedFile
+            }
+
+            currentState.copy(
+                files = updatedFiles,
+                newComments = currentState.newComments.toMutableMap().apply {
+                    put(fileId, updatedComment)
+                }
+            )
+        }
+    }
+
+    fun removeGeneralAttachment(attachmentIndex: Int) {
+        _state.update { currentState ->
+            val currentPost = currentState.post ?: return@update currentState
+            val currentGeneralComment = currentPost.generalComment ?: return@update currentState
+
+            val updatedAttachments = currentGeneralComment.attachments?.toMutableList()?.apply {
+                if (attachmentIndex in indices) {
+                    removeAt(attachmentIndex)
+                }
+            }
+
+            val updatedGeneralComment = currentGeneralComment.copy(attachments = updatedAttachments)
+            val updatedPost = currentPost.copy(generalComment = updatedGeneralComment)
+
+            currentState.copy(post = updatedPost)
+        }
+    }
+
     private fun validate(): Boolean {
         val currentState = state.value
         return currentState.newGeneralComment != null || currentState.post == null
