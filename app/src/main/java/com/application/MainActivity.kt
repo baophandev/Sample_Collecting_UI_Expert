@@ -4,7 +4,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.Surface
@@ -16,14 +15,9 @@ import com.application.SCApplication.Companion.changeLanguage
 import com.application.ui.navigation.AppNavigationGraph
 import com.application.ui.theme.SampleCollectingApplicationTheme
 import dagger.hilt.android.AndroidEntryPoint
-import io.ktor.client.HttpClient
-import okhttp3.internal.closeQuietly
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
-
-    @Inject lateinit var httpClient: HttpClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,7 +26,7 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, PERMISSIONS, 0)
         }
 
-        createNotificationChannels()
+//        createNotificationChannels()
 
         setContent {
             SampleCollectingApplicationTheme(dynamicColor = false) {
@@ -41,14 +35,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-    }
-
-    override fun onDestroy() {
-        if (::httpClient.isInitialized) {
-            httpClient.closeQuietly()
-            Log.d(TAG, "HttpClient closed")
-        }
-        super.onDestroy()
     }
 
     private fun createNotificationChannels() {
