@@ -4,7 +4,7 @@ import com.application.data.datasource.IPostService
 import com.application.data.entity.request.CreateCommentRequest
 import com.application.data.entity.response.FileInPostResponse
 import com.application.data.entity.response.PostResponse
-import com.sc.library.utility.client.response.PagingResponse
+import io.github.nhatbangle.sc.utility.client.response.PagingResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException

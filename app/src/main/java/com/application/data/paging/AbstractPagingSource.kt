@@ -2,7 +2,7 @@ package com.application.data.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.sc.library.utility.client.response.PagingResponse
+import io.github.nhatbangle.sc.utility.client.response.PagingResponse
 
 abstract class AbstractPagingSource<T : Any> : PagingSource<Int, T>() {
 

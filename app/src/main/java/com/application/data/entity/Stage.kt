@@ -1,6 +1,6 @@
 package com.application.data.entity
 
-import com.sc.library.user.entity.User
+import io.github.nhatbangle.sc.user.entity.User
 
 data class Stage(
     val id: String,

@@ -6,7 +6,7 @@ import com.application.R
 import com.application.constant.UiStatus
 import com.application.data.repository.FormRepository
 import com.application.ui.state.CreateFormUiState
-import com.sc.library.utility.state.ResourceState
+import io.github.nhatbangle.sc.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

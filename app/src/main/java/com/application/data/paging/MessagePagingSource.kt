@@ -1,7 +1,7 @@
 package com.application.data.paging
 
-import com.sc.library.chat.data.entity.ReceivingMessage
-import com.sc.library.chat.data.repository.MessageRepository
+import io.github.nhatbangle.sc.chat.data.entity.ReceivingMessage
+import io.github.nhatbangle.sc.chat.data.repository.MessageRepository
 
 class MessagePagingSource(
     private val conversationId: Long,

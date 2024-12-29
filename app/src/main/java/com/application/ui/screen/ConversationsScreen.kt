@@ -16,7 +16,7 @@ import com.application.ui.component.ConversationBar
 import com.application.ui.component.ExpertChatTopNavigationBar
 import com.application.ui.component.PagingLayout
 import com.application.ui.viewmodel.ConversationsViewModel
-import com.sc.library.chat.constant.MessageType
+import io.github.nhatbangle.sc.chat.constant.MessageType
 import java.time.format.DateTimeFormatter
 
 @Composable

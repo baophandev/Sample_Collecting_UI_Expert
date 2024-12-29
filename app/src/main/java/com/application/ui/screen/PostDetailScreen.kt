@@ -69,7 +69,7 @@ import com.application.ui.component.BotNavigationBar
 import com.application.ui.component.CustomButton
 import com.application.ui.component.CustomSnackBarHost
 import com.application.ui.viewmodel.PostDetailViewModel
-import com.sc.library.attachment.entity.Attachment
+import io.github.nhatbangle.sc.attachment.entity.Attachment
 
 @Composable
 fun PostDetailScreen(

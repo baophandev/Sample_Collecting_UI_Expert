@@ -75,9 +75,9 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
 import com.application.ui.viewmodel.ChatViewModel
-import com.sc.library.attachment.entity.Attachment
-import com.sc.library.chat.constant.MessageType
-import com.sc.library.chat.data.entity.ReceivingMessage
+import io.github.nhatbangle.sc.attachment.entity.Attachment
+import io.github.nhatbangle.sc.chat.constant.MessageType
+import io.github.nhatbangle.sc.chat.data.entity.ReceivingMessage
 import java.sql.Timestamp
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter

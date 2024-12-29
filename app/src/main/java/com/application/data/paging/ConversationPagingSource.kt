@@ -1,8 +1,8 @@
 package com.application.data.paging
 
-import com.sc.library.chat.data.entity.Conversation
-import com.sc.library.chat.data.repository.ConversationRepository
-import com.sc.library.user.repository.UserRepository
+import io.github.nhatbangle.sc.chat.data.entity.Conversation
+import io.github.nhatbangle.sc.chat.data.repository.ConversationRepository
+import io.github.nhatbangle.sc.user.repository.UserRepository
 
 class ConversationPagingSource(
     private val userRepository: UserRepository,

@@ -13,7 +13,7 @@ import com.application.constant.ReloadSignal
 import com.application.data.entity.Project
 import com.application.data.paging.ProjectPagingSource
 import com.application.data.repository.ProjectRepository
-import com.sc.library.user.repository.UserRepository
+import io.github.nhatbangle.sc.user.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch

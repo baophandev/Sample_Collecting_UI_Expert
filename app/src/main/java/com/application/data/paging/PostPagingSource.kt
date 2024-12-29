@@ -2,7 +2,7 @@ package com.application.data.paging
 
 import com.application.data.entity.Post
 import com.application.data.repository.PostRepository
-import com.sc.library.user.repository.UserRepository
+import io.github.nhatbangle.sc.user.repository.UserRepository
 
 class PostPagingSource(
     private val isAnswered: Boolean,

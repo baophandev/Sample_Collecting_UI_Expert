@@ -4,7 +4,7 @@ import androidx.annotation.StringRes
 import com.application.constant.UiStatus
 import com.application.data.entity.Form
 import com.application.data.entity.Stage
-import com.sc.library.user.entity.User
+import io.github.nhatbangle.sc.user.entity.User
 
 data class ModifyStageUiState(
     val status: UiStatus = UiStatus.INIT,

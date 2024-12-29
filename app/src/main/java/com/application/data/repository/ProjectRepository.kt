@@ -13,10 +13,10 @@ import com.application.data.entity.request.UpdateMemberRequest
 import com.application.data.entity.request.UpdateProjectRequest
 import com.application.data.entity.response.ProjectResponse
 import com.application.data.exception.ProjectException
-import com.sc.library.attachment.repository.AttachmentRepository
-import com.sc.library.user.repository.UserRepository
-import com.sc.library.utility.client.response.PagingResponse
-import com.sc.library.utility.state.ResourceState
+import io.github.nhatbangle.sc.attachment.repository.AttachmentRepository
+import io.github.nhatbangle.sc.user.repository.UserRepository
+import io.github.nhatbangle.sc.utility.client.response.PagingResponse
+import io.github.nhatbangle.sc.utility.state.ResourceState
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.async

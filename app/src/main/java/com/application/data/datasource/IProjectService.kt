@@ -18,7 +18,7 @@ import com.application.data.entity.response.FormResponse
 import com.application.data.entity.response.ProjectResponse
 import com.application.data.entity.response.SampleResponse
 import com.application.data.entity.response.StageResponse
-import com.sc.library.utility.client.response.PagingResponse
+import io.github.nhatbangle.sc.utility.client.response.PagingResponse
 
 interface IProjectService {
 

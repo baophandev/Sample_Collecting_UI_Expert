@@ -16,7 +16,7 @@ import com.application.data.repository.ProjectRepository
 import com.application.data.repository.StageRepository
 import com.application.ui.state.CreateStageUiState
 import com.application.ui.viewmodel.DetailViewModel.Companion.TAG
-import com.sc.library.utility.state.ResourceState
+import io.github.nhatbangle.sc.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

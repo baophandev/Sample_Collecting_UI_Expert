@@ -9,9 +9,9 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.application.constant.ReloadSignal
 import com.application.data.paging.ConversationPagingSource
-import com.sc.library.chat.data.entity.Conversation
-import com.sc.library.chat.data.repository.ConversationRepository
-import com.sc.library.user.repository.UserRepository
+import io.github.nhatbangle.sc.chat.data.entity.Conversation
+import io.github.nhatbangle.sc.chat.data.repository.ConversationRepository
+import io.github.nhatbangle.sc.user.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch

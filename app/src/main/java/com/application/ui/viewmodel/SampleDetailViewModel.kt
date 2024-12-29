@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.application.constant.UiStatus
 import com.application.data.repository.SampleRepository
 import com.application.ui.state.SampleDetailUiState
-import com.sc.library.utility.state.ResourceState
+import io.github.nhatbangle.sc.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

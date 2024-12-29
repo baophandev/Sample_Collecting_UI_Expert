@@ -56,7 +56,7 @@ import com.application.ui.component.CustomTextField
 import com.application.ui.component.FieldToList
 import com.application.ui.component.TopBar
 import com.application.ui.viewmodel.ModifyStageViewModel
-import com.sc.library.utility.validate.RegexValidation
+import io.github.nhatbangle.sc.utility.validate.RegexValidation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

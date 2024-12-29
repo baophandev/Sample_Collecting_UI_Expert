@@ -18,9 +18,9 @@ import com.application.data.repository.ProjectRepository
 import com.application.data.repository.StageRepository
 import com.application.ui.state.ModifyStageUiState
 import com.application.ui.viewmodel.HomeViewModel.Companion.TAG
-import com.sc.library.user.entity.User
-import com.sc.library.user.repository.UserRepository
-import com.sc.library.utility.state.ResourceState
+import io.github.nhatbangle.sc.user.entity.User
+import io.github.nhatbangle.sc.user.repository.UserRepository
+import io.github.nhatbangle.sc.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers

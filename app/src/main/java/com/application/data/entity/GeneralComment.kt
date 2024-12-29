@@ -1,6 +1,6 @@
 package com.application.data.entity
 
-import com.sc.library.attachment.entity.Attachment
+import io.github.nhatbangle.sc.attachment.entity.Attachment
 
 data class GeneralComment(
     val content: String,

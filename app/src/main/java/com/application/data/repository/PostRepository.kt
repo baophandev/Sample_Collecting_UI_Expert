@@ -13,10 +13,10 @@ import com.application.data.entity.response.CommentResponse
 import com.application.data.entity.response.FileInPostResponse
 import com.application.data.entity.response.PostResponse
 import com.application.data.exception.PostException
-import com.sc.library.attachment.repository.AttachmentRepository
-import com.sc.library.user.repository.UserRepository
-import com.sc.library.utility.client.response.PagingResponse
-import com.sc.library.utility.state.ResourceState
+import io.github.nhatbangle.sc.attachment.repository.AttachmentRepository
+import io.github.nhatbangle.sc.user.repository.UserRepository
+import io.github.nhatbangle.sc.utility.client.response.PagingResponse
+import io.github.nhatbangle.sc.utility.state.ResourceState
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow

@@ -52,7 +52,7 @@ import com.application.ui.component.CustomTextField
 import com.application.ui.component.FieldToList
 import com.application.ui.component.TopBar
 import com.application.ui.viewmodel.CreateProjectViewModel
-import com.sc.library.utility.validate.RegexValidation
+import io.github.nhatbangle.sc.utility.validate.RegexValidation
 
 @Composable
 fun CreateProjectScreen(

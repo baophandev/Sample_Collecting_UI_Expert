@@ -6,9 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.application.R
 import com.application.constant.UiStatus
 import com.application.ui.state.LoginUiState
-import com.sc.library.chat.data.datasource.IChatService
-import com.sc.library.user.repository.UserRepository
-import com.sc.library.utility.state.ResourceState
+import io.github.nhatbangle.sc.chat.data.datasource.IChatService
+import io.github.nhatbangle.sc.user.repository.UserRepository
+import io.github.nhatbangle.sc.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.Dispatchers
@@ -93,7 +93,7 @@ class LoginViewModel @Inject constructor(
             _state.update {
                 it.copy(
                     status = UiStatus.ERROR,
-                    error = com.sc.library.R.string.connect_server_error
+                    error = io.github.nhatbangle.sc.R.string.connect_server_error
                 )
             }
         }

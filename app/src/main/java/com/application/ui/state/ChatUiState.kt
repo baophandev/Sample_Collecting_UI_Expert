@@ -1,7 +1,7 @@
 package com.application.ui.state
 
 import com.application.constant.UiStatus
-import com.sc.library.chat.data.entity.Conversation
+import io.github.nhatbangle.sc.chat.data.entity.Conversation
 
 data class ChatUiState(
     val status: UiStatus = UiStatus.INIT,

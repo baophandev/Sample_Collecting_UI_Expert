@@ -9,8 +9,8 @@ import com.application.data.entity.request.UpdateFormRequest
 import com.application.data.entity.response.FormResponse
 import com.application.data.exception.FormException
 import com.application.data.repository.ProjectRepository.Companion.TAG
-import com.sc.library.utility.client.response.PagingResponse
-import com.sc.library.utility.state.ResourceState
+import io.github.nhatbangle.sc.utility.client.response.PagingResponse
+import io.github.nhatbangle.sc.utility.state.ResourceState
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
