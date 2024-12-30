@@ -78,8 +78,12 @@ class PostDetailViewModel @Inject constructor(
 
     fun updateComment(index: Int, fileId: String, attachments: List<Attachment>) {
         updateComment(index, fileId) { comments ->
-            comments[fileId]?.copy(attachments = attachments)
-                ?: Comment(content = "", attachments = attachments)
+            val updatedAttachments = comments[fileId]?.attachments?.toMutableList()
+                ?: mutableListOf()
+            updatedAttachments.addAll(attachments)
+
+            comments[fileId]?.copy(attachments = updatedAttachments)
+                ?: Comment(content = "", attachments = updatedAttachments)
         }
     }
 
@@ -117,13 +121,16 @@ class PostDetailViewModel @Inject constructor(
 
     fun updateGeneralComment(attachments: List<Attachment>) {
         _state.update { currentState ->
-            val currentPost = currentState.post
-            val newGeneralCmt = currentPost?.generalComment?.copy(attachments = attachments)
-            val newPost = currentPost?.copy(generalComment = newGeneralCmt) // for rendering
+            val currentGeneralCmt = currentState.post?.generalComment
+
+            val newGeneralAttachment = currentGeneralCmt?.attachments?.toMutableList()
+                ?: mutableListOf()
+            newGeneralAttachment.addAll(attachments)
+
+            val newGeneralCmt = currentGeneralCmt?.copy(attachments = newGeneralAttachment) // for rendering
 
             currentState.copy(
-                post = newPost,
-                newGeneralComment = newGeneralCmt
+                post = currentState.post?.copy(generalComment = newGeneralCmt)
             )
         }
     }
