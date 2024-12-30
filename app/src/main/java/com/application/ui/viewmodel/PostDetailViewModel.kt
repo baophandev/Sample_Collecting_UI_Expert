@@ -78,8 +78,12 @@ class PostDetailViewModel @Inject constructor(
 
     fun updateComment(index: Int, fileId: String, attachments: List<Attachment>) {
         updateComment(index, fileId) { comments ->
-            comments[fileId]?.copy(attachments = attachments)
-                ?: Comment(content = "", attachments = attachments)
+            val updatedAttachments = comments[fileId]?.attachments?.toMutableList()
+                ?: mutableListOf()
+            updatedAttachments.addAll(attachments)
+
+            comments[fileId]?.copy(attachments = updatedAttachments)
+                ?: Comment(content = "", attachments = updatedAttachments)
         }
     }
 
@@ -117,13 +121,16 @@ class PostDetailViewModel @Inject constructor(
 
     fun updateGeneralComment(attachments: List<Attachment>) {
         _state.update { currentState ->
-            val currentPost = currentState.post
-            val newGeneralCmt = currentPost?.generalComment?.copy(attachments = attachments)
-            val newPost = currentPost?.copy(generalComment = newGeneralCmt) // for rendering
+            val currentGeneralCmt = currentState.post?.generalComment
+
+            val newGeneralAttachment = currentGeneralCmt?.attachments?.toMutableList()
+                ?: mutableListOf()
+            newGeneralAttachment.addAll(attachments)
+
+            val newGeneralCmt = currentGeneralCmt?.copy(attachments = newGeneralAttachment) // for rendering
 
             currentState.copy(
-                post = newPost,
-                newGeneralComment = newGeneralCmt
+                post = currentState.post?.copy(generalComment = newGeneralCmt)
             )
         }
     }
@@ -177,6 +184,49 @@ class PostDetailViewModel @Inject constructor(
                 _state.update { PostDetailUiState() }
                 fetchPost(postId = post.id, skipCached = true)
             }
+        }
+    }
+
+    fun removeAttachment(index: Int, fileId: String, attachmentIndex: Int) {
+        _state.update { currentState ->
+            val currentFile = currentState.files.getOrNull(index) ?: return@update currentState
+            val currentComment = currentFile.comment ?: return@update currentState
+            val updatedAttachments = currentComment.attachments?.toMutableList()?.apply {
+                if (attachmentIndex in indices) {
+                    removeAt(attachmentIndex)
+                }
+            }
+
+            val updatedComment = currentComment.copy(attachments = updatedAttachments)
+            val updatedFiles = currentState.files.toMutableList().apply {
+                val updatedFile = currentFile.copy(comment = updatedComment)
+                this[index] = updatedFile
+            }
+
+            currentState.copy(
+                files = updatedFiles,
+                newComments = currentState.newComments.toMutableMap().apply {
+                    put(fileId, updatedComment)
+                }
+            )
+        }
+    }
+
+    fun removeGeneralAttachment(attachmentIndex: Int) {
+        _state.update { currentState ->
+            val currentPost = currentState.post ?: return@update currentState
+            val currentGeneralComment = currentPost.generalComment ?: return@update currentState
+
+            val updatedAttachments = currentGeneralComment.attachments?.toMutableList()?.apply {
+                if (attachmentIndex in indices) {
+                    removeAt(attachmentIndex)
+                }
+            }
+
+            val updatedGeneralComment = currentGeneralComment.copy(attachments = updatedAttachments)
+            val updatedPost = currentPost.copy(generalComment = updatedGeneralComment)
+
+            currentState.copy(post = updatedPost)
         }
     }
 
