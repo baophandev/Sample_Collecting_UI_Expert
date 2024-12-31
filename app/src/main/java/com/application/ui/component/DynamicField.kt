@@ -38,8 +38,10 @@ fun DynamicField(
     modifier: Modifier = Modifier,
     isError: Boolean = false,
     fieldName: String,
+    fieldNameSupportingText: @Composable (() -> Unit)? = null,
     onFieldNameChange: (String) -> Unit,
     fieldValue: String,
+    fieldValueSupportingText: @Composable (() -> Unit)? = null,
     onFieldValueChange: (String) -> Unit,
     onDeleteClicked: () -> Unit
 ) {
@@ -76,6 +78,7 @@ fun DynamicField(
                         fontWeight = FontWeight.W500,
                         fontSize = 16.sp
                     ),
+                    supportingText = fieldNameSupportingText,
                     colors = TextFieldDefaults.colors(
                         unfocusedIndicatorColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
@@ -116,6 +119,7 @@ fun DynamicField(
                     Text(text = defaultFieldValue)
                 },
                 value = fieldValue,
+                supportingText = fieldValueSupportingText,
                 onValueChange = onFieldValueChange,
                 colors = TextFieldDefaults.colors(
                     unfocusedContainerColor = Color.Transparent,

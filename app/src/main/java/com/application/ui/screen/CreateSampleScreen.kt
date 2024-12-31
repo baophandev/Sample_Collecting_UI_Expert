@@ -54,6 +54,7 @@ import com.application.ui.component.BlockField
 import com.application.ui.component.CustomButton
 import com.application.ui.component.DynamicField
 import com.application.ui.viewmodel.CreateSampleViewModel
+import com.application.util.Validation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,7 +90,8 @@ fun CreateSampleScreen(
                     when (state.status) {
                         UiStatus.LOADING -> item {
                             LoadingScreen(
-                                modifier = Modifier.fillMaxSize()
+                                modifier = Modifier
+                                    .fillMaxSize()
                                     .background(Color.LightGray.copy(alpha = .8f)),
                                 text = stringResource(id = R.string.loading)
                             )
@@ -116,8 +118,14 @@ fun CreateSampleScreen(
                                 Spacer(modifier = Modifier.size(4.dp))
                                 BlockField(
                                     fieldName = data.field.name,
+                                    supportingText = {
+                                        val text =
+                                            "${stringResource(R.string.str_max_length)} ${Validation.LONG_TEXT_LENGTH}"
+                                        Text(text = text)
+                                    },
                                     onValueChange = { newValue ->
-                                        viewModel.updateAnswer(index, newValue)
+                                        if (Validation.checkLongText(newValue))
+                                            viewModel.updateAnswer(index, newValue)
                                     }
                                 )
                                 Spacer(modifier = Modifier.size(4.dp))
@@ -152,12 +160,24 @@ fun CreateSampleScreen(
                                 Spacer(modifier = Modifier.size(4.dp))
                                 DynamicField(
                                     fieldName = data.name,
+                                    fieldNameSupportingText = {
+                                        val text =
+                                            "${stringResource(R.string.str_max_length)} ${Validation.NORMAL_TEXT_LENGTH}"
+                                        Text(text = text)
+                                    },
                                     onFieldNameChange = { fieldName ->
-                                        viewModel.updateDynamicFieldName(index, fieldName)
+                                        if (Validation.checkNormalText(fieldName))
+                                            viewModel.updateDynamicFieldName(index, fieldName)
                                     },
                                     fieldValue = data.value,
+                                    fieldValueSupportingText = {
+                                        val text =
+                                            "${stringResource(R.string.str_max_length)} ${Validation.LONG_TEXT_LENGTH}"
+                                        Text(text = text)
+                                    },
                                     onFieldValueChange = { fieldValue ->
-                                        viewModel.updateDynamicFieldValue(index, fieldValue)
+                                        if (Validation.checkLongText(fieldValue))
+                                            viewModel.updateDynamicFieldValue(index, fieldValue)
                                     },
                                     onDeleteClicked = {
                                         viewModel.deleteDynamicField(index)

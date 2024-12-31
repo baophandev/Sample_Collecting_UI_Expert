@@ -26,6 +26,7 @@ fun BlockField(
     modifier: Modifier = Modifier,
     fieldName: String = "Field name",
     placeHolder: String = "",
+    supportingText: @Composable (() -> Unit)? = null,
     isError: State<Boolean> = mutableStateOf(false),
     onValueChange: (String) -> Unit
 ) {
@@ -52,6 +53,7 @@ fun BlockField(
             currentText = it
             onValueChange(it)
         },
+        supportingText = supportingText,
         colors = TextFieldDefaults.colors(
             unfocusedContainerColor = Color.Transparent,
             unfocusedTextColor = Color.Gray,

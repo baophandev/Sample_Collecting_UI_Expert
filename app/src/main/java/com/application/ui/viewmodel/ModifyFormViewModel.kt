@@ -9,6 +9,7 @@ import com.application.data.entity.Form
 import com.application.data.repository.FieldRepository
 import com.application.data.repository.FormRepository
 import com.application.ui.state.ModifyFormUiState
+import com.application.util.Validation
 import io.github.nhatbangle.sc.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -79,6 +80,8 @@ class ModifyFormViewModel @Inject constructor(
     }
 
     fun updateTitle(title: String) {
+        if (!Validation.checkNormalText(title)) return
+
         val currentForm = state.value.form
         _state.update { it.copy(form = currentForm?.copy(title = title), isFormUpdated = true) }
     }

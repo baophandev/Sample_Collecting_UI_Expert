@@ -58,10 +58,13 @@ fun CustomTextField(
     placeholder: @Composable (() -> Unit)? = null,
     enabled: Boolean = true,
     readOnly: Boolean = false,
+    supportingText: @Composable (() -> Unit)? = null,
     textStyle: TextStyle = LocalTextStyle.current,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     singleLine: Boolean = false,
+    maxLines: Int = if (singleLine) 1 else Int. MAX_VALUE,
+    minLines: Int = 1,
 ) {
     TextField(
         modifier = modifier.clip(RoundedCornerShape(15.dp)),
@@ -73,6 +76,9 @@ fun CustomTextField(
         enabled = enabled,
         placeholder = placeholder,
         value = value,
+        maxLines = maxLines,
+        minLines = minLines,
+        supportingText = supportingText,
         colors = TextFieldDefaults.colors(
             unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
             focusedContainerColor = MaterialTheme.colorScheme.secondary,
@@ -81,6 +87,6 @@ fun CustomTextField(
             unfocusedIndicatorColor = Color.Transparent,
             focusedIndicatorColor = Color.Transparent
         ),
-        onValueChange = onValueChange
+        onValueChange = onValueChange,
     )
 }

@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -64,6 +63,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -75,6 +75,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
 import com.application.ui.viewmodel.ChatViewModel
+import com.application.util.Validation
 import io.github.nhatbangle.sc.attachment.entity.Attachment
 import io.github.nhatbangle.sc.chat.constant.MessageType
 import io.github.nhatbangle.sc.chat.data.entity.ReceivingMessage
@@ -113,7 +114,10 @@ fun ChatScreen(
                     .background(Color.White)
                     .height(50.dp),
                 message = state.text,
-                onMessageChange = viewModel::updateMessage,
+                onMessageChange = {
+                    if (Validation.checkLongText(it))
+                        viewModel.updateMessage(it)
+                },
                 onSendClick = viewModel::sendMessage,
                 onCameraResult = { viewModel.sendMessage(listOf(it)) },
                 onGalleryResult = viewModel::sendMessage,
@@ -148,9 +152,7 @@ private fun MessageList(
 
     LazyColumn(
         state = state,
-        modifier = modifier
-            .padding(start = 2.dp, end = 2.dp)
-            .wrapContentHeight(),
+        modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         reverseLayout = true
     ) {
@@ -335,30 +337,35 @@ private fun TopBar(
     title: String,
     route: () -> Unit
 ) {
-    TopAppBar(modifier = modifier, colors = TopAppBarDefaults.topAppBarColors().copy(
-        containerColor = colorResource(id = R.color.main_green)
-    ), title = {
-        Text(
-            text = title,
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp
-        )
-    }, navigationIcon = {
-        IconButton(
-            onClick = route
-        ) {
-            Icon(
-                modifier = Modifier.size(55.dp),
-                painter = painterResource(id = R.drawable.leading_icon),
-                contentDescription = null,
-                tint = Color.White,
+    TopAppBar(
+        modifier = modifier,
+        colors = TopAppBarDefaults.topAppBarColors().copy(
+            containerColor = colorResource(id = R.color.main_green)
+        ),
+        title = {
+            Text(
+                text = title,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                overflow = TextOverflow.Ellipsis
             )
-        }
-    }, scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+        },
+        navigationIcon = {
+            IconButton(
+                onClick = route
+            ) {
+                Icon(
+                    modifier = Modifier.size(55.dp),
+                    painter = painterResource(id = R.drawable.leading_icon),
+                    contentDescription = null,
+                    tint = Color.White,
+                )
+            }
+        },
+        scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     )
 }
-
 
 @Composable
 private fun ReplyBar(

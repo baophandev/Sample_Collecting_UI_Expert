@@ -9,7 +9,7 @@ data class CreateStageUiState(
     val status: UiStatus = UiStatus.INIT,
     @StringRes val error: Int? = null,
 
-    val name: String = "",
+    val title: String = "",
     val description: String = "",
     val startDate: String? = null,
     val endDate: String? = null,

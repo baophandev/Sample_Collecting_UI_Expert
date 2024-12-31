@@ -13,6 +13,7 @@ import io.github.nhatbangle.sc.user.entity.User
 import io.github.nhatbangle.sc.user.repository.UserRepository
 import io.github.nhatbangle.sc.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.nhatbangle.sc.utility.validate.RegexValidation
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -98,6 +99,11 @@ class ModifyProjectViewModel @Inject constructor(
     }
 
     fun addNewProjectMember(memberEmail: String) {
+        if (!RegexValidation.EMAIL.matches(memberEmail)) {
+            _state.update { it.copy(error = R.string.error_invalid_email) }
+            return
+        }
+
         val currentState = state.value
         val existUser = currentState.projectUsers.find { it.email == memberEmail }
         if (existUser != null) {

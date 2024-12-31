@@ -11,8 +11,8 @@ import com.application.data.repository.FieldRepository
 import com.application.data.repository.SampleRepository
 import com.application.data.repository.StageRepository
 import com.application.ui.state.CreateSampleUiState
-import io.github.nhatbangle.sc.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.nhatbangle.sc.utility.state.ResourceState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

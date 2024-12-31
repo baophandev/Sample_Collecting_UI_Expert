@@ -1,7 +1,6 @@
 package com.application.ui.screen
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -218,27 +217,19 @@ fun DetailScreen(
                     }
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        if (state.project?.thumbnail != null) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(context)
-                                    .data(state.project?.thumbnail)
-                                    .build(),
-                                modifier = Modifier
-                                    .height(300.dp)
-                                    .fillMaxWidth(),
-                                contentDescription = "Thumbnail",
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Image(
-                                modifier = Modifier
-                                    .height(300.dp)
-                                    .fillMaxWidth(),
-                                painter = painterResource(id = R.drawable.ic_launcher_background),
-                                contentDescription = "Default Thumbnail",
-                                contentScale = ContentScale.Crop
-                            )
-                        }
+                        AsyncImage(
+                            model = ImageRequest.Builder(context)
+                                .data(state.project?.thumbnail)
+                                .error(R.drawable.ic_launcher_background)
+                                .fallback(R.drawable.ic_launcher_background)
+                                .placeholder(R.drawable.ic_launcher_background)
+                                .build(),
+                            modifier = Modifier
+                                .height(300.dp)
+                                .fillMaxWidth(),
+                            contentDescription = "Thumbnail",
+                            contentScale = ContentScale.Crop
+                        )
 
                         Column(
                             modifier = Modifier.fillMaxWidth(),

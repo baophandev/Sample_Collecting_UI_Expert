@@ -53,6 +53,7 @@ import com.application.ui.component.CustomTextField
 import com.application.ui.component.FormField
 import com.application.ui.component.TopBar
 import com.application.ui.viewmodel.CreateFormViewModel
+import com.application.util.Validation
 
 @Composable
 fun CreateFormScreen(
@@ -132,12 +133,19 @@ fun CreateFormScreen(
                     CustomTextField(
                         modifier = Modifier
                             .fillMaxWidth(.95f)
-                            .height(80.dp)
-                            .padding(vertical = 10.dp),
+                            .height(80.dp),
                         placeholder = { Text(text = stringResource(id = R.string.add_title)) },
                         singleLine = true,
                         value = state.title,
-                        onValueChange = viewModel::updateTitle
+                        supportingText = {
+                            val text =
+                                "${stringResource(R.string.str_max_length)} ${Validation.NORMAL_TEXT_LENGTH}"
+                            Text(text = text)
+                        },
+                        onValueChange = {
+                            if (Validation.checkNormalText(it))
+                                viewModel.updateTitle(it)
+                        }
                     )
 
                     Row(
@@ -171,8 +179,7 @@ fun CreateFormScreen(
                         itemsIndexed(state.fields) { index, data ->
                             Card(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(60.dp),
+                                    .fillMaxWidth(),
                                 colors = CardDefaults.cardColors(
                                     containerColor = MaterialTheme.colorScheme.secondary
                                 ),
@@ -180,7 +187,15 @@ fun CreateFormScreen(
                             ) {
                                 FormField(
                                     fieldName = data,
-                                    onFieldNameChange = { state.fields[index] = it },
+                                    supportingText = {
+                                        val text =
+                                            "${stringResource(R.string.str_max_length)} ${Validation.NORMAL_TEXT_LENGTH}"
+                                        Text(text = text)
+                                    },
+                                    onFieldNameChange = {
+                                        if (Validation.checkNormalText(it))
+                                            state.fields[index] = it
+                                    },
                                     onDeleteClicked = { state.fields.removeAt(index) }
                                 )
                             }

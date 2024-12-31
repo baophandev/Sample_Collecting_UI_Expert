@@ -57,7 +57,7 @@ import com.application.ui.component.CustomTextField
 import com.application.ui.component.FieldToList
 import com.application.ui.component.TopBar
 import com.application.ui.viewmodel.ModifyProjectViewModel
-import io.github.nhatbangle.sc.utility.validate.RegexValidation
+import com.application.util.Validation
 
 /**
  * @param navigateToDetail (isProjectModified) -> Unit
@@ -158,7 +158,8 @@ fun ModifyProjectScreen(
                         Button(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(180.dp),
+                                .height(180.dp)
+                                .padding(vertical = 5.dp),
                             elevation = ButtonDefaults.buttonElevation(
                                 defaultElevation = 10.dp,
                                 pressedElevation = 12.dp
@@ -199,21 +200,35 @@ fun ModifyProjectScreen(
                     CustomTextField(
                         modifier = Modifier
                             .fillMaxWidth(.95f)
-                            .height(60.dp),
+                            .height(80.dp),
                         placeholder = { Text(text = stringResource(id = R.string.add_title)) },
                         singleLine = true,
-                        value = state.project?.name
-                            ?: stringResource(id = R.string.unknown_project),
-                        onValueChange = viewModel::updateProjectName
+                        value = state.project?.name ?: "",
+                        supportingText = {
+                            val text =
+                                "${stringResource(R.string.str_max_length)} ${Validation.NORMAL_TEXT_LENGTH}"
+                            Text(text = text)
+                        },
+                        onValueChange = {
+                            if (Validation.checkNormalText(it))
+                                viewModel.updateProjectName(it)
+                        }
                     )
                     CustomTextField(
                         modifier = Modifier
                             .fillMaxWidth(.95f)
                             .height(100.dp),
-                        placeholder = { Text(text = stringResource(id = R.string.sample_description_default)) },
-                        value = state.project?.description
-                            ?: stringResource(R.string.no_description),
-                        onValueChange = viewModel::updateDescription
+                        placeholder = { Text(text = stringResource(id = R.string.add_description)) },
+                        value = state.project?.description ?: "",
+                        supportingText = {
+                            val text =
+                                "${stringResource(R.string.str_max_length)} ${Validation.LONG_TEXT_LENGTH}"
+                            Text(text = text)
+                        },
+                        onValueChange = {
+                            if (Validation.checkLongText(it))
+                                viewModel.updateDescription(it)
+                        }
                     )
 
                     Row(
@@ -235,11 +250,10 @@ fun ModifyProjectScreen(
 
                     FieldToList(
                         fieldDataList = state.projectUsers.map { it.email },
-                        textValidator = { email -> email.contains(RegexValidation.EMAIL) },
+//                        textValidator = { email -> email.contains(RegexValidation.EMAIL) },
                         onAddField = { newEmailMember ->
-                            viewModel.addNewProjectMember(
-                                newEmailMember
-                            )
+                            if (Validation.checkLongText(newEmailMember))
+                                viewModel.addNewProjectMember(newEmailMember)
                         },
                         onRemoveField = viewModel::removeMemberEmail
                     )

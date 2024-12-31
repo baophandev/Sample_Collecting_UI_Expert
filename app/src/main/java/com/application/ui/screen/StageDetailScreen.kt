@@ -2,7 +2,6 @@ package com.application.ui.screen
 
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,7 +37,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -110,54 +108,48 @@ fun StageDetailScreen(
                     scaffoldState = scaffoldState,
                     sheetPeekHeight = 600.dp,
                     sheetContent = {
-                        TabButtons(tab = currentTab) { newTab -> currentTab = newTab }
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            TabButtons(tab = currentTab) { newTab -> currentTab = newTab }
+                            when (currentTab) {
+                                StageTab.DETAIL -> DetailTab(
+                                    description = state.stage?.description
+                                )
 
-                        when (currentTab) {
-                            StageTab.DETAIL -> DetailTab(
-                                description = state.stage?.description
-                            )
-
-                            StageTab.PHOTOS -> PhotoTab(
-                                pagingItems = sampleLazyPagingItems,
-                                onPhotoPress = { imageIdx ->
-                                    sampleLazyPagingItems[imageIdx]?.let { sample ->
-                                        navigateToSampleDetail(sample.id)
+                                StageTab.PHOTOS -> PhotoTab(
+                                    pagingItems = sampleLazyPagingItems,
+                                    onPhotoPress = { imageIdx ->
+                                        sampleLazyPagingItems[imageIdx]?.let { sample ->
+                                            navigateToSampleDetail(sample.id)
+                                        }
+                                    },
+                                    onImagesSelecting = { isSelecting -> showAddPhoto = !isSelecting },
+                                    onImagesDeleted = { deletedUris ->
+                                        val deletedSamples =
+                                            sampleLazyPagingItems.itemSnapshotList
+                                                .filter { it?.image in deletedUris }
+                                                .filterNotNull()
+                                                .map { it.id }
+                                        viewModel.deleteSamples(deletedSamples)
                                     }
-                                },
-                                onImagesSelecting = { isSelecting -> showAddPhoto = !isSelecting },
-                                onImagesDeleted = { deletedUris ->
-                                    val deletedSamples =
-                                        sampleLazyPagingItems.itemSnapshotList
-                                            .filter { it?.image in deletedUris }
-                                            .filterNotNull()
-                                            .map { it.id }
-                                    viewModel.deleteSamples(deletedSamples)
-                                }
-                            )
+                                )
+                            }
                         }
                     }
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        if (state.thumbnail != null)
-                            AsyncImage(
-                                model = ImageRequest.Builder(context)
-                                    .data(state.thumbnail)
-                                    .build(),
-                                modifier = Modifier
-                                    .height(300.dp)
-                                    .fillMaxWidth(),
-                                contentDescription = "Thumbnail",
-                                contentScale = ContentScale.Crop
-                            )
-                        else
-                            Image(
-                                modifier = Modifier
-                                    .height(300.dp)
-                                    .fillMaxWidth(),
-                                painter = painterResource(id = R.drawable.ic_launcher_background),
-                                contentDescription = "Default Thumbnail",
-                                contentScale = ContentScale.FillBounds
-                            )
+                        AsyncImage(
+                            model = ImageRequest.Builder(context)
+                                .data(state.thumbnail)
+                                .error(R.drawable.ic_launcher_background)
+                                .fallback(R.drawable.ic_launcher_background)
+                                .placeholder(R.drawable.ic_launcher_background)
+                                .build(),
+                            modifier = Modifier
+                                .height(300.dp)
+                                .fillMaxWidth(),
+                            contentDescription = "Thumbnail",
+                            contentScale = ContentScale.Crop
+                        )
                         Column(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally

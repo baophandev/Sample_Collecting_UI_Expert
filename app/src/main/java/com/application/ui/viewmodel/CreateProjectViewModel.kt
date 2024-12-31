@@ -6,10 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.application.R
 import com.application.data.repository.ProjectRepository
 import com.application.ui.state.CreateProjectUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.nhatbangle.sc.user.entity.User
 import io.github.nhatbangle.sc.user.repository.UserRepository
 import io.github.nhatbangle.sc.utility.state.ResourceState
-import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.nhatbangle.sc.utility.validate.RegexValidation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,7 +33,7 @@ class CreateProjectViewModel @Inject constructor(
     }
 
     fun updateTitle(title: String) {
-        _state.update { it.copy(name = title) }
+        _state.update { it.copy(title = title) }
     }
 
     fun updateDescription(description: String) {
@@ -48,6 +49,11 @@ class CreateProjectViewModel @Inject constructor(
     }
 
     fun addMemberEmail(memberEmail: String) {
+        if (!RegexValidation.EMAIL.matches(memberEmail)) {
+            _state.update { it.copy(error = R.string.error_invalid_email) }
+            return
+        }
+
         viewModelScope.launch(Dispatchers.IO) {
             userRepository.getUserByEmail(email = memberEmail)
                 .collectLatest { resourceState ->
@@ -128,7 +134,7 @@ class CreateProjectViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             projectRepository.createProject(
                 thumbnail = thumbnail,
-                name = currentState.name,
+                name = currentState.title,
                 description = currentState.description,
                 startDate = currentState.startDate,
                 endDate = currentState.endDate,
@@ -139,7 +145,7 @@ class CreateProjectViewModel @Inject constructor(
 
     private fun validateFields(): Boolean {
         val currentState = state.value
-        if (currentState.name.isBlank()) {
+        if (currentState.title.isBlank()) {
             _state.update { it.copy(error = R.string.error_empty_project_name) }
             return false
         } else if (currentState.startDate == null || currentState.endDate == null) {

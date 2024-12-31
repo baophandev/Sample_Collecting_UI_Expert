@@ -21,6 +21,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -56,7 +57,8 @@ import com.application.ui.component.CustomTextField
 import com.application.ui.component.FieldToList
 import com.application.ui.component.TopBar
 import com.application.ui.viewmodel.CreateStageViewModel
-import io.github.nhatbangle.sc.utility.validate.RegexValidation
+import com.application.util.Validation
+import io.github.nhatbangle.sc.user.entity.User
 
 /**
  * @param navigateToDetail (isStageCreated) -> Unit
@@ -151,17 +153,33 @@ fun CreateStageScreen(
                         modifier = Modifier.fillMaxWidth(.95f),
                         placeholder = { Text(text = stringResource(id = R.string.add_title)) },
                         singleLine = true,
-                        value = state.name,
-                        onValueChange = viewModel::updateName
+                        value = state.title,
+                        supportingText = {
+                            val text =
+                                "${stringResource(R.string.str_max_length)} ${Validation.NORMAL_TEXT_LENGTH}"
+                            Text(text = text)
+                        },
+                        onValueChange = {
+                            if (Validation.checkNormalText(it))
+                                viewModel.updateTitle(it)
+                        }
                     )
 
                     CustomTextField(
                         modifier = Modifier
                             .fillMaxWidth(.95f)
                             .height(120.dp),
-                        placeholder = { Text(text = "Add description") },
+                        placeholder = { Text(text = stringResource(R.string.add_description)) },
                         value = state.description,
-                        onValueChange = viewModel::updateDescription
+                        supportingText = {
+                            val text =
+                                "${stringResource(R.string.str_max_length)} ${Validation.LONG_TEXT_LENGTH}"
+                            Text(text = text)
+                        },
+                        onValueChange = {
+                            if (Validation.checkLongText(it))
+                                viewModel.updateDescription(it)
+                        }
                     )
 
                     Row(
@@ -228,32 +246,28 @@ fun CreateStageScreen(
                     }
 
                     FieldToList(
-                        fieldDataList = state.selectedUsers.map { it.email },
-                        textValidator = { email ->
-                            email.contains(RegexValidation.EMAIL)
-                        },
+                        fieldDataList = state.selectedUsers.map(User::email),
+//                        textValidator = { email -> email.contains(RegexValidation.EMAIL) },
                         listHeight = 180.dp,
-                        onAddField = { newEmailMember ->
-                            viewModel.addStageMemberEmail(
-                                newEmailMember
-                            )
+                        onAddField = {
+                            if (Validation.checkLongText(it))
+                                viewModel.addStageMemberEmail(it)
                         },
-                        onRemoveField = { index -> viewModel.removeMemberEmail(index) }
+                        onRemoveField = viewModel::removeMemberEmail
                     )
 
                     CustomButton(
                         modifier = Modifier.fillMaxWidth(.95f),
                         text = stringResource(id = R.string.submit),
                         textSize = 20.sp,
-                        background = colorResource(id = R.color.main_green),
+                        background = MaterialTheme.colorScheme.primary,
                         border = BorderStroke(0.dp, Color.Transparent),
-                        action = {
-                            viewModel.submit { navigateToDetail(true) }
-                        }
+                        action = { viewModel.submit { navigateToDetail(true) } }
                     )
                 }
             }
         }
+
         UiStatus.ERROR -> Toast.makeText(context, state.error!!, Toast.LENGTH_LONG).show()
         else -> {}
     }

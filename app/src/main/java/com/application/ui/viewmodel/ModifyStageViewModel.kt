@@ -22,6 +22,7 @@ import io.github.nhatbangle.sc.user.entity.User
 import io.github.nhatbangle.sc.user.repository.UserRepository
 import io.github.nhatbangle.sc.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.nhatbangle.sc.utility.validate.RegexValidation
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -112,7 +113,7 @@ class ModifyStageViewModel @Inject constructor(
         }
     }
 
-    fun updateStageName(name: String) {
+    fun updateTitle(name: String) {
         val currentStage = state.value.stage
         _state.update { it.copy(stage = currentStage?.copy(name = name), isUpdated = true) }
     }
@@ -148,6 +149,11 @@ class ModifyStageViewModel @Inject constructor(
     }
 
     fun addNewStageMember(memberEmail: String) {
+        if (!RegexValidation.EMAIL.matches(memberEmail)) {
+            _state.update { it.copy(error = R.string.error_invalid_email) }
+            return
+        }
+
         val currentState = state.value
 
         if (memberEmail !in currentState.projectMembers.map { it.email }) {
