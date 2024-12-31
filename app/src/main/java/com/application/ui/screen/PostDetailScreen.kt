@@ -51,6 +51,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -172,6 +173,7 @@ fun PostDetailScreen(
                         onCommentChange = { viewModel.updateComment(index, file.id, it) },
                         onAddAttachment = { viewModel.updateComment(index, file.id, it) },
                         onAttachmentClick = viewModel::startDownload,
+                        onRemoveClick = { viewModel.removeAttachment(index, file.id, it) }
                     )
                     Spacer(modifier = Modifier.height(5.dp))
                 }
@@ -182,7 +184,10 @@ fun PostDetailScreen(
                         generalComment = state.post?.generalComment,
                         onCommentChange = viewModel::updateGeneralComment,
                         onAddAttachment = viewModel::updateGeneralComment,
-                        onAttachmentClick = viewModel::startDownload
+                        onAttachmentClick = viewModel::startDownload,
+                        onRemoveClick = { attachmentIndex ->
+                            viewModel.removeGeneralAttachment(attachmentIndex)
+                        }
                     )
                     Spacer(modifier = Modifier.height(5.dp))
                 }
@@ -263,6 +268,7 @@ private fun ConclusionSection(
     onCommentChange: (String) -> Unit,
     onAddAttachment: (List<Attachment>) -> Unit,
     onAttachmentClick: (Attachment) -> Unit,
+    onRemoveClick: (Int) -> Unit,
 ) {
     val context = LocalContext.current
     val pickFileLauncher = rememberLauncherForActivityResult(
@@ -318,10 +324,11 @@ private fun ConclusionSection(
                     maxLines = 5
                 ) {
                     generalComment?.attachments?.let {
-                        it.forEach { attachment ->
+                        it.forEachIndexed { index, attachment ->
                             FileItem(
                                 fileName = attachment.name,
                                 iconRes = R.drawable.ic_document,
+                                onRemoveClick = { onRemoveClick(index) },
                                 onClick = { onAttachmentClick(attachment) }
                             )
                         }
@@ -355,6 +362,7 @@ private fun FileInPostTemplate(
     onCommentChange: (String) -> Unit,
     onAddAttachment: (List<Attachment>) -> Unit,
     onAttachmentClick: (Attachment) -> Unit,
+    onRemoveClick: (Int) -> Unit,
 ) {
     val context = LocalContext.current
     val pickFileLauncher = rememberLauncherForActivityResult(
@@ -433,10 +441,11 @@ private fun FileInPostTemplate(
                 maxLines = 5
             ) {
                 comment?.attachments?.let { attachments ->
-                    attachments.forEach { attachment ->
+                    attachments.forEachIndexed { index, attachment ->
                         FileItem(
                             fileName = attachment.name,
                             iconRes = R.drawable.ic_document,
+                            onRemoveClick = { onRemoveClick(index) },
                             onClick = { onAttachmentClick(attachment) }
                         )
                     }
@@ -460,28 +469,40 @@ private fun FileInPostTemplate(
 }
 
 @Composable
-private fun FileItem(fileName: String, iconRes: Int, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 5.dp)
-            .clickable(onClick = onClick)
-    ) {
-        Icon(
-            painter = painterResource(id = iconRes),
-            tint = Color.Unspecified,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(5.dp))
-        Text(
-            text = fileName,
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = Color(0, 126, 47),
-                textDecoration = TextDecoration.Underline
-            ),
-        )
+private fun FileItem(fileName: String, iconRes: Int, onRemoveClick: () -> Unit ,onClick: () -> Unit) {
+    Row {
+        IconButton(onClick = onRemoveClick ) {
+            Icon(
+                modifier = Modifier.size(25.dp),
+                imageVector = Icons.Default.Clear,
+                contentDescription = "Remove",
+                tint = colorResource(id = R.color.red)
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 5.dp)
+                .clickable(onClick = onClick)
+        ) {
+            Icon(
+                painter = painterResource(id = iconRes),
+                tint = Color.Unspecified,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(5.dp))
+            Text(
+                modifier = Modifier.fillMaxWidth(.7f),
+                text = fileName,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = Color(0, 126, 47),
+                    textDecoration = TextDecoration.Underline
+                ),
+            )
+        }
     }
+
 }
 
 private fun extractFileName(resolver: ContentResolver, uri: Uri): Attachment {
