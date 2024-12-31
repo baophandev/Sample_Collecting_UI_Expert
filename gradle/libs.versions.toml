@@ -53,7 +53,7 @@ ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "k
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-serialization-gson = { module = "io.ktor:ktor-serialization-gson", version.ref = "ktor" }
 
-nhatbangle-sc-library = { module = "io.github.nhatbangle:sc-library", version.ref = "scLibrary" }
+sc-library = { module = "io.github.nhatbangle:sc-library", version.ref = "scLibrary" }
 
 slf4j-android = { module = "org.slf4j:slf4j-android", version.ref = "slf4jAndroid" }
 

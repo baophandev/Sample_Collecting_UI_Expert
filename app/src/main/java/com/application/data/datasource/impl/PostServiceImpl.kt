@@ -19,7 +19,7 @@ import io.ktor.http.contentType
 
 class PostServiceImpl(
     private val client: HttpClient,
-    private val prefixPath: String = "api/post",
+    private val prefixPath: String = "api",
 ) : IPostService {
 
     /**
@@ -33,7 +33,7 @@ class PostServiceImpl(
         pageNumber: Int,
         pageSize: Int
     ): PagingResponse<PostResponse> = runCatching<PagingResponse<PostResponse>> {
-        client.get(urlString = "$prefixPath/getByExpertId/$expertId") {
+        client.get(urlString = "$prefixPath/post/getByExpertId/$expertId") {
             url {
                 encodedParameters.append("isAnswered", "$isAnswered")
                 encodedParameters.append("title", title)
@@ -50,7 +50,7 @@ class PostServiceImpl(
      * @see IPostService.getPost
      */
     override suspend fun getPost(postId: String): PostResponse = client
-        .get(urlString = "$prefixPath/$postId")
+        .get(urlString = "$prefixPath/post/$postId")
         .body()
 
     /**
@@ -64,7 +64,7 @@ class PostServiceImpl(
         pageNumber: Int,
         pageSize: Int
     ): PagingResponse<FileInPostResponse> = runCatching<PagingResponse<FileInPostResponse>> {
-        client.get(urlString = "$prefixPath/$postId/getFilesInPost") {
+        client.get(urlString = "$prefixPath/post/$postId/getFilesInPost") {
             url {
                 encodedParameters.append("pageNumber", "$pageNumber")
                 encodedParameters.append("pageSize", "$pageSize")
@@ -82,7 +82,7 @@ class PostServiceImpl(
         postId: String,
         body: CreateCommentRequest
     ): Boolean = client
-        .post("$prefixPath/api/comment/addComment/$postId") {
+        .post("$prefixPath/comment/addComment/$postId") {
             contentType(ContentType.Application.Json)
             setBody(body)
         }.status == HttpStatusCode.Created
@@ -97,7 +97,7 @@ class PostServiceImpl(
         fileId: String,
         body: CreateCommentRequest
     ): Boolean = client
-        .post("$prefixPath/api/comment/addFileComments/$fileId") {
+        .post("$prefixPath/comment/addFileComments/$fileId") {
             contentType(ContentType.Application.Json)
             setBody(body)
         }.status == HttpStatusCode.Created

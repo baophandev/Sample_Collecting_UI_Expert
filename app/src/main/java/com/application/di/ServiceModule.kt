@@ -91,7 +91,7 @@ object ServiceModule {
     @Provides
     @Singleton
     fun providePostService(client: HttpClient) : IPostService {
-        val prefixPath = "api/post"
+        val prefixPath = "api"
         return PostServiceImpl(client, prefixPath)
     }
 

@@ -3,6 +3,7 @@ package com.application.ui.screen
 import android.content.ContentResolver
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -81,6 +82,7 @@ fun PostDetailScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     if (state.error != null) {
         val error = stringResource(id = state.error!!)
@@ -155,7 +157,12 @@ fun PostDetailScreen(
     ) { innerPadding ->
         when (state.status) {
             UiStatus.LOADING -> LoadingScreen(text = stringResource(R.string.loading))
-            UiStatus.ERROR -> navigateToQuestions()
+            UiStatus.ERROR -> {
+                val error = stringResource(R.string.unknown_error)
+                Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                navigateToQuestions()
+            }
+
             UiStatus.SUCCESS -> LazyColumn(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -172,7 +179,7 @@ fun PostDetailScreen(
                         comment = file.comment,
                         onCommentChange = { viewModel.updateComment(index, file.id, it) },
                         onAddAttachment = { viewModel.updateComment(index, file.id, it) },
-                        onAttachmentClick = viewModel::startDownload,
+                        onAttachmentClick = viewModel::clickAttachment,
                         onRemoveClick = { viewModel.removeAttachment(index, file.id, it) }
                     )
                     Spacer(modifier = Modifier.height(5.dp))
@@ -184,7 +191,7 @@ fun PostDetailScreen(
                         generalComment = state.post?.generalComment,
                         onCommentChange = viewModel::updateGeneralComment,
                         onAddAttachment = viewModel::updateGeneralComment,
-                        onAttachmentClick = viewModel::startDownload,
+                        onAttachmentClick = viewModel::clickAttachment,
                         onRemoveClick = { attachmentIndex ->
                             viewModel.removeGeneralAttachment(attachmentIndex)
                         }
@@ -210,7 +217,7 @@ private fun HeaderSection(post: Post) {
             .padding(8.dp)
     ) {
         Text(
-            text = "${post.owner.firstName} ${post.owner.lastName}",
+            text = "${post.owner.lastName} ${post.owner.firstName}",
             style = MaterialTheme.typography.titleLarge.copy(
                 color = Color.White,
                 fontSize = 18.sp,
@@ -326,6 +333,7 @@ private fun ConclusionSection(
                     generalComment?.attachments?.let {
                         it.forEachIndexed { index, attachment ->
                             FileItem(
+                                readOnly = readOnly,
                                 fileName = attachment.name,
                                 iconRes = R.drawable.ic_document,
                                 onRemoveClick = { onRemoveClick(index) },
@@ -443,6 +451,7 @@ private fun FileInPostTemplate(
                 comment?.attachments?.let { attachments ->
                     attachments.forEachIndexed { index, attachment ->
                         FileItem(
+                            readOnly = readOnly,
                             fileName = attachment.name,
                             iconRes = R.drawable.ic_document,
                             onRemoveClick = { onRemoveClick(index) },
@@ -469,9 +478,15 @@ private fun FileInPostTemplate(
 }
 
 @Composable
-private fun FileItem(fileName: String, iconRes: Int, onRemoveClick: () -> Unit ,onClick: () -> Unit) {
+private fun FileItem(
+    readOnly: Boolean = true,
+    fileName: String,
+    iconRes: Int,
+    onClick: () -> Unit,
+    onRemoveClick: () -> Unit,
+) {
     Row {
-        IconButton(onClick = onRemoveClick ) {
+        if (!readOnly) IconButton(onClick = onRemoveClick) {
             Icon(
                 modifier = Modifier.size(25.dp),
                 imageVector = Icons.Default.Clear,
@@ -506,14 +521,15 @@ private fun FileItem(fileName: String, iconRes: Int, onRemoveClick: () -> Unit ,
 }
 
 private fun extractFileName(resolver: ContentResolver, uri: Uri): Attachment {
-    var fileName = "unknown file"
+    var fileName = "unknown_file"
     val mimeType = resolver.getType(uri) ?: ""
     resolver
         .query(uri, null, null, null, null)
         ?.use { cursor ->
             val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
             cursor.moveToFirst()
-            fileName = cursor.getString(nameIndex)
+            fileName = cursor.getString(nameIndex).replace(" ", "_")
+            // replace space by underscore because the spaces can make files to download unsuccessfully
         }
     return Attachment(
         id = "$fileName-$mimeType-${System.currentTimeMillis()}",

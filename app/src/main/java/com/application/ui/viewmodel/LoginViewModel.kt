@@ -122,10 +122,8 @@ class LoginViewModel @Inject constructor(
     }
 
     fun logout() {
-        userRepository.loggedUser?.let {
-            chatService.disconnectWebSocketServer(it.id)
-            userRepository.logout()
-        }
+        userRepository.loggedUser?.let { chatService.disconnectWebSocketServer(it.id) }
+        userRepository.logout()
         notificationDisposable?.dispose()
     }
 

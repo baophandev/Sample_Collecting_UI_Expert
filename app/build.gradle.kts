@@ -99,7 +99,7 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.camera.extensions)
 
-    implementation(libs.nhatbangle.sc.library)
+    implementation(libs.sc.library)
 }
 
 kapt {
