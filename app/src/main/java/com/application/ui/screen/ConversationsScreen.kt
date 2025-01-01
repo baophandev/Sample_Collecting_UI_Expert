@@ -7,7 +7,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.intl.Locale
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
@@ -17,6 +16,7 @@ import com.application.ui.component.ExpertChatTopNavigationBar
 import com.application.ui.component.PagingLayout
 import com.application.ui.viewmodel.ConversationsViewModel
 import io.github.nhatbangle.sc.chat.constant.MessageType
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 @Composable
@@ -34,9 +34,9 @@ fun ConversationsScreen(
             modifier = Modifier.padding(innerPadding),
             pagingItems = convFlow,
             itemsContent = { conversation ->
-                /*TODO("Format updateAt")*/
-                DateTimeFormatter.ofPattern("dd/MM/yy H:mma")
-                    .withLocale(Locale.current.platformLocale)
+                val updatedAt = DateTimeFormatter.ofPattern("dd/MM/yy H:mma")
+                    .withZone(ZoneOffset.UTC)
+                    .format(conversation.updatedAt.toInstant())
                 val lastMessage = conversation.lastMessage?.let {
                     when (it.type) {
                         MessageType.TEXT -> it.text
@@ -47,8 +47,9 @@ fun ConversationsScreen(
                 ConversationBar(
                     title = conversation.title,
                     lastMessage = lastMessage,
-                    updatedAt = "22/12/24 8:07PM",
-                    read = conversation.isRead,
+                    updatedAt = updatedAt,
+                    read = false,
+//                    read = conversation.isRead,
                     onClick = { navigateToChat(conversation.id) }
                 )
             },

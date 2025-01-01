@@ -95,18 +95,23 @@ fun ChatScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            Column {
-                TopBar(
-                    modifier = Modifier.padding(bottom = 3.dp),
-                    title = state.conversation?.title ?: "",
-                    route = navigateToConversations
-                )
-                CaptionBar(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(id = R.string.caption_question)
-                )
-            }
-        }, bottomBar = {
+            TopBar(
+                title = state.conversation?.title ?: "",
+                route = navigateToConversations
+            )
+//            Column {
+//                TopBar(
+//                    modifier = Modifier.padding(bottom = 3.dp),
+//                    title = state.conversation?.title ?: "",
+//                    route = navigateToConversations
+//                )
+//                CaptionBar(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    text = stringResource(id = R.string.caption_question)
+//                )
+//            }
+        },
+        bottomBar = {
             ReplyBar(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -156,23 +161,24 @@ private fun MessageList(
         horizontalAlignment = Alignment.CenterHorizontally,
         reverseLayout = true
     ) {
-        if (pagingItems.itemCount == 0 && messages.isEmpty()) item {
-            Text(
-                text = stringResource(R.string.no_messages),
-                style = MaterialTheme.typography.labelMedium,
-                color = Color.LightGray.copy(alpha = .9f)
-            )
-        }
+        if (pagingItems.itemCount == 0 && messages.isEmpty())
+            item {
+                Text(
+                    text = stringResource(R.string.no_messages),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.LightGray.copy(alpha = .9f)
+                )
+            }
         else {
-            items(count = pagingItems.itemCount, key = pagingItems.itemKey { it.id }) {
-                val message = pagingItems[it] ?: return@items
+            items(items = messages.reversed(), key = { it.id }) { message ->
                 MessageTemplate(
                     message = message,
                     isSendingMessage = isSendingMessage(message)
                 )
                 Spacer(modifier = Modifier.size(10.dp))
             }
-            items(items = messages, key = { it.id }) { message ->
+            items(count = pagingItems.itemCount, key = pagingItems.itemKey { it.id }) {
+                val message = pagingItems[it] ?: return@items
                 MessageTemplate(
                     message = message,
                     isSendingMessage = isSendingMessage(message)

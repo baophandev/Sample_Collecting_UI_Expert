@@ -68,6 +68,7 @@ fun AppNavigationGraph() {
     val navController = rememberNavController()
 
     val navigateToConversations: () -> Unit = {
+        conversationsVM.reload(ReloadSignal.RELOAD_ALL_CONVERSATIONS)
         navController.navigateSingleTop(Routes.CONVERSATIONS_SCREEN)
     }
 
@@ -378,6 +379,7 @@ fun AppNavigationGraph() {
 
         composable(Routes.CHAT_SCREEN) {
             val popBackToConversations: () -> Unit = {
+                conversationsVM.reload(ReloadSignal.RELOAD_ALL_CONVERSATIONS)
                 navController.popBackStack(
                     route = Routes.CONVERSATIONS_SCREEN,
                     inclusive = false,
