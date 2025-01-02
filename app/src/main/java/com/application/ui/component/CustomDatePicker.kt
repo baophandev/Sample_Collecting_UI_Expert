@@ -48,8 +48,9 @@ fun CustomDatePicker(
     isError: Boolean = false,
     onDateChange: (String) -> Unit
 ) {
-    val dateFormatter =
-        DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC)
+    val dateFormatter = DateTimeFormatter
+        .ofPattern("dd/MM/yyyy")
+        .withZone(ZoneOffset.systemDefault())
     val defaultDateText = initValue ?: stringResource(id = R.string.select_date)
 
     val state = rememberDatePickerState()

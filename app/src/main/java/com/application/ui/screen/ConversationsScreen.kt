@@ -34,8 +34,9 @@ fun ConversationsScreen(
             modifier = Modifier.padding(innerPadding),
             pagingItems = convFlow,
             itemsContent = { conversation ->
-                val updatedAt = DateTimeFormatter.ofPattern("dd/MM/yy H:mma")
-                    .withZone(ZoneOffset.UTC)
+                val updatedAt = DateTimeFormatter
+                    .ofPattern("dd/MM/yy h:mma")
+                    .withZone(ZoneOffset.systemDefault())
                     .format(conversation.updatedAt.toInstant())
                 val lastMessage = conversation.lastMessage?.let {
                     when (it.type) {

@@ -242,8 +242,9 @@ private fun MessageText(
     isSendingMessage: Boolean,
     message: ReceivingMessage
 ) {
-    val time = DateTimeFormatter.ofPattern("dd/MM/yy H:mma")
-        .withZone(ZoneOffset.UTC)
+    val time = DateTimeFormatter
+        .ofPattern("dd/MM/yy h:mma")
+        .withZone(ZoneOffset.systemDefault())
         .format(message.createdAt.toInstant())
     val messageText = message.text ?: return
 
@@ -301,8 +302,9 @@ private fun MessageFile(
 ) {
     val context = LocalContext.current
     val time = createdAt?.let {
-        DateTimeFormatter.ofPattern("dd/MM/yy H:mma")
-            .withZone(ZoneOffset.UTC)
+        DateTimeFormatter
+            .ofPattern("dd/MM/yy h:mma")
+            .withZone(ZoneOffset.systemDefault())
             .format(createdAt.toInstant())
     }
 
