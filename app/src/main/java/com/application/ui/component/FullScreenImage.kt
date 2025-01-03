@@ -75,7 +75,9 @@ fun FullScreenImage(
         }
 
         AsyncImage(
-            model = ImageRequest.Builder(context).data(uri).build(),
+            model = ImageRequest.Builder(context)
+                .data(uri)
+                .build(),
             contentScale = ContentScale.FillWidth,
             alignment = Alignment.Center,
             contentDescription = null,
