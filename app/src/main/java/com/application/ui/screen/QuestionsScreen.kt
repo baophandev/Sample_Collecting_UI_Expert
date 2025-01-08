@@ -37,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -192,19 +191,19 @@ private fun TopBar(
                 }
             },
         )
-        Column {
-            IconButton(
-                onClick = { /*TODO*/ },
-                modifier = Modifier.size(50.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.notify_icon),
-                    contentDescription = "Notify",
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
-                    modifier = Modifier.fillMaxSize(.5f),
-                )
-            }
-        }
+//        Column {
+//            IconButton(
+//                onClick = { /*TODO*/ },
+//                modifier = Modifier.size(50.dp)
+//            ) {
+//                Image(
+//                    painter = painterResource(id = R.drawable.notify_icon),
+//                    contentDescription = "Notify",
+//                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+//                    modifier = Modifier.fillMaxSize(.5f),
+//                )
+//            }
+//        }
     }
 }
 
@@ -214,7 +213,7 @@ fun QuestionTemplate(
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
-    val fullName = "${post.owner.firstName} ${post.owner.lastName}"
+    val fullName = "${post.owner.lastName} ${post.owner.firstName}"
 
     Card(
         colors = CardColors(Color.White, Color.White, Color.White, Color.White),

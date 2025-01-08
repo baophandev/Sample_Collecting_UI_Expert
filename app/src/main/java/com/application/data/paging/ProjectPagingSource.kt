@@ -4,7 +4,7 @@ import com.application.constant.ProjectQueryType
 import com.application.constant.ProjectStatus
 import com.application.data.entity.Project
 import com.application.data.repository.ProjectRepository
-import com.sc.library.user.repository.UserRepository
+import io.github.nhatbangle.sc.user.repository.UserRepository
 
 class ProjectPagingSource(
     private val query: ProjectQueryType,

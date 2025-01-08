@@ -4,8 +4,8 @@ import com.application.data.datasource.IPostService
 import com.application.data.entity.request.CreateCommentRequest
 import com.application.data.entity.response.FileInPostResponse
 import com.application.data.entity.response.PostResponse
-import com.sc.library.utility.client.AbstractClient
-import com.sc.library.utility.client.response.PagingResponse
+import io.github.nhatbangle.sc.utility.client.response.PagingResponse
+import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.RedirectResponseException
@@ -18,10 +18,9 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 
 class PostServiceImpl(
-    baseUrl: String
-) : IPostService, AbstractClient() {
-
-    private val client = getClient(baseUrl)
+    private val client: HttpClient,
+    private val prefixPath: String = "api",
+) : IPostService {
 
     /**
      * If the network request fails, it returns a default `PagingResponse` object with empty data.
@@ -34,7 +33,7 @@ class PostServiceImpl(
         pageNumber: Int,
         pageSize: Int
     ): PagingResponse<PostResponse> = runCatching<PagingResponse<PostResponse>> {
-        client.get(urlString = "getByExpertId/$expertId") {
+        client.get(urlString = "$prefixPath/post/getByExpertId/$expertId") {
             url {
                 encodedParameters.append("isAnswered", "$isAnswered")
                 encodedParameters.append("title", title)
@@ -51,7 +50,7 @@ class PostServiceImpl(
      * @see IPostService.getPost
      */
     override suspend fun getPost(postId: String): PostResponse = client
-        .get(urlString = postId)
+        .get(urlString = "$prefixPath/post/$postId")
         .body()
 
     /**
@@ -65,7 +64,7 @@ class PostServiceImpl(
         pageNumber: Int,
         pageSize: Int
     ): PagingResponse<FileInPostResponse> = runCatching<PagingResponse<FileInPostResponse>> {
-        client.get(urlString = "$postId/getFilesInPost") {
+        client.get(urlString = "$prefixPath/post/$postId/getFilesInPost") {
             url {
                 encodedParameters.append("pageNumber", "$pageNumber")
                 encodedParameters.append("pageSize", "$pageSize")
@@ -83,7 +82,7 @@ class PostServiceImpl(
         postId: String,
         body: CreateCommentRequest
     ): Boolean = client
-        .post("/api/comment/addComment/$postId") {
+        .post("$prefixPath/comment/addComment/$postId") {
             contentType(ContentType.Application.Json)
             setBody(body)
         }.status == HttpStatusCode.Created
@@ -98,7 +97,7 @@ class PostServiceImpl(
         fileId: String,
         body: CreateCommentRequest
     ): Boolean = client
-        .post("/api/comment/addFileComments/$fileId") {
+        .post("$prefixPath/comment/addFileComments/$fileId") {
             contentType(ContentType.Application.Json)
             setBody(body)
         }.status == HttpStatusCode.Created

@@ -1,5 +1,7 @@
 package com.application
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -16,12 +18,16 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         changeLanguage(VI_LANG_TAG)
         if (!hasRequiredPermission()) {
             ActivityCompat.requestPermissions(this, PERMISSIONS, 0)
         }
+
+//        createNotificationChannels()
+
         setContent {
             SampleCollectingApplicationTheme(dynamicColor = false) {
                 Surface {
@@ -29,6 +35,26 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun createNotificationChannels() {
+        // Create the NotificationChannel.
+        val chatChannel = createChatNotificationChannel()
+
+        // Register the channel with the system. You can't change the importance
+        // or other notification behaviors after this.
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(chatChannel)
+    }
+
+    private fun createChatNotificationChannel(): NotificationChannel {
+        val name = getString(R.string.notify_chat_channel)
+        val descriptionText = getString(R.string.notify_chat_channel_description)
+        val importance = NotificationManager.IMPORTANCE_HIGH
+        val mChannel = NotificationChannel(NOTIFY_CHAT_CHANNEL_ID, name, importance)
+        mChannel.description = descriptionText
+
+        return mChannel
     }
 
     private fun hasRequiredPermission(): Boolean {
@@ -46,6 +72,9 @@ class MainActivity : AppCompatActivity() {
             android.Manifest.permission.READ_EXTERNAL_STORAGE,
             android.Manifest.permission.WRITE_EXTERNAL_STORAGE
         )
+        const val TAG = "MainActivity"
+
+        const val NOTIFY_CHAT_CHANNEL_ID = "CHAT_CHANNEL"
     }
 }
 

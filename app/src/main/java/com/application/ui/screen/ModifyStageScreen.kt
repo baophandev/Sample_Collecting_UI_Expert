@@ -56,7 +56,7 @@ import com.application.ui.component.CustomTextField
 import com.application.ui.component.FieldToList
 import com.application.ui.component.TopBar
 import com.application.ui.viewmodel.ModifyStageViewModel
-import com.sc.library.utility.validate.RegexValidation
+import com.application.util.Validation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -148,7 +148,15 @@ fun ModifyStageScreen(
                         placeholder = { Text(text = stringResource(id = R.string.add_title)) },
                         singleLine = true,
                         value = state.stage?.name ?: "",
-                        onValueChange = viewModel::updateStageName
+                        supportingText = {
+                            val text =
+                                "${stringResource(R.string.str_max_length)} ${Validation.NORMAL_TEXT_LENGTH}"
+                            Text(text = text)
+                        },
+                        onValueChange = {
+                            if (Validation.checkNormalText(it))
+                                viewModel.updateTitle(it)
+                        }
                     )
 
                     CustomTextField(
@@ -157,7 +165,15 @@ fun ModifyStageScreen(
                             .height(120.dp),
                         placeholder = { Text(text = stringResource(id = R.string.add_description)) },
                         value = state.stage?.description ?: "",
-                        onValueChange = viewModel::updateDescription
+                        supportingText = {
+                            val text =
+                                "${stringResource(R.string.str_max_length)} ${Validation.LONG_TEXT_LENGTH}"
+                            Text(text = text)
+                        },
+                        onValueChange = {
+                            if (Validation.checkLongText(it))
+                                viewModel.updateDescription(it)
+                        }
                     )
 
                     Row(
@@ -179,9 +195,7 @@ fun ModifyStageScreen(
                     ExposedDropdownMenuBox(
                         modifier = Modifier.clip(RoundedCornerShape(15.dp)),
                         expanded = expanded,
-                        onExpandedChange = {
-//                            expanded = it
-                        },
+                        onExpandedChange = { expanded = it },
                     ) {
                         TextField(
                             modifier = Modifier
@@ -204,7 +218,7 @@ fun ModifyStageScreen(
                         ) {
                             if (formLazyPagingItems.itemCount == 0)
                                 DropdownMenuItem(
-                                    text = { Text("No form") },
+                                    text = { Text(text = stringResource(R.string.no_forms)) },
                                     onClick = { expanded = false },
                                 )
                             else
@@ -222,12 +236,11 @@ fun ModifyStageScreen(
 
                     FieldToList(
                         fieldDataList = state.stageUsers.map { it.email },
-                        textValidator = { email -> email.contains(RegexValidation.EMAIL) },
+//                        textValidator = { email -> email.contains(RegexValidation.EMAIL) },
                         listHeight = 180.dp,
-                        onAddField = { newMemberEmail ->
-                            viewModel.addNewStageMember(
-                                newMemberEmail
-                            )
+                        onAddField = {
+                            if (Validation.checkLongText(it))
+                                viewModel.addNewStageMember(it)
                         },
                         onRemoveField = { index -> viewModel.removeMemberEmail(index) }
                     )

@@ -26,11 +26,14 @@ import com.application.ui.screen.SampleDetailScreen
 import com.application.ui.screen.StageDetailScreen
 import com.application.ui.screen.QuestionsScreen
 import com.application.ui.viewmodel.CaptureViewModel
+import com.application.ui.viewmodel.ChatViewModel
+import com.application.ui.viewmodel.ConversationsViewModel
 import com.application.ui.viewmodel.CreateFormViewModel
 import com.application.ui.viewmodel.CreateSampleViewModel
 import com.application.ui.viewmodel.CreateStageViewModel
 import com.application.ui.viewmodel.DetailViewModel
 import com.application.ui.viewmodel.HomeViewModel
+import com.application.ui.viewmodel.LoginViewModel
 import com.application.ui.viewmodel.ModifyFormViewModel
 import com.application.ui.viewmodel.ModifyProjectViewModel
 import com.application.ui.viewmodel.ModifyStageViewModel
@@ -45,7 +48,8 @@ fun NavHostController.navigateSingleTop(route: String) {
 
 @Composable
 fun AppNavigationGraph() {
-    val homeScreenVM: HomeViewModel = hiltViewModel()
+    val loginVM: LoginViewModel = hiltViewModel()
+    val homeVM: HomeViewModel = hiltViewModel()
     val detailVM: DetailViewModel = hiltViewModel()
     val modifyProjectVM: ModifyProjectViewModel = hiltViewModel()
     val stageDetailVM: StageDetailViewModel = hiltViewModel()
@@ -58,10 +62,13 @@ fun AppNavigationGraph() {
     val createSampleVM: CreateSampleViewModel = hiltViewModel()
     val postDetailVM: PostDetailViewModel = hiltViewModel()
     val questionsVM: QuestionsViewModel = hiltViewModel()
+    val conversationsVM: ConversationsViewModel = hiltViewModel()
+    val chatVM: ChatViewModel = hiltViewModel()
 
     val navController = rememberNavController()
 
     val navigateToConversations: () -> Unit = {
+        conversationsVM.reload(ReloadSignal.RELOAD_ALL_CONVERSATIONS)
         navController.navigateSingleTop(Routes.CONVERSATIONS_SCREEN)
     }
 
@@ -70,6 +77,8 @@ fun AppNavigationGraph() {
     }
 
     val popBackToLogin: () -> Unit = {
+        loginVM.logout()
+
         navController.popBackStack(
             Routes.LOGIN_SCREEN,
             inclusive = false,
@@ -103,10 +112,10 @@ fun AppNavigationGraph() {
         startDestination = Routes.LOGIN_SCREEN
     ) {
         composable(Routes.LOGIN_SCREEN) {
-            LoginScreen {
-                homeScreenVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
+            LoginScreen(viewModel = loginVM) {
+                homeVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
                 questionsVM.reload(ReloadSignal.RELOAD_ALL_POSTS)
-                detailVM.renewState()
+                conversationsVM.reload(ReloadSignal.RELOAD_ALL_CONVERSATIONS)
 
                 navController.navigateSingleTop(Routes.HOME_SCREEN)
             }
@@ -124,7 +133,7 @@ fun AppNavigationGraph() {
             }
 
             HomeScreen(
-                viewModel = homeScreenVM,
+                viewModel = homeVM,
                 navigateToLogin = popBackToLogin,
                 navigateToCreateProject = navigateToCreateProject,
                 navigateToDetailProject = navigateToDetailProject,
@@ -160,7 +169,7 @@ fun AppNavigationGraph() {
             DetailScreen(
                 viewModel = detailVM,
                 navigateToHome = { isDeleted ->
-                    if (isDeleted) homeScreenVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
+                    if (isDeleted) homeVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
                     popBackToHome()
                 },
                 navigateToModifyProject = navigateToModify,
@@ -175,7 +184,7 @@ fun AppNavigationGraph() {
             CreateProjectScreen(
                 navigateToLogin = popBackToLogin,
                 navigateToHome = { isCreated ->
-                    if (isCreated) homeScreenVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
+                    if (isCreated) homeVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
                     popBackToHome()
                 },
                 navigateToQuestions = navigateToQuestions,
@@ -191,7 +200,7 @@ fun AppNavigationGraph() {
                 navigateToDetail = { isModified ->
                     if (isModified) {
                         detailVM.reload(ReloadSignal.RELOAD_PROJECT)
-                        homeScreenVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
+                        homeVM.reload(ReloadSignal.RELOAD_ALL_PROJECTS)
                     }
                     popBackToDetailScreen()
                 },
@@ -357,10 +366,12 @@ fun AppNavigationGraph() {
         }
 
         composable(Routes.CONVERSATIONS_SCREEN) {
-            val navigateToChat: () -> Unit = {
+            val navigateToChat: (Long) -> Unit = { conversationId ->
+                chatVM.fetchMessages(conversationId)
                 navController.navigateSingleTop(Routes.CHAT_SCREEN)
             }
             ConversationsScreen(
+                viewModel = conversationsVM,
                 navigateToHome = popBackToHome,
                 navigateToChat = navigateToChat
             )
@@ -368,6 +379,7 @@ fun AppNavigationGraph() {
 
         composable(Routes.CHAT_SCREEN) {
             val popBackToConversations: () -> Unit = {
+                conversationsVM.reload(ReloadSignal.RELOAD_ALL_CONVERSATIONS)
                 navController.popBackStack(
                     route = Routes.CONVERSATIONS_SCREEN,
                     inclusive = false,
@@ -375,6 +387,7 @@ fun AppNavigationGraph() {
                 )
             }
             ChatScreen(
+                viewModel = chatVM,
                 navigateToConversations = popBackToConversations
             )
         }

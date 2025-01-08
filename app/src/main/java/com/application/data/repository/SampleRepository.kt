@@ -14,9 +14,9 @@ import com.application.data.entity.request.UpsertAnswerRequest
 import com.application.data.entity.response.SampleResponse
 import com.application.data.exception.SampleException
 import com.application.data.repository.ProjectRepository.Companion.TAG
-import com.sc.library.attachment.repository.AttachmentRepository
-import com.sc.library.utility.client.response.PagingResponse
-import com.sc.library.utility.state.ResourceState
+import io.github.nhatbangle.sc.attachment.repository.AttachmentRepository
+import io.github.nhatbangle.sc.utility.client.response.PagingResponse
+import io.github.nhatbangle.sc.utility.state.ResourceState
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
@@ -124,22 +124,10 @@ class SampleRepository(
         stageId: String,
         pageNumber: Int = 0,
         pageSize: Int = 6
-    ): Result<PagingResponse<Sample>> {
-        return runCatching {
-            val response = projectService.getAllSamplesOfStage(stageId, pageNumber, pageSize)
-            val samples = response.content.map { mapResponseToSample(it) }
-            PagingResponse(
-                totalPages = response.totalPages,
-                totalElements = response.totalElements,
-                number = response.number,
-                size = response.size,
-                numberOfElements = response.numberOfElements,
-                first = response.first,
-                last = response.last,
-                content = samples
-            )
-        }.onFailure { Log.e(TAG, it.message, it) }
-    }
+    ): Result<PagingResponse<Sample>> = runCatching {
+        projectService.getAllSamplesOfStage(stageId, pageNumber, pageSize)
+            .map(::mapResponseToSample)
+    }.onFailure { Log.e(TAG, it.message, it) }
 
     private fun mapResponseToSample(response: SampleResponse): Sample {
         val (image, answers, dynamicFields) = runBlocking {

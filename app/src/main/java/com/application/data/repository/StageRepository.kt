@@ -11,9 +11,9 @@ import com.application.data.entity.request.UpdateMemberRequest
 import com.application.data.entity.request.UpdateStageRequest
 import com.application.data.entity.response.StageResponse
 import com.application.data.repository.ProjectRepository.Companion.TAG
-import com.sc.library.user.repository.UserRepository
-import com.sc.library.utility.client.response.PagingResponse
-import com.sc.library.utility.state.ResourceState
+import io.github.nhatbangle.sc.user.repository.UserRepository
+import io.github.nhatbangle.sc.utility.client.response.PagingResponse
+import io.github.nhatbangle.sc.utility.state.ResourceState
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
@@ -65,22 +65,11 @@ class StageRepository(
         pageNumber: Int = 0,
         pageSize: Int = 6
     ): Result<PagingResponse<Stage>> = runCatching {
-        val response = projectService.getAllStages(
+        projectService.getAllStages(
             projectId = projectId,
             pageNumber = pageNumber,
             pageSize = pageSize
-        )
-        val stages = response.content.map { mapResponseToStage(it) }
-        PagingResponse(
-            totalPages = response.totalPages,
-            totalElements = response.totalElements,
-            number = response.number,
-            size = response.size,
-            numberOfElements = response.numberOfElements,
-            first = response.first,
-            last = response.last,
-            content = stages
-        )
+        ).map(::mapResponseToStage)
     }.onFailure { Log.e(TAG, it.message, it) }
 
     /**

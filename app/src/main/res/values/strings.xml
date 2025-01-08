@@ -15,7 +15,7 @@
     <string name="search_title">Search…</string>
     <string name="delete">Delete</string>
     <string name="create_project">Create project</string>
-    <string name="default_date">Choosing date…</string>
+    <string name="select_date">Choosing date…</string>
     <string name="start_date">Start date:</string>
     <string name="end_date">End date:</string>
     <string name="submit">Submit</string>
@@ -125,5 +125,11 @@
     <string name="get_files_in_post_error">Getting files process has occurred an error.</string>
     <string name="submit_post_error">Please fill in a general comment for this post.</string>
     <string name="back">Back</string>
-
+    <string name="no_conversation">No conversations</string>
+    <string name="file">File</string>
+    <string name="no_messages">No messages.</string>
+    <string name="notify_chat_channel" translatable="false">Chat</string>
+    <string name="notify_chat_channel_description" translatable="false">Make status bar, notification drawer and heads-up notification</string>
+    <string name="error_invalid_email">Your string is not an email.</string>
+    <string name="str_max_length">Maximum number of characters is </string>
 </resources>

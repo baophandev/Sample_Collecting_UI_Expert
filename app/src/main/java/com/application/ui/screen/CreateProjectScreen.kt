@@ -52,7 +52,7 @@ import com.application.ui.component.CustomTextField
 import com.application.ui.component.FieldToList
 import com.application.ui.component.TopBar
 import com.application.ui.viewmodel.CreateProjectViewModel
-import com.sc.library.utility.validate.RegexValidation
+import com.application.util.Validation
 
 @Composable
 fun CreateProjectScreen(
@@ -82,6 +82,7 @@ fun CreateProjectScreen(
             }
         }
     }
+
     if (state.loading) LoadingScreen(text = stringResource(id = R.string.creating_project))
     else {
         Scaffold(
@@ -138,7 +139,8 @@ fun CreateProjectScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth(.95f)
-                        .height(180.dp),
+                        .height(180.dp)
+                        .padding(vertical = 5.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = Color.White
                     ),
@@ -173,11 +175,19 @@ fun CreateProjectScreen(
                 CustomTextField(
                     modifier = Modifier
                         .fillMaxWidth(.95f)
-                        .height(60.dp),
+                        .height(80.dp),
                     placeholder = { Text(text = stringResource(id = R.string.add_title)) },
                     singleLine = true,
-                    value = state.name,
-                    onValueChange = viewModel::updateTitle
+                    value = state.title,
+                    supportingText = {
+                        val text =
+                            "${stringResource(R.string.str_max_length)} ${Validation.NORMAL_TEXT_LENGTH}"
+                        Text(text = text)
+                    },
+                    onValueChange = {
+                        if (Validation.checkNormalText(it))
+                            viewModel.updateTitle(it)
+                    }
                 )
 
                 CustomTextField(
@@ -186,7 +196,15 @@ fun CreateProjectScreen(
                         .height(100.dp),
                     placeholder = { Text(text = stringResource(id = R.string.add_description)) },
                     value = state.description,
-                    onValueChange = viewModel::updateDescription
+                    supportingText = {
+                        val text =
+                            "${stringResource(R.string.str_max_length)} ${Validation.LONG_TEXT_LENGTH}"
+                        Text(text = text)
+                    },
+                    onValueChange = {
+                        if (Validation.checkLongText(it))
+                            viewModel.updateDescription(it)
+                    }
                 )
 
                 Row(
@@ -205,20 +223,21 @@ fun CreateProjectScreen(
 
                 FieldToList(
                     fieldDataList = state.memberEmailMap.keys.toList(),
-                    textValidator = { email -> email.contains(RegexValidation.EMAIL) },
-                    onAddField = { newMemberEmail -> viewModel.addMemberEmail(newMemberEmail) },
-                    onRemoveField = { index -> viewModel.removeMemberEmail(index) }
+//                    textValidator = { email -> email.contains(RegexValidation.EMAIL) },
+                    onAddField = {
+                        if (Validation.checkLongText(it))
+                            viewModel.addMemberEmail(it)
+                    },
+                    onRemoveField = viewModel::removeMemberEmail
                 )
 
                 CustomButton(
                     modifier = Modifier.fillMaxWidth(.95f),
                     text = stringResource(id = R.string.submit),
                     textSize = 20.sp,
-                    background = colorResource(id = R.color.main_green),
+                    background = MaterialTheme.colorScheme.primary,
                     border = BorderStroke(0.dp, Color.Transparent),
-                    action = {
-                        viewModel.submit { navigateToHome(true) }
-                    }
+                    action = { viewModel.submit { navigateToHome(true) } }
                 )
             }
         }

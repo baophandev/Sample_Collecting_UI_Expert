@@ -16,8 +16,9 @@ import com.application.data.repository.ProjectRepository
 import com.application.data.repository.StageRepository
 import com.application.ui.state.CreateStageUiState
 import com.application.ui.viewmodel.DetailViewModel.Companion.TAG
-import com.sc.library.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.nhatbangle.sc.utility.state.ResourceState
+import io.github.nhatbangle.sc.utility.validate.RegexValidation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -75,8 +76,8 @@ class CreateStageViewModel @Inject constructor(
         }
     }
 
-    fun updateName(title: String) {
-        _state.update { it.copy(name = title) }
+    fun updateTitle(title: String) {
+        _state.update { it.copy(title = title) }
     }
 
     fun updateDescription(description: String) {
@@ -92,6 +93,11 @@ class CreateStageViewModel @Inject constructor(
     }
 
     fun addStageMemberEmail(memberEmail: String) {
+        if (!RegexValidation.EMAIL.matches(memberEmail)) {
+            _state.update { it.copy(error = R.string.error_invalid_email) }
+            return
+        }
+
         val currentState = state.value
         val existUser = currentState.projectMembers.find { it.email == memberEmail }
         if (existUser == null) {
@@ -134,7 +140,7 @@ class CreateStageViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val memberIds = currentState.selectedUsers.map { it.id }
             stageRepository.createStage(
-                name = currentState.name,
+                name = currentState.title,
                 description = currentState.description,
                 startDate = currentState.startDate,
                 endDate = currentState.endDate,
@@ -150,7 +156,7 @@ class CreateStageViewModel @Inject constructor(
 
     private fun validateFields(): Boolean {
         val currentState = state.value
-        if (currentState.name.isBlank()) {
+        if (currentState.title.isBlank()) {
             _state.update { it.copy(error = R.string.error_empty_stage_name) }
             return false
         } else if (currentState.startDate == null || currentState.endDate == null) {

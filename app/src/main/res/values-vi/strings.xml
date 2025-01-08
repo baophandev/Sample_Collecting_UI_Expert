@@ -17,7 +17,7 @@
     <string name="search_title">Tìm kiếm…</string>
     <string name="delete">Xóa</string>
     <string name="create_project">Tạo dự án</string>
-    <string name="default_date">Chọn ngày…</string>
+    <string name="select_date">Chọn ngày…</string>
     <string name="start_date">Ngày bắt đầu:</string>
     <string name="end_date">Ngày kết thúc:</string>
     <string name="submit">Xác nhận</string>
@@ -129,5 +129,10 @@
     <string name="get_files_in_post_error">Quá trình lấy các hình ảnh đã xảy ra lỗi.</string>
     <string name="submit_post_error">Vui lòng điền bình luận tổng quát cho bài đăng này.</string>
     <string name="back">Trở lại</string>
+    <string name="no_conversation">Không có cuộc hội thoại</string>
+    <string name="file">Tập tin</string>
+    <string name="no_messages">Không có tin nhắn.</string>
+    <string name="error_invalid_email">Chuỗi bạn nhập không phải là một email.</string>
+    <string name="str_max_length">Số lượng ký tự tối đa là </string>
 
 </resources>

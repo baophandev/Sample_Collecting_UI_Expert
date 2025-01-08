@@ -1,7 +1,7 @@
 package com.application.data.entity
 
 import android.net.Uri
-import com.sc.library.user.entity.User
+import io.github.nhatbangle.sc.user.entity.User
 
 data class Post(
     val id: String,

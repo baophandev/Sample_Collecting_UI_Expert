@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import com.application.data.repository.ProjectRepository.Companion.TAG
-import com.sc.library.utility.state.ResourceState
+import io.github.nhatbangle.sc.utility.state.ResourceState
 import kotlinx.coroutines.flow.flowOf
 
 class FieldRepository(

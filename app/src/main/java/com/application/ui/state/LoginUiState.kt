@@ -8,6 +8,5 @@ data class LoginUiState(
     val username: String = "",
     val password: String = "",
     @StringRes val error: Int? = null,
-    @StringRes val cancel: Int? = null
 )
 

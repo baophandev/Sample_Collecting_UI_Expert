@@ -23,6 +23,7 @@ fun FormField(
     modifier: Modifier = Modifier,
     isError: Boolean = false,
     fieldName: String,
+    supportingText: @Composable (() -> Unit)? = null,
     onFieldNameChange: (String) -> Unit,
     onDeleteClicked: () -> Unit
 ) {
@@ -46,6 +47,7 @@ fun FormField(
                     focusedIndicatorColor = Color.Transparent,
                     focusedTextColor = Color.Black,
                 ),
+                supportingText = supportingText,
                 singleLine = true,
                 isError = isError,
             )

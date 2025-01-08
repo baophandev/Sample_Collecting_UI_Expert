@@ -54,6 +54,7 @@ import com.application.ui.component.CustomTextField
 import com.application.ui.component.FormField
 import com.application.ui.component.TopBar
 import com.application.ui.viewmodel.ModifyFormViewModel
+import com.application.util.Validation
 
 @Composable
 fun ModifyFormScreen(
@@ -184,7 +185,15 @@ fun ModifyFormScreen(
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(colorResource(id = R.color.white)),
                             fieldName = data.name,
-                            onFieldNameChange = { viewModel.updateFieldName(index, it) },
+                            supportingText = {
+                                val text =
+                                    "${stringResource(R.string.str_max_length)} ${Validation.NORMAL_TEXT_LENGTH}"
+                                Text(text = text)
+                            },
+                            onFieldNameChange = {
+                                if (Validation.checkNormalText(it))
+                                    viewModel.updateFieldName(index, it)
+                            },
                             onDeleteClicked = { viewModel.deleteField(index) }
                         )
                     }
@@ -214,6 +223,7 @@ fun ModifyFormScreen(
             Toast.makeText(context, state.error!!, Toast.LENGTH_LONG).show()
             popBackToDetail(false)
         }
+
         else -> {}
     }
 }

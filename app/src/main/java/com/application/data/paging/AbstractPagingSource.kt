@@ -2,7 +2,7 @@ package com.application.data.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.sc.library.utility.client.response.PagingResponse
+import io.github.nhatbangle.sc.utility.client.response.PagingResponse
 
 abstract class AbstractPagingSource<T : Any> : PagingSource<Int, T>() {
 
@@ -11,8 +11,8 @@ abstract class AbstractPagingSource<T : Any> : PagingSource<Int, T>() {
         // that was closest to the most recently accessed index.
         // Anchor position is the most recently accessed index
         return state.anchorPosition?.let { anchorPosition ->
-            state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
-                ?: state.closestPageToPosition(anchorPosition)?.nextKey?.minus(1)
+            val closestPage = state.closestPageToPosition(anchorPosition)
+            closestPage?.prevKey?.plus(1) ?: closestPage?.nextKey?.minus(1)
         }
     }
 

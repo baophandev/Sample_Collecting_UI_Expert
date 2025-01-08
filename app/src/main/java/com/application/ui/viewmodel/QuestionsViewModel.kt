@@ -12,7 +12,7 @@ import com.application.data.entity.Post
 import com.application.data.paging.PostPagingSource
 import com.application.data.repository.PostRepository
 import com.application.ui.state.QuestionsUiState
-import com.sc.library.user.repository.UserRepository
+import io.github.nhatbangle.sc.user.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow

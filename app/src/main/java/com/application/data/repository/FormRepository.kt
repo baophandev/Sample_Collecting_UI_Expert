@@ -9,8 +9,8 @@ import com.application.data.entity.request.UpdateFormRequest
 import com.application.data.entity.response.FormResponse
 import com.application.data.exception.FormException
 import com.application.data.repository.ProjectRepository.Companion.TAG
-import com.sc.library.utility.client.response.PagingResponse
-import com.sc.library.utility.state.ResourceState
+import io.github.nhatbangle.sc.utility.client.response.PagingResponse
+import io.github.nhatbangle.sc.utility.state.ResourceState
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
@@ -35,22 +35,11 @@ class FormRepository(
         pageNumber: Int = 0,
         pageSize: Int = 6
     ): Result<PagingResponse<Form>> = runCatching {
-        val response = projectService.getAllForms(
+        projectService.getAllForms(
             projectId = projectId,
             pageNumber = pageNumber,
             pageSize = pageSize
-        )
-        val forms = response.content.map(::mapResponseToForm)
-        PagingResponse(
-            totalPages = response.totalPages,
-            totalElements = response.totalElements,
-            number = response.number,
-            size = response.size,
-            numberOfElements = response.numberOfElements,
-            first = response.first,
-            last = response.last,
-            content = forms
-        )
+        ).map(::mapResponseToForm)
     }.onFailure { Log.e(TAG, it.message, it) }
 
     /**

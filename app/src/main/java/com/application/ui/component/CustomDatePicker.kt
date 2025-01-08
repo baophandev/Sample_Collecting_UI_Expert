@@ -42,15 +42,16 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun CustomDatePicker(
     modifier: Modifier = Modifier,
-    fieldName: String = "Date",
+    fieldName: String = "",
     initValue: String? = null,
-    pickerTitle: String = "Select date",
+    pickerTitle: String = stringResource(R.string.select_date),
     isError: Boolean = false,
     onDateChange: (String) -> Unit
 ) {
-    val dateFormatter =
-        DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC)
-    val defaultDateText = initValue ?: stringResource(id = R.string.default_date)
+    val dateFormatter = DateTimeFormatter
+        .ofPattern("dd/MM/yyyy")
+        .withZone(ZoneOffset.systemDefault())
+    val defaultDateText = initValue ?: stringResource(id = R.string.select_date)
 
     val state = rememberDatePickerState()
     var showDatePicker by remember { mutableStateOf(false) }
@@ -111,9 +112,9 @@ fun CustomDatePicker(
                 },
                 confirmButton = {
                     CustomButton(
-                        text = "OK",
+                        text = stringResource(R.string.submit),
                         textSize = 18.sp,
-                        background = colorResource(id = R.color.sky_blue)
+                        background = MaterialTheme.colorScheme.primary
                     ) {
                         state.selectedDateMillis?.let {
                             selectedDate = dateFormatter.format(Instant.ofEpochMilli(it))

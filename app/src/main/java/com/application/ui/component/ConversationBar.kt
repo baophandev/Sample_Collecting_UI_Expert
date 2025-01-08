@@ -1,11 +1,13 @@
 package com.application.ui.component
 
+import android.net.Uri
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,40 +23,35 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-private fun truncateStringChat(s: String, maxLength: Int = 25, maxWords: Int = 8): String {
-    val words = s.split(" ")
-    return if (words.size > maxWords) {
-        words.take(maxWords).joinToString(" ") + "..."
-    } else if (s.length > maxLength) {
-        s.take(maxLength - 3) + "..."
-    } else {
-        s
-    }
-}
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.application.R
+import com.application.ui.theme.SampleCollectingApplicationTheme
 
 @Composable
-fun UserConversationBar(
-    userAvatar: Int,
-    userName: String,
-    userLastMessage: String,
-    messageSentTime: String,
+fun ConversationBar(
+    userAvatar: Uri? = null,
     read: Boolean,
-    onUserConversationClick: () -> Unit
+    title: String,
+    lastMessage: String,
+    updatedAt: String,
+    onClick: () -> Unit
 ) {
-    val shortenUserName = truncateStringChat(userName, 17, 4)
-    val shortenMessage = truncateStringChat(userLastMessage)
+    val context = LocalContext.current
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
-            .background(Color.White)
-            .clickable(onClick = onUserConversationClick)
+            .clickable(onClick = onClick)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -62,8 +59,19 @@ fun UserConversationBar(
             modifier = Modifier
                 .size(90.dp)
         ) {
-            Image(
-                painter = painterResource(id = userAvatar),
+            if (userAvatar != null) AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(userAvatar)
+                    .error(R.drawable.ic_launcher_background)
+                    .build(),
+                contentDescription = "view answer",
+                contentScale = ContentScale.Inside,
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(CircleShape)
+            )
+            else Image(
+                painter = painterResource(R.drawable.ic_launcher_background),
                 contentDescription = "view answer",
                 contentScale = ContentScale.Inside,
                 colorFilter = ColorFilter.tint(Color(0xFF007E2F)),
@@ -91,16 +99,18 @@ fun UserConversationBar(
                         .padding(start = 5.dp)
                 ) {
                     Text(
-                        text = shortenUserName,
+                        text = title,
                         style = TextStyle(
                             fontSize = 16.sp,
                             fontWeight = if (read) FontWeight.Medium else FontWeight.ExtraBold
                         ),
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
                         modifier = Modifier
                             .fillMaxWidth(0.68f)
                     )
                     Text(
-                        text = messageSentTime,
+                        text = updatedAt,
                         style = TextStyle(
                             fontWeight = if (read) FontWeight.Medium else FontWeight.ExtraBold
                         ),
@@ -115,11 +125,13 @@ fun UserConversationBar(
                         .padding(top = 40.dp, start = 5.dp)
                 ) {
                     Text(
-                        text = shortenMessage,
+                        text = lastMessage,
                         style = TextStyle(
                             color = if (read) Color.Gray else Color.Black,
                             fontSize = 12.sp,
                         ),
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
                         modifier = Modifier
                             .fillMaxWidth(0.8f)
                     )
@@ -139,6 +151,29 @@ fun UserConversationBar(
                         .fillMaxWidth()
                 )
             }
+        }
+    }
+}
+
+@Preview(widthDp = 450)
+@Composable
+private fun Test() {
+    SampleCollectingApplicationTheme {
+        Column(Modifier.background(Color.White)) {
+            ConversationBar(
+                title = "test",
+                lastMessage = "1234567",
+                updatedAt = "22/12/24 8:07 PM",
+                read = true,
+                onClick = { }
+            )
+            ConversationBar(
+                title = "test",
+                lastMessage = "1234567",
+                updatedAt = "22/12/24 8:07 PM",
+                read = true,
+                onClick = { }
+            )
         }
     }
 }

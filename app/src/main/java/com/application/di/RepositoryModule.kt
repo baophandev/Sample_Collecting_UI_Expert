@@ -9,11 +9,15 @@ import com.application.data.repository.PostRepository
 import com.application.data.repository.ProjectRepository
 import com.application.data.repository.SampleRepository
 import com.application.data.repository.StageRepository
-import com.sc.library.attachment.datasource.IAttachmentService
-import com.sc.library.attachment.repository.AttachmentRepository
-import com.sc.library.user.datasource.IUserService
-import com.sc.library.user.repository.UserRepository
-import com.sc.library.utility.file.FileReader
+import io.github.nhatbangle.sc.attachment.datasource.IAttachmentService
+import io.github.nhatbangle.sc.attachment.repository.AttachmentRepository
+import io.github.nhatbangle.sc.chat.data.datasource.IChatService
+import io.github.nhatbangle.sc.chat.data.repository.ConversationRepository
+import io.github.nhatbangle.sc.chat.data.repository.MessageRepository
+import io.github.nhatbangle.sc.chat.data.repository.ParticipantRepository
+import io.github.nhatbangle.sc.user.datasource.IUserService
+import io.github.nhatbangle.sc.user.repository.UserRepository
+import io.github.nhatbangle.sc.utility.file.FileReader
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,18 +41,21 @@ class RepositoryModule {
         projectService: IProjectService,
         userRepository: UserRepository,
         attachmentRepository: AttachmentRepository
-    ): ProjectRepository {
-        return ProjectRepository(projectService, userRepository, attachmentRepository)
-    }
+    ): ProjectRepository = ProjectRepository(
+        projectService = projectService,
+        userRepository = userRepository,
+        attachmentRepository = attachmentRepository
+    )
 
     @Provides
     @Singleton
     fun provideStageRepository(
         projectService: IProjectService,
         userRepository: UserRepository,
-    ): StageRepository {
-        return StageRepository(projectService, userRepository)
-    }
+    ): StageRepository = StageRepository(
+        projectService = projectService,
+        userRepository = userRepository
+    )
 
     @Provides
     @Singleton
@@ -61,9 +68,10 @@ class RepositoryModule {
     fun provideFormRepository(
         projectService: IProjectService,
         fieldRepository: FieldRepository
-    ): FormRepository {
-        return FormRepository(projectService, fieldRepository)
-    }
+    ): FormRepository = FormRepository(
+        projectService = projectService,
+        fieldRepository = fieldRepository
+    )
 
     @Provides
     @Singleton
@@ -71,13 +79,11 @@ class RepositoryModule {
         projectService: IProjectService,
         attachmentRepository: AttachmentRepository,
         fieldRepository: FieldRepository
-    ): SampleRepository {
-        return SampleRepository(
-            projectService = projectService,
-            attachmentRepository = attachmentRepository,
-            fieldRepository = fieldRepository
-        )
-    }
+    ): SampleRepository = SampleRepository(
+        projectService = projectService,
+        attachmentRepository = attachmentRepository,
+        fieldRepository = fieldRepository
+    )
 
     @Provides
     @Singleton
@@ -85,13 +91,11 @@ class RepositoryModule {
         postService: IPostService,
         userRepository: UserRepository,
         attachmentRepository: AttachmentRepository,
-    ): PostRepository {
-        return PostRepository(
-            userRepository = userRepository,
-            atmRepository = attachmentRepository,
-            service = postService
-        )
-    }
+    ): PostRepository = PostRepository(
+        userRepository = userRepository,
+        atmRepository = attachmentRepository,
+        service = postService
+    )
 
     @Provides
     @Singleton
@@ -102,5 +106,39 @@ class RepositoryModule {
         val fileReader = FileReader(context)
         return AttachmentRepository(fileReader, attachmentService)
     }
+
+    @Provides
+    @Singleton
+    fun provideConversationRepository(
+        chatService: IChatService,
+        userRepository: UserRepository,
+    ): ConversationRepository = ConversationRepository(
+        chatService = chatService,
+        userRepository = userRepository,
+    )
+
+    @Provides
+    @Singleton
+    fun provideMessageRepository(
+        chatService: IChatService,
+        attachmentRepository: AttachmentRepository,
+        userRepository: UserRepository,
+    ): MessageRepository = MessageRepository(
+        chatService = chatService,
+        attachmentRepository = attachmentRepository,
+        userRepository = userRepository,
+    )
+
+    @Provides
+    @Singleton
+    fun provideParticipantRepository(
+        chatService: IChatService,
+        conversationRepository: ConversationRepository,
+        userRepository: UserRepository,
+    ): ParticipantRepository = ParticipantRepository(
+        chatService = chatService,
+        conversationRepository = conversationRepository,
+        userRepository = userRepository,
+    )
 
 }

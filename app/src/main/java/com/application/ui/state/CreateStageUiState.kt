@@ -3,13 +3,13 @@ package com.application.ui.state
 import androidx.annotation.StringRes
 import com.application.constant.UiStatus
 import com.application.data.entity.Form
-import com.sc.library.user.entity.User
+import io.github.nhatbangle.sc.user.entity.User
 
 data class CreateStageUiState(
     val status: UiStatus = UiStatus.INIT,
     @StringRes val error: Int? = null,
 
-    val name: String = "",
+    val title: String = "",
     val description: String = "",
     val startDate: String? = null,
     val endDate: String? = null,

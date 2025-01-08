@@ -13,9 +13,9 @@ import com.application.constant.UiStatus
 import com.application.data.entity.Comment
 import com.application.data.repository.PostRepository
 import com.application.ui.state.PostDetailUiState
-import com.sc.library.attachment.entity.Attachment
-import com.sc.library.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.nhatbangle.sc.attachment.entity.Attachment
+import io.github.nhatbangle.sc.utility.state.ResourceState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -58,15 +58,15 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
-    fun startDownload(attachment: Attachment) {
+    fun clickAttachment(attachment: Attachment) {
+        if ("http" !in attachment.url) return
+
         val downloadManager =
             application.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-
         val request = DownloadManager.Request(Uri.parse(attachment.url))
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
             .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, attachment.name)
             .setMimeType(attachment.type)
-
         downloadManager.enqueue(request)
     }
 
@@ -127,7 +127,8 @@ class PostDetailViewModel @Inject constructor(
                 ?: mutableListOf()
             newGeneralAttachment.addAll(attachments)
 
-            val newGeneralCmt = currentGeneralCmt?.copy(attachments = newGeneralAttachment) // for rendering
+            val newGeneralCmt =
+                currentGeneralCmt?.copy(attachments = newGeneralAttachment) // for rendering
 
             currentState.copy(
                 post = currentState.post?.copy(generalComment = newGeneralCmt)
