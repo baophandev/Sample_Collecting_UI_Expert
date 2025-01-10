@@ -125,8 +125,11 @@ class SampleRepository(
         pageNumber: Int = 0,
         pageSize: Int = 6
     ): Result<PagingResponse<Sample>> = runCatching {
-        projectService.getAllSamplesOfStage(stageId, pageNumber, pageSize)
-            .map(::mapResponseToSample)
+        projectService.getAllSamplesOfStage(
+            stageId = stageId,
+            pageNumber = pageNumber,
+            pageSize = pageSize
+        ).map(::mapResponseToSample)
     }.onFailure { Log.e(TAG, it.message, it) }
 
     private fun mapResponseToSample(response: SampleResponse): Sample {

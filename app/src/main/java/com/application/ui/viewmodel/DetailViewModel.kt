@@ -10,6 +10,7 @@ import androidx.paging.cachedIn
 import com.application.constant.ReloadSignal
 import com.application.constant.UiStatus
 import com.application.data.entity.Form
+import com.application.data.entity.Project
 import com.application.data.entity.Stage
 import com.application.data.paging.FormPagingSource
 import com.application.data.paging.StagePagingSource
@@ -63,10 +64,10 @@ class DetailViewModel @Inject constructor(
             .catch { Log.e(TAG, it.message, it) }
     }
 
-    fun fetchProject(projectId: String, skipCached: Boolean = false) {
+    private fun fetchProject(projectId: String) {
         _state.update { it.copy(status = UiStatus.LOADING) }
         viewModelScope.launch(Dispatchers.IO) {
-            projectRepository.getProject(projectId, skipCached)
+            projectRepository.getProject(projectId, true)
                 .collectLatest { rsState ->
                     when (rsState) {
                         is ResourceState.Error -> _state.update { it.copy(status = UiStatus.ERROR) }
@@ -80,6 +81,15 @@ class DetailViewModel @Inject constructor(
                         }
                     }
                 }
+        }
+    }
+
+    fun fetchProject(project: Project) {
+        _state.update {
+            it.copy(
+                project = project,
+                status = UiStatus.SUCCESS
+            )
         }
     }
 
@@ -152,7 +162,7 @@ class DetailViewModel @Inject constructor(
             }
 
             ReloadSignal.RELOAD_PROJECT -> state.value.project?.let {
-                fetchProject(projectId = it.id, skipCached = true)
+                fetchProject(projectId = it.id)
             }
 
             else -> {}

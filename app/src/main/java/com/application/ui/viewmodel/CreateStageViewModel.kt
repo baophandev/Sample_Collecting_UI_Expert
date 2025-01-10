@@ -15,7 +15,6 @@ import com.application.data.repository.FormRepository
 import com.application.data.repository.ProjectRepository
 import com.application.data.repository.StageRepository
 import com.application.ui.state.CreateStageUiState
-import com.application.ui.viewmodel.DetailViewModel.Companion.TAG
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.nhatbangle.sc.utility.state.ResourceState
 import io.github.nhatbangle.sc.utility.validate.RegexValidation
@@ -171,4 +170,9 @@ class CreateStageViewModel @Inject constructor(
         }
         else return true
     }
+
+    companion object {
+        const val TAG = "CreateStageViewModel"
+    }
+
 }

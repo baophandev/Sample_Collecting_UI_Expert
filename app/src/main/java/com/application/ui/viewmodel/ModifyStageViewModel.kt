@@ -50,37 +50,37 @@ class ModifyStageViewModel @Inject constructor(
 
     lateinit var flow: Flow<PagingData<Form>>
 
-    fun fetchStage(projectId: String, stageId: String) {
+    fun loadStage(stage: Stage) {
+        val projectId = stage.projectOwnerId
+
         _state.update { it.copy(status = UiStatus.LOADING, isUpdated = false) }
-
         viewModelScope.launch(Dispatchers.IO) {
-            stageRepository.getStage(stageId).collectLatest { rsState ->
-                when (rsState) {
-                    is ResourceState.Success -> {
-                        val stage = rsState.data
-                        when (val formRsState = formRepository.getForm(stage.formId).last()) {
-                            is ResourceState.Error -> _state.update {
-                                it.copy(
-                                    status = UiStatus.ERROR,
-                                    error = formRsState.resId
-                                )
-                            }
-
-                            is ResourceState.Success -> _state.update {
-                                it.copy(
-                                    status = UiStatus.SUCCESS,
-                                    selectedForm = formRsState.data,
-                                    stage = stage,
-                                    stageUsers = stage.members
-                                )
-                            }
-                        }
-                    }
-
-                    is ResourceState.Error -> _state.update {
-                        it.copy(status = UiStatus.ERROR, error = rsState.resId)
-                    }
+            val form = async {
+                when (val rsState = formRepository.getForm(stage.formId).last()) {
+                    is ResourceState.Success -> rsState.data
+                    is ResourceState.Error -> null
                 }
+            }.await()
+
+            val members = async {
+                when (val rsState = projectRepository.getProject(projectId).last()) {
+                    is ResourceState.Success -> rsState.data.members
+                    is ResourceState.Error -> null
+                }
+            }.await()
+
+            _state.update {
+                if (form == null)
+                    it.copy(status = UiStatus.ERROR, error = R.string.error_cannot_get_form)
+                else if (members == null)
+                    it.copy(status = UiStatus.ERROR, error = R.string.error_cannot_get_project)
+                else
+                    it.copy(
+                        status = UiStatus.SUCCESS,
+                        stage = stage,
+                        selectedForm = form,
+                        projectMembers = members
+                    )
             }
         }
 
@@ -96,21 +96,6 @@ class ModifyStageViewModel @Inject constructor(
         }.flow
             .cachedIn(viewModelScope)
             .catch { Log.e(TAG, it.message, it) }
-    }
-
-    fun fetchProjectMembers(projectId: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            projectRepository.getProject(projectId).collectLatest { rsState ->
-                when (rsState) {
-                    is ResourceState.Success -> {
-                        val project = rsState.data
-                        _state.update { it.copy(projectMembers = project.members) }
-                    }
-
-                    is ResourceState.Error -> _state.update { it.copy(status = UiStatus.ERROR) }
-                }
-            }
-        }
     }
 
     fun updateTitle(name: String) {

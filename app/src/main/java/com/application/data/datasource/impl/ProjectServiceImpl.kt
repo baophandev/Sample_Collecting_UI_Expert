@@ -30,7 +30,6 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.http.parameters
 
 class ProjectServiceImpl(
     private val client: HttpClient,
@@ -111,10 +110,8 @@ class ProjectServiceImpl(
     ): PagingResponse<StageResponse> = runCatching<PagingResponse<StageResponse>> {
         client.get(urlString = "$prefixPath/stage/$projectId/project") {
             url {
-                parameters {
-                    append("pageNumber", "$pageNumber")
-                    append("pageSize", "$pageSize")
-                }
+                encodedParameters.append("pageNumber", "$pageNumber")
+                encodedParameters.append("pageSize", "$pageSize")
             }
         }.body()
     }.getOrDefault(PagingResponse())
@@ -165,10 +162,8 @@ class ProjectServiceImpl(
     ): PagingResponse<FormResponse> = runCatching<PagingResponse<FormResponse>> {
         client.get(urlString = "$prefixPath/form/$projectId/project") {
             url {
-                parameters {
-                    append("pageNumber", "$pageNumber")
-                    append("pageSize", "$pageSize")
-                }
+                encodedParameters.append("pageNumber", "$pageNumber")
+                encodedParameters.append("pageSize", "$pageSize")
             }
         }.body()
     }.getOrDefault(PagingResponse())
@@ -258,10 +253,8 @@ class ProjectServiceImpl(
         client
             .get(urlString = "$prefixPath/sample/$stageId/stage") {
                 url {
-                    parameters {
-                        append("pageNumber", "$pageNumber")
-                        append("pageSize", "$pageSize")
-                    }
+                    encodedParameters.append("pageNumber", "$pageNumber")
+                    encodedParameters.append("pageSize", "$pageSize")
                 }
             }
             .body()
@@ -275,10 +268,8 @@ class ProjectServiceImpl(
         client
             .get(urlString = "$prefixPath/sample/$projectId/project") {
                 url {
-                    parameters {
-                        append("pageNumber", "$pageNumber")
-                        append("pageSize", "$pageSize")
-                    }
+                    encodedParameters.append("pageNumber", "$pageNumber")
+                    encodedParameters.append("pageSize", "$pageSize")
                 }
             }
             .body()

@@ -55,6 +55,7 @@ import coil.request.ImageRequest
 import com.application.R
 import com.application.constant.UiStatus
 import com.application.data.entity.Form
+import com.application.data.entity.Project
 import com.application.data.entity.Stage
 import com.application.ui.component.CustomButton
 import com.application.ui.component.FormContainer
@@ -76,11 +77,11 @@ private enum class AlertType { CREATE_NEW_PROJECT, DELETE, ADD_FORM, NONE, CANNO
 fun DetailScreen(
     viewModel: DetailViewModel = hiltViewModel(),
     navigateToHome: (Boolean) -> Unit,
-    navigateToModifyProject: (String) -> Unit,
-    navigateToStageDetail: (String) -> Unit,
+    navigateToModifyProject: (Project) -> Unit,
+    navigateToStageDetail: (Stage) -> Unit,
     navigateToCreateStage: (String) -> Unit,
     navigateToCreateForm: (String) -> Unit,
-    navigateToModifyForm: (String) -> Unit,
+    navigateToModifyForm: (Form) -> Unit,
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
@@ -198,10 +199,10 @@ fun DetailScreen(
                                     ScreenTab.FORMS -> FormTab(
                                         isProjectOwner = isProjectOwner,
                                         pagingItems = formPagingItems,
-                                        onFormModifyClick = { formId ->
+                                        onFormModifyClick = { form ->
                                             val isFormUsed = stagePagingItems.itemSnapshotList
-                                                .any { it?.formId == formId }
-                                            if (!isFormUsed) navigateToModifyForm(formId)
+                                                .any { it?.formId == form.id }
+                                            if (!isFormUsed) navigateToModifyForm(form)
                                             else alertType = AlertType.CANNOT_MODIFY_FORM
                                         },
                                         onFormDeleteClicked = { formId ->
@@ -276,7 +277,7 @@ fun DetailScreen(
                     FunctionalButtons(
                         tab = currentTab,
                         onModifyProjectClick = {
-                            navigateToModifyProject(state.project!!.id)
+                            navigateToModifyProject(state.project!!)
 //                            if (viewModel.isProjectOwner())
 //                                navigateToModifyProject(state.project!!.id)
 //                            else alertType = AlertType.CREATE_NEW_PROJECT
@@ -434,7 +435,7 @@ private fun DetailTab(
 private fun StageTab(
     modifier: Modifier = Modifier,
     pagingItems: LazyPagingItems<Stage>,
-    onStageClick: (String) -> Unit,
+    onStageClick: (Stage) -> Unit,
 ) {
     PagingLayout(
         modifier = modifier,
@@ -447,7 +448,7 @@ private fun StageTab(
                 description = stage.description,
                 modifier = Modifier
                     .padding(vertical = 10.dp)
-                    .clickable { onStageClick(stage.id) }
+                    .clickable { onStageClick(stage) }
             )
         },
         noItemContent = {
@@ -472,7 +473,7 @@ private fun FormTab(
     modifier: Modifier = Modifier,
     isProjectOwner: Boolean = true,
     pagingItems: LazyPagingItems<Form>,
-    onFormModifyClick: (String) -> Unit,
+    onFormModifyClick: (Form) -> Unit,
     onFormDeleteClicked: (String) -> Unit
 ) {
     PagingLayout(
@@ -486,7 +487,7 @@ private fun FormTab(
                 modifier = Modifier
                     .padding(horizontal = 5.dp, vertical = 5.dp)
                     .fillMaxWidth(),
-                onModifyClicked = { onFormModifyClick(form.id) },
+                onModifyClicked = { onFormModifyClick(form) },
                 onDeleteClicked = { onFormDeleteClicked(form.id) }
             )
             Spacer(modifier = Modifier.size(5.dp))

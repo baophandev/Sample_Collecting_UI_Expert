@@ -6,7 +6,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -35,6 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.application.R
+import com.application.data.entity.Project
 import com.application.ui.component.BotNavigationBar
 import com.application.ui.component.CustomButton
 import com.application.ui.component.FieldProject
@@ -47,7 +47,7 @@ import com.application.ui.viewmodel.HomeViewModel
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     navigateToCreateProject: () -> Unit,
-    navigateToDetailProject: (String) -> Unit,
+    navigateToDetailProject: (Project) -> Unit,
     navigateToQuestions: () -> Unit,
     navigateToConversations: () -> Unit,
     navigateToLogin: () -> Unit
@@ -126,11 +126,11 @@ fun HomeScreen(
             pagingItems = projectPagingItems,
             itemKey = projectPagingItems.itemKey { it.id },
             itemsContent = { project ->
-                val ownerName = "${project.owner.firstName} ${project.owner.lastName}"
+                val ownerName = "${project.owner.lastName} ${project.owner.firstName}"
 
                 FieldProject(
                     modifier = Modifier.clickable {
-                        navigateToDetailProject(project.id)
+                        navigateToDetailProject(project)
                     },
                     thumbnail = project.thumbnail,
                     name = project.name,

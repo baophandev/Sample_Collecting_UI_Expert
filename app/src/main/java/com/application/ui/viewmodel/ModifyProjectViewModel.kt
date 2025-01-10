@@ -35,24 +35,34 @@ class ModifyProjectViewModel @Inject constructor(
     private val _state = MutableStateFlow(ModifyProjectUiState())
     val state = _state.asStateFlow()
 
-    fun loadProject(projectId: String) {
-        _state.update { it.copy(status = UiStatus.LOADING, isUpdated = false) }
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.getProject(projectId).collectLatest { resourceState ->
-                when (resourceState) {
-                    is ResourceState.Success -> _state.update {
-                        it.copy(
-                            status = UiStatus.SUCCESS,
-                            project = resourceState.data,
-                            projectUsers = resourceState.data.members
-                        )
-                    }
+//    fun loadProject(projectId: String) {
+//        _state.update { it.copy(status = UiStatus.LOADING, isUpdated = false) }
+//        viewModelScope.launch(Dispatchers.IO) {
+//            repository.getProject(projectId).collectLatest { resourceState ->
+//                when (resourceState) {
+//                    is ResourceState.Success -> _state.update {
+//                        it.copy(
+//                            status = UiStatus.SUCCESS,
+//                            project = resourceState.data,
+//                            projectUsers = resourceState.data.members
+//                        )
+//                    }
+//
+//                    is ResourceState.Error -> _state.update {
+//                        it.copy(status = UiStatus.ERROR, error = resourceState.resId)
+//                    }
+//                }
+//            }
+//        }
+//    }
 
-                    is ResourceState.Error -> _state.update {
-                        it.copy(status = UiStatus.ERROR, error = resourceState.resId)
-                    }
-                }
-            }
+    fun loadProject(project: Project) {
+        _state.update {
+            it.copy(
+                status = UiStatus.SUCCESS,
+                project = project,
+                projectUsers = project.members
+            )
         }
     }
 

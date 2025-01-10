@@ -29,29 +29,8 @@ class ModifyFormViewModel @Inject constructor(
     private val _state = MutableStateFlow(ModifyFormUiState())
     val state = _state.asStateFlow()
 
-    fun loadModifiedForm(formId: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            formRepository.getForm(formId)
-                .onStart {
-                    _state.update {
-                        it.copy(
-                            status = UiStatus.LOADING,
-                            isFormUpdated = false
-                        )
-                    }
-                }
-                .collectLatest { resourceState ->
-                    when (resourceState) {
-                        is ResourceState.Success -> _state.update {
-                            it.copy(status = UiStatus.SUCCESS, form = resourceState.data)
-                        }
-
-                        is ResourceState.Error -> _state.update {
-                            it.copy(status = UiStatus.ERROR, error = resourceState.resId)
-                        }
-                    }
-                }
-        }
+    fun loadModifiedForm(form: Form) {
+        _state.update { it.copy(status = UiStatus.SUCCESS, form = form) }
     }
 
     fun loadAllModifiedFields(formId: String) {

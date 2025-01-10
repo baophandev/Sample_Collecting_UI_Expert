@@ -2,9 +2,12 @@ package com.application.ui.screen
 
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +15,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
@@ -23,6 +30,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -32,11 +41,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -47,32 +58,29 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.application.R
 import com.application.constant.UiStatus
 import com.application.data.entity.Sample
+import com.application.data.entity.Stage
 import com.application.ui.component.CustomButton
 import com.application.ui.component.PhotoBottomSheetContent
 import com.application.ui.component.TopNavigationBar
 import com.application.ui.viewmodel.StageDetailViewModel
 
-private enum class StageTab { DETAIL, PHOTOS }
+enum class StageTab { DETAIL, PHOTOS }
 
-/**
- * @param navigateToModifyStage (projectId, stageId) -> Unit
- * @param navigateToSampleDetail (sampleId) -> Unit
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StageDetailScreen(
     viewModel: StageDetailViewModel = hiltViewModel(),
-    navigateToDetail: (Boolean) -> Unit,
-    navigateToModifyStage: (String, String) -> Unit,
+    navigateToDetail: () -> Unit,
+    navigateToModifyStage: (Stage) -> Unit,
     navigateToCapture: (String) -> Unit,
-    navigateToSampleDetail: (String) -> Unit
+    navigateToSampleDetail: (Sample) -> Unit
 ) {
-    val context = LocalContext.current
     val state by viewModel.state.collectAsState()
 
     val scaffoldState = rememberBottomSheetScaffoldState(
@@ -83,25 +91,23 @@ fun StageDetailScreen(
             skipHiddenState = true
         )
     )
-    var currentTab by remember { mutableStateOf(StageTab.DETAIL) }
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var showAddPhoto by remember { mutableStateOf(true) }
 
     DeleteStageAlertDialog(
         show = showDeleteDialog,
         onDismissRequest = { showDeleteDialog = false },
         onConfirmButtonClick = {
             showDeleteDialog = false
-            viewModel.deleteStage(successHandler = navigateToDetail)
+            viewModel.deleteStage(successHandler = { navigateToDetail() })
         }
     )
 
     when (state.status) {
         UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
         UiStatus.SUCCESS -> {
-            val sampleLazyPagingItems = viewModel.sampleFlow.collectAsLazyPagingItems()
             val isProjectOwner = viewModel.isProjectOwner()
-            val isMemberOfStage = viewModel.isMemberOfStage()
+            val samplePagingItems =
+                viewModel.sampleFlow.collectAsLazyPagingItems()
 
             Box {
                 BottomSheetScaffold(
@@ -109,41 +115,26 @@ fun StageDetailScreen(
                     sheetPeekHeight = 600.dp,
                     sheetContent = {
                         Column(modifier = Modifier.fillMaxSize()) {
-                            TabButtons(tab = currentTab) { newTab -> currentTab = newTab }
-                            when (currentTab) {
+                            TabButtons(
+                                tab = state.currentTab,
+                                onTabChange = viewModel::switchTab
+                            )
+                            when (state.currentTab) {
                                 StageTab.DETAIL -> DetailTab(
                                     description = state.stage?.description
                                 )
 
                                 StageTab.PHOTOS -> PhotoTab(
-                                    pagingItems = sampleLazyPagingItems,
-                                    onPhotoPress = { imageIdx ->
-                                        sampleLazyPagingItems[imageIdx]?.let { sample ->
-                                            navigateToSampleDetail(sample.id)
-                                        }
-                                    },
-                                    onImagesSelecting = { isSelecting -> showAddPhoto = !isSelecting },
-                                    onImagesDeleted = { deletedUris ->
-                                        val deletedSamples =
-                                            sampleLazyPagingItems.itemSnapshotList
-                                                .filter { it?.image in deletedUris }
-                                                .filterNotNull()
-                                                .map { it.id }
-                                        viewModel.deleteSamples(deletedSamples)
-                                    }
+                                    pagingItems = samplePagingItems,
+                                    onPhotoPress = navigateToSampleDetail
                                 )
                             }
                         }
                     }
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(context)
-                                .data(state.thumbnail)
-                                .error(R.drawable.ic_launcher_background)
-                                .fallback(R.drawable.ic_launcher_background)
-                                .placeholder(R.drawable.ic_launcher_background)
-                                .build(),
+                        Image(
+                            painter = painterResource(R.drawable.ic_launcher_background),
                             modifier = Modifier
                                 .height(300.dp)
                                 .fillMaxWidth(),
@@ -154,11 +145,7 @@ fun StageDetailScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            TopNavigationBar(
-                                backAction = {
-                                    viewModel.updateStageInDetail(successHandler = navigateToDetail)
-                                }
-                            ) {
+                            TopNavigationBar(backAction = navigateToDetail) {
                                 if (isProjectOwner) {
                                     DropdownMenuItem(
                                         leadingIcon = {
@@ -197,7 +184,7 @@ fun StageDetailScreen(
                         .padding(bottom = 20.dp),
                     contentAlignment = Alignment.BottomCenter
                 ) {
-                    when (currentTab) {
+                    when (state.currentTab) {
                         StageTab.DETAIL -> if (isProjectOwner) {
                             CustomButton(
                                 modifier = Modifier.fillMaxWidth(.7f),
@@ -205,17 +192,11 @@ fun StageDetailScreen(
                                 textSize = 16.sp,
                                 background = MaterialTheme.colorScheme.primary,
                                 border = BorderStroke(0.dp, Color.Transparent),
-                                action = {
-                                    val currentStage = state.stage!!
-                                    navigateToModifyStage(
-                                        currentStage.projectOwnerId,
-                                        currentStage.id
-                                    )
-                                }
+                                action = { state.stage?.let(navigateToModifyStage) }
                             )
                         }
 
-                        StageTab.PHOTOS -> if (showAddPhoto && (isProjectOwner || isMemberOfStage)) {
+                        StageTab.PHOTOS -> if (isProjectOwner || viewModel.isMemberOfStage()) {
                             CustomButton(
                                 modifier = Modifier.fillMaxWidth(.7f),
                                 text = stringResource(id = R.string.add_photo),
@@ -240,36 +221,36 @@ private fun DeleteStageAlertDialog(
     onDismissRequest: () -> Unit,
     onConfirmButtonClick: () -> Unit
 ) {
-    if (show) {
-        AlertDialog(
-            title = {
-                Text(text = stringResource(id = R.string.delete_stage))
-            },
-            text = {
-                Text(text = stringResource(id = R.string.delete_stage_description))
-            },
-            onDismissRequest = onDismissRequest,
-            confirmButton = {
-                CustomButton(
-                    text = stringResource(id = R.string.delete_this_project),
-                    textSize = 14.sp,
-                    background = colorResource(id = R.color.red),
-                    border = BorderStroke(0.dp, Color.Transparent),
-                    action = onConfirmButtonClick
-                )
-            },
-            dismissButton = {
-                CustomButton(
-                    text = stringResource(id = R.string.cancel),
-                    textSize = 14.sp,
-                    textColor = Color.Black,
-                    background = Color.White,
-                    border = BorderStroke(0.dp, Color.Transparent),
-                    action = onDismissRequest
-                )
-            }
-        )
-    }
+    if (!show) return
+
+    AlertDialog(
+        title = {
+            Text(text = stringResource(id = R.string.delete_stage))
+        },
+        text = {
+            Text(text = stringResource(id = R.string.delete_stage_description))
+        },
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            CustomButton(
+                text = stringResource(id = R.string.delete_this_project),
+                textSize = 14.sp,
+                background = colorResource(id = R.color.red),
+                border = BorderStroke(0.dp, Color.Transparent),
+                action = onConfirmButtonClick
+            )
+        },
+        dismissButton = {
+            CustomButton(
+                text = stringResource(id = R.string.cancel),
+                textSize = 14.sp,
+                textColor = Color.Black,
+                background = Color.White,
+                border = BorderStroke(0.dp, Color.Transparent),
+                action = onDismissRequest
+            )
+        }
+    )
 }
 
 @Composable
@@ -355,5 +336,60 @@ private fun DetailTab(
             fontSize = 16.sp,
             fontWeight = FontWeight.W400
         )
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+fun PhotoTab(
+    modifier: Modifier = Modifier,
+    pagingItems: LazyPagingItems<Sample>,
+    onPhotoPress: (Sample) -> Unit,
+) {
+    val context = LocalContext.current
+    val refreshState = rememberPullToRefreshState()
+
+    PullToRefreshBox(
+        state = refreshState,
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter,
+        isRefreshing = pagingItems.loadState.refresh is LoadState.Loading,
+        onRefresh = pagingItems::refresh
+    ) {
+        if (pagingItems.itemCount == 0)
+            Text(
+                modifier = Modifier.padding(16.dp),
+                text = stringResource(id = R.string.no_photos)
+            )
+        else if (pagingItems.loadState.refresh !is LoadState.Loading)
+            LazyVerticalStaggeredGrid(
+                modifier = Modifier.fillMaxSize(),
+                columns = StaggeredGridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalItemSpacing = 10.dp,
+                contentPadding = PaddingValues(16.dp)
+            ) {
+                items(
+                    count = pagingItems.itemCount,
+                    key = pagingItems.itemKey { it.id } // this detect duplicate key
+                ) { idx ->
+                    pagingItems[idx]?.let {
+                        AsyncImage(
+                            model = ImageRequest.Builder(context)
+                                .data(it.image)
+                                .error(R.drawable.img_error)
+                                .placeholder(R.drawable.img_placeholder)
+                                .fallback(R.drawable.img_fallback)
+                                .build(),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .wrapContentSize()
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable { onPhotoPress(it) }
+                        )
+                    }
+
+                }
+            }
     }
 }

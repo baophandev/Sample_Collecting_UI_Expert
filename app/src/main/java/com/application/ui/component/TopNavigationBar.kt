@@ -38,8 +38,7 @@ fun TopNavigationBar(
             .fillMaxWidth()
             .padding(10.dp),
         horizontalArrangement = Arrangement.SpaceBetween
-    )
-    {
+    ) {
         // Nút lùi về
         IconButton(
             modifier = Modifier.size(40.dp),

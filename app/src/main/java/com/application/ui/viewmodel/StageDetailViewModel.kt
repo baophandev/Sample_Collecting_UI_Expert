@@ -4,22 +4,23 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.application.constant.ReloadSignal
 import com.application.constant.UiStatus
 import com.application.data.entity.Sample
+import com.application.data.entity.Stage
 import com.application.data.paging.SamplePagingSource
 import com.application.data.repository.ProjectRepository
 import com.application.data.repository.SampleRepository
 import com.application.data.repository.StageRepository
+import com.application.ui.screen.StageTab
 import com.application.ui.state.StageDetailUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.nhatbangle.sc.user.repository.UserRepository
 import io.github.nhatbangle.sc.utility.state.ResourceState
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,12 +45,9 @@ class StageDetailViewModel @Inject constructor(
 
     lateinit var sampleFlow: Flow<PagingData<Sample>>
 
-    fun loadStage(
-        stageId: String,
-        skipCached: Boolean = false,
-    ) {
+    private fun loadStage(stageId: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            stageRepository.getStage(stageId, skipCached)
+            stageRepository.getStage(stageId, true)
                 .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
                 .collectLatest { resourceState ->
                     when (resourceState) {
@@ -71,13 +69,29 @@ class StageDetailViewModel @Inject constructor(
                     }
                 }
         }
-
-        initSamplePagingFlow(stageId)
     }
 
-    private fun initSamplePagingFlow(stageId: String) {
+    fun switchTab(tab: StageTab) = _state.update { it.copy(currentTab = tab) }
+
+    fun loadStage(stage: Stage) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val projectResourceState = projectRepository
+                .getProject(stage.projectOwnerId).last()
+            if (projectResourceState is ResourceState.Success)
+                _state.update {
+                    it.copy(
+                        stage = stage,
+                        projectOwner = projectResourceState.data.owner,
+                        status = UiStatus.SUCCESS
+                    )
+                }
+            else _state.update { it.copy(status = UiStatus.ERROR) }
+        }
+    }
+
+    fun fetchSamples(stageId: String) {
         sampleFlow = Pager(
-            androidx.paging.PagingConfig(
+            PagingConfig(
                 pageSize = 3,
                 enablePlaceholders = false,
                 prefetchDistance = 1,
@@ -91,30 +105,6 @@ class StageDetailViewModel @Inject constructor(
         }.flow
             .cachedIn(viewModelScope)
             .catch { Log.e(TAG, it.message, it) }
-    }
-
-    fun updateStageInDetail(successHandler: (Boolean) -> Unit) {
-        val currentStage = state.value.stage!!
-        val stageId = currentStage.id
-
-        viewModelScope.launch(Dispatchers.IO) {
-            stageRepository.getStage(stageId)
-                .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
-                .collectLatest { resourceState ->
-                    when (resourceState) {
-                        is ResourceState.Error -> _state.update {
-                            it.copy(status = UiStatus.ERROR, error = resourceState.resId)
-                        }
-
-                        is ResourceState.Success -> {
-                            _state.update { it.copy(status = UiStatus.SUCCESS) }
-                            viewModelScope.launch {
-                                successHandler(true)
-                            }
-                        }
-                    }
-                }
-        }
     }
 
     fun isProjectOwner(): Boolean {
@@ -150,32 +140,29 @@ class StageDetailViewModel @Inject constructor(
         }
     }
 
-    fun deleteSamples(sampleIds: List<String>) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _state.update { it.copy(status = UiStatus.LOADING) }
-
-            val results = sampleIds.map { id ->
-                async {
-                    val result = sampleRepository.deleteSample(id).last()
-                    result is ResourceState.Success
-                }
-            }.awaitAll()
-
-            _state.update { currentState ->
-                currentState.copy(
-                    status = if (results.all { it }) UiStatus.SUCCESS else UiStatus.ERROR
-                )
-            }
-        }
-    }
+//    fun deleteSamples(sampleIds: List<String>) {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            _state.update { it.copy(status = UiStatus.LOADING) }
+//
+//            val results = sampleIds.map { id ->
+//                async {
+//                    val result = sampleRepository.deleteSample(id).last()
+//                    result is ResourceState.Success
+//                }
+//            }.awaitAll()
+//
+//            _state.update { currentState ->
+//                currentState.copy(
+//                    status = if (results.all { it }) UiStatus.SUCCESS else UiStatus.ERROR
+//                )
+//            }
+//        }
+//    }
 
     fun reload(signal: ReloadSignal) {
         when (signal) {
-            ReloadSignal.RELOAD_ALL_SAMPLES -> initSamplePagingFlow(state.value.stage!!.id)
-            ReloadSignal.RELOAD_STAGE -> loadStage(
-                stageId = state.value.stage!!.id,
-                skipCached = true
-            )
+            ReloadSignal.RELOAD_ALL_SAMPLES -> fetchSamples(state.value.stage!!.id)
+            ReloadSignal.RELOAD_STAGE -> loadStage(state.value.stage!!.id)
 
             else -> {}
         }

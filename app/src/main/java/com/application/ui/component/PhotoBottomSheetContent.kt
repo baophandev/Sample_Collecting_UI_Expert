@@ -121,7 +121,12 @@ fun PhotoBottomSheetContent(
 
                     Box {
                         AsyncImage(
-                            model = ImageRequest.Builder(context).data(uri).build(),
+                            model = ImageRequest.Builder(context)
+                                .data(uri)
+                                .error(R.drawable.img_error)
+                                .placeholder(R.drawable.img_placeholder)
+                                .fallback(R.drawable.img_fallback)
+                                .build(),
                             modifier = Modifier
                                 .clip(RoundedCornerShape(10.dp))
                                 .combinedClickable(

@@ -26,12 +26,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.application.R
-import com.application.constant.UiStatus
 import com.application.data.entity.Sample
 import com.application.ui.component.FullScreenImage
 import com.application.ui.component.NameAndValueField
@@ -45,42 +42,36 @@ fun SampleDetailScreen(
     val state by viewModel.state.collectAsState()
     var showSampleData by remember { mutableStateOf(false) }
 
-    when (state.status) {
-        UiStatus.LOADING -> LoadingScreen(text = stringResource(id = R.string.loading))
-        UiStatus.ERROR -> navigateToStageDetail()
-        UiStatus.SUCCESS -> Scaffold { innerPadding ->
-            Box(modifier = Modifier.padding(innerPadding)) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.White)
+    Scaffold { innerPadding ->
+        Box(modifier = Modifier.padding(innerPadding)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+            ) {
+                FullScreenImage(
+                    uri = state.sample?.image!!,
+                    onDismiss = navigateToStageDetail,
+                    onTapGesture = { showSampleData = !showSampleData }
+                )
+            }
+            state.sample?.let { sample ->
+                AnimatedVisibility(
+                    visible = (showSampleData),
+                    enter = fadeIn(animationSpec = tween(400)),
+                    exit = fadeOut(animationSpec = tween(400))
                 ) {
-                    FullScreenImage(
-                        uri = state.sample?.image!!,
-                        onDismiss = navigateToStageDetail,
-                        onTapGesture = { showSampleData = !showSampleData }
-                    )
-                }
-                state.sample?.let { sample ->
-                    AnimatedVisibility(
-                        visible = (showSampleData),
-                        enter = fadeIn(animationSpec = tween(400)),
-                        exit = fadeOut(animationSpec = tween(400))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0, 0, 0, 153)),
+                        contentAlignment = Alignment.BottomStart
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color(0, 0, 0, 153)),
-                            contentAlignment = Alignment.BottomStart
-                        ) {
-                            SampleBox(sample = sample)
-                        }
+                        SampleBox(sample = sample)
                     }
                 }
             }
         }
-
-        else -> {}
     }
 }
 

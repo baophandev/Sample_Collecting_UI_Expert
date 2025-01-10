@@ -8,6 +8,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.application.constant.ReloadSignal
+import com.application.data.entity.Form
+import com.application.data.entity.Project
+import com.application.data.entity.Sample
+import com.application.data.entity.Stage
 import com.application.ui.screen.CaptureScreen
 import com.application.ui.screen.ChatScreen
 import com.application.ui.screen.CreateFormScreen
@@ -125,10 +129,10 @@ fun AppNavigationGraph() {
             val navigateToCreateProject: () -> Unit = {
                 navController.navigateSingleTop(Routes.CREATE_PROJECT_SCREEN)
             }
-            val navigateToDetailProject: (String) -> Unit = { projectId ->
-                detailVM.fetchProject(projectId = projectId)
-                detailVM.fetchForms(projectId = projectId)
-                detailVM.fetchStages(projectId = projectId)
+            val navigateToDetailProject: (Project) -> Unit = { project ->
+                detailVM.fetchProject(project)
+                detailVM.fetchForms(projectId = project.id)
+                detailVM.fetchStages(projectId = project.id)
                 navController.navigateSingleTop(Routes.DETAIL_SCREEN)
             }
 
@@ -143,12 +147,13 @@ fun AppNavigationGraph() {
         }
 
         composable(route = Routes.DETAIL_SCREEN) {
-            val navigateToModify: (String) -> Unit = { projectIdToModify ->
-                modifyProjectVM.loadProject(projectIdToModify)
+            val navigateToModify: (Project) -> Unit = { project ->
+                modifyProjectVM.loadProject(project)
                 navController.navigateSingleTop(Routes.MODIFY_PROJECT_SCREEN)
             }
-            val navigateToStageDetail: (String) -> Unit = { stageId ->
-                stageDetailVM.loadStage(stageId)
+            val navigateToStageDetail: (Stage) -> Unit = { stage ->
+                stageDetailVM.loadStage(stage)
+                stageDetailVM.fetchSamples(stage.id)
                 navController.navigateSingleTop(Routes.STAGE_DETAIL_SCREEN)
             }
             val navigateToCreateStage: (String) -> Unit = { projectId ->
@@ -160,9 +165,9 @@ fun AppNavigationGraph() {
                 createFormVM.fetchProject(projectId = projectId)
                 navController.navigateSingleTop(Routes.CREATE_FORM_SCREEN)
             }
-            val navigateToModifyForm: (String) -> Unit = { formId ->
-                modifyFormVM.loadModifiedForm(formId)
-                modifyFormVM.loadAllModifiedFields(formId)
+            val navigateToModifyForm: (Form) -> Unit = { form ->
+                modifyFormVM.loadModifiedForm(form)
+                modifyFormVM.loadAllModifiedFields(form.id)
                 navController.navigateSingleTop(Routes.MODIFY_FORM_SCREEN)
             }
 
@@ -210,24 +215,23 @@ fun AppNavigationGraph() {
         }
 
         composable(Routes.STAGE_DETAIL_SCREEN) {
-            val navigateToModifyStage: (String, String) -> Unit = { projectId, stageId ->
-                modifyStageVM.fetchStage(projectId, stageId)
-                modifyStageVM.fetchProjectMembers(projectId)
+            val navigateToModifyStage: (Stage) -> Unit = { stage ->
+                modifyStageVM.loadStage(stage)
                 navController.navigateSingleTop(Routes.MODIFY_STAGE_SCREEN)
             }
             val navigateToCapture: (String) -> Unit = { stageId ->
                 captureVM.loadStage(stageId)
                 navController.navigateSingleTop(Routes.CAPTURE_SCREEN)
             }
-            val navigateToSampleDetail: (String) -> Unit = { sampleId ->
-                sampleDetailVM.loadSample(sampleId)
+            val navigateToSampleDetail: (Sample) -> Unit = { sample ->
+                sampleDetailVM.loadSample(sample)
                 navController.navigateSingleTop(Routes.SAMPLE_DETAIL_SCREEN)
             }
 
             StageDetailScreen(
                 viewModel = stageDetailVM,
-                navigateToDetail = { isUpdated ->
-                    if (isUpdated) detailVM.reload(ReloadSignal.RELOAD_STAGE)
+                navigateToDetail = {
+                    detailVM.reload(ReloadSignal.RELOAD_STAGE)
                     popBackToDetailScreen()
                 },
                 navigateToModifyStage = navigateToModifyStage,
