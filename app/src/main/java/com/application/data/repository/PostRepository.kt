@@ -231,6 +231,7 @@ class PostRepository(
             thumbnail = thumbnail,
             createdAt = response.createdAt,
             title = response.title,
+            conversationId = response.conversationId,
             owner = userPair.first,
             expert = userPair.second,
             generalComment = generalComment

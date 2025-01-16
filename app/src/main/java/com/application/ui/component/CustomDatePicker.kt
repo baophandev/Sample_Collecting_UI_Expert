@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,10 +35,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.application.R
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
+/**
+ * @param onDateChange Pattern of date is yyyy-MM-dd
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomDatePicker(
@@ -53,6 +58,7 @@ fun CustomDatePicker(
         .withZone(ZoneOffset.systemDefault())
     val defaultDateText = initValue ?: stringResource(id = R.string.select_date)
 
+    val scope = rememberCoroutineScope()
     val state = rememberDatePickerState()
     var showDatePicker by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf(defaultDateText) }
@@ -118,7 +124,10 @@ fun CustomDatePicker(
                     ) {
                         state.selectedDateMillis?.let {
                             selectedDate = dateFormatter.format(Instant.ofEpochMilli(it))
-                            onDateChange(selectedDate)
+                            scope.launch {
+                                val tmpArr = selectedDate.split("/")
+                                onDateChange("${tmpArr[2]}-${tmpArr[1]}-${tmpArr[0]}")
+                            }
                             showDatePicker = false
                         }
                     }

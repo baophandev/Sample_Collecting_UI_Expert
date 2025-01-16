@@ -99,6 +99,7 @@ class ProjectServiceImpl(
     //Stage
     override suspend fun createStage(body: CreateStageRequest): String {
         return client.post("$prefixPath/stage") {
+            contentType(ContentType.Application.Json)
             setBody(body)
         }.body()
     }
@@ -151,6 +152,7 @@ class ProjectServiceImpl(
     //Form
     override suspend fun createForm(body: CreateFormRequest): String {
         return client.post("$prefixPath/form") {
+            contentType(ContentType.Application.Json)
             setBody(body)
         }.body()
     }
@@ -189,11 +191,13 @@ class ProjectServiceImpl(
     //Field
     override suspend fun createField(formId: String, body: CreateFieldRequest): String =
         client.post("$prefixPath/field/$formId") {
+            contentType(ContentType.Application.Json)
             setBody(body)
         }.body()
 
     override suspend fun createDynamicField(sampleId: String, body: CreateFieldRequest): String =
         client.post("$prefixPath/field/$sampleId/dynamic") {
+            contentType(ContentType.Application.Json)
             setBody(body)
         }.body()
 
@@ -228,12 +232,14 @@ class ProjectServiceImpl(
         body: UpdateDynamicFieldRequest
     ): Boolean = client
         .patch("$prefixPath/field/$fieldId/dynamic") {
+            contentType(ContentType.Application.Json)
             setBody(body)
         }.body()
 
     //Sample
     override suspend fun createSample(body: CreateSampleRequest): String = client
         .post("$prefixPath/sample") {
+            contentType(ContentType.Application.Json)
             setBody(body)
         }.body()
 

@@ -10,6 +10,7 @@ data class PostResponse(
     val title: String,
     val ownerId: String,
     val expertId: String,
+    val conversationId: Long,
     @SerializedName("domains")
     val domainIds: List<String>,
     val fileIds: List<String>,

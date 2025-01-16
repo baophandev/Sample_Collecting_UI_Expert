@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -122,24 +123,23 @@ class ModifyProjectViewModel @Inject constructor(
         } else {
             viewModelScope.launch(Dispatchers.IO) {
                 userRepository.getUserByEmail(email = memberEmail)
+                    .onStart { _state.update { it.copy(status = UiStatus.LOADING) } }
                     .collectLatest { resourceState ->
                         when (resourceState) {
                             is ResourceState.Success -> {
                                 val user = resourceState.data as? User
-                                if (user != null) {
-                                    _state.update {
-                                        it.copy(
-                                            projectUsers = it.projectUsers + user,
-                                            addedMemberIds = it.addedMemberIds + user.id,
-                                            isUpdated = true
-                                        )
-                                    }
-                                } else {
-                                    _state.update {
-                                        it.copy(error = R.string.error_cannot_get_user_by_email)
-                                    }
+                                _state.update {
+                                    if (user != null) it.copy(
+                                        status = UiStatus.SUCCESS,
+                                        projectUsers = it.projectUsers + user,
+                                        addedMemberIds = it.addedMemberIds + user.id,
+                                        isUpdated = true
+                                    )
+                                    else it.copy(
+                                        status = UiStatus.SUCCESS,
+                                        error = R.string.error_cannot_get_user_by_email
+                                    )
                                 }
-
                             }
 
                             is ResourceState.Error -> _state.update {

@@ -10,12 +10,17 @@ import com.application.data.repository.FieldRepository
 import com.application.data.repository.FormRepository
 import com.application.ui.state.ModifyFormUiState
 import com.application.util.Validation
-import io.github.nhatbangle.sc.utility.state.ResourceState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.nhatbangle.sc.utility.state.ResourceState
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -128,91 +133,70 @@ class ModifyFormViewModel @Inject constructor(
         _state.update { it.copy(status = UiStatus.LOADING) }
 
         viewModelScope.launch(Dispatchers.IO) {
+            val results = mutableListOf<Boolean>()
+
             // chỗ này cập nhật thông tin của form, không bao gồm các field
             if (state.value.isFormUpdated)
-                updateFormToRepository(updatedForm = currentForm, successHandler = successHandler)
+                results += updateFormToRepository(updatedForm = currentForm)
             if (currentState.addedFieldIds.isNotEmpty()) {
                 // chỗ này kiểm tra các field được thêm
                 val addedFieldIds = currentState.addedFieldIds
                 val addedFields = currentFields.filter { addedFieldIds.contains(it.id) }
-                addFieldToRepository(
+                results += addFieldToRepository(
                     formId = currentForm.id,
                     addedFields = addedFields,
-                    successHandler = successHandler
-                )
+                ).awaitAll()
             }
             if (currentState.updatedFieldIds.isNotEmpty()) {
                 // chỗ này kiểm tra các field được cập nhật
                 val updatedFieldIds = currentState.updatedFieldIds
                 val updatedFields = currentFields.filter { updatedFieldIds.contains(it.id) }
-                updateFieldToRepository(
+                results += updateFieldToRepository(
                     updatedFields = updatedFields,
-                    successHandler = successHandler
-                )
+                ).awaitAll()
             }
             if (currentState.deletedFieldIds.isNotEmpty()) {
                 // chỗ này kiểm tra các field bị xóa
                 val deletedFieldIds = currentState.deletedFieldIds
-                deleteFieldToRepository(
+                results += deleteFieldToRepository(
                     deleteFieldIds = deletedFieldIds,
-                    successHandler = successHandler
-                )
+                ).awaitAll()
+            }
+
+            viewModelScope.launch {
+                val finalResult = results.all { it }
+                if (finalResult) _state.update { ModifyFormUiState() }
+                successHandler(finalResult)
             }
         }
     }
 
-    private suspend fun updateFormToRepository(
-        updatedForm: Form,
-        successHandler: (Boolean) -> Unit
-    ) {
-        formRepository.updateForm(
+    private suspend fun updateFormToRepository(updatedForm: Form): Boolean {
+        val rsState = formRepository.updateForm(
             formId = updatedForm.id,
             title = updatedForm.title,
             description = updatedForm.description
-        ).collectLatest { resourceState ->
-            when (resourceState) {
-                is ResourceState.Error -> _state.update {
-                    it.copy(
-                        status = UiStatus.SUCCESS,
-                        error = resourceState.resId
-                    )
-                }
-
-                is ResourceState.Success -> {
-                    _state.update { it.copy(status = UiStatus.SUCCESS) }
-                    viewModelScope.launch {
-                        successHandler(resourceState.data)
-                    }
-                }
-            }
+        ).last()
+        return when (rsState) {
+            is ResourceState.Error -> false
+            is ResourceState.Success -> true
         }
     }
 
     private suspend fun addFieldToRepository(
         formId: String,
         addedFields: List<Field>,
-        successHandler: (Boolean) -> Unit
-    ) {
-        addedFields.forEachIndexed { index, newField ->
-            fieldRepository.createField(
-                formId = formId,
-                name = newField.name,
-                numberOrder = index
-            ).collectLatest { resourceState ->
-                when (resourceState) {
-                    is ResourceState.Error -> _state.update {
-                        it.copy(
-                            status = UiStatus.SUCCESS,
-                            error = resourceState.resId
-                        )
-                    }
-
-                    is ResourceState.Success -> {
-                        _state.update { it.copy(status = UiStatus.SUCCESS) }
-                        viewModelScope.launch {
-                            successHandler(true)
-                        }
-                    }
+    ): List<Deferred<Boolean>> = coroutineScope {
+        addedFields.mapIndexed { index, newField ->
+            async {
+                val rsState = fieldRepository.createField(
+                    formId = formId,
+                    name = newField.name,
+                    numberOrder = index
+                ).last()
+                when (rsState) {
+                    is ResourceState.Error -> false
+                    is ResourceState.Success -> true
                 }
             }
         }
@@ -220,28 +204,17 @@ class ModifyFormViewModel @Inject constructor(
 
     private suspend fun updateFieldToRepository(
         updatedFields: List<Field>,
-        successHandler: (Boolean) -> Unit
-    ) {
-        updatedFields.forEachIndexed { index, updatedField ->
-            fieldRepository.updateField(
-                fieldId = updatedField.id,
-                fieldName = updatedField.name,
-                numberOrder = index
-            ).collectLatest { resourceState ->
-                when (resourceState) {
-                    is ResourceState.Error -> _state.update {
-                        it.copy(
-                            status = UiStatus.SUCCESS,
-                            error = resourceState.resId
-                        )
-                    }
-
-                    is ResourceState.Success -> {
-                        _state.update { it.copy(status = UiStatus.SUCCESS) }
-                        viewModelScope.launch {
-                            successHandler(resourceState.data)
-                        }
-                    }
+    ): List<Deferred<Boolean>> = coroutineScope {
+        updatedFields.mapIndexed { index, updatedField ->
+            async {
+                val rsState = fieldRepository.updateField(
+                    fieldId = updatedField.id,
+                    fieldName = updatedField.name,
+                    numberOrder = index
+                ).last()
+                when (rsState) {
+                    is ResourceState.Error -> false
+                    is ResourceState.Success -> true
                 }
             }
         }
@@ -249,27 +222,14 @@ class ModifyFormViewModel @Inject constructor(
 
     private suspend fun deleteFieldToRepository(
         deleteFieldIds: List<String>,
-        successHandler: (Boolean) -> Unit
-    ) {
-        deleteFieldIds.forEach { deletedFieldId ->
-            fieldRepository.deleteField(fieldId = deletedFieldId)
-                .collectLatest { resourceState ->
-                    when (resourceState) {
-                        is ResourceState.Error -> _state.update {
-                            it.copy(
-                                status = UiStatus.SUCCESS,
-                                error = resourceState.resId
-                            )
-                        }
-
-                        is ResourceState.Success -> {
-                            _state.update { it.copy(status = UiStatus.SUCCESS) }
-                            viewModelScope.launch {
-                                successHandler(resourceState.data)
-                            }
-                        }
-                    }
+    ): List<Deferred<Boolean>> = coroutineScope {
+        deleteFieldIds.map { deletedFieldId ->
+            async {
+                when (fieldRepository.deleteField(fieldId = deletedFieldId).last()) {
+                    is ResourceState.Error -> false
+                    is ResourceState.Success -> true
                 }
+            }
         }
     }
 

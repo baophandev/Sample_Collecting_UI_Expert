@@ -9,6 +9,7 @@ data class Post(
     val thumbnail: Uri? = null,
     val createdAt: String,
     val title: String,
+    val conversationId: Long,
     val owner: User,
     val expert: User? = null,
     val generalComment: GeneralComment? = null

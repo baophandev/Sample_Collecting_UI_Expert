@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -112,8 +113,6 @@ class CreateProjectViewModel @Inject constructor(
     fun submit(successHandler: (String) -> Unit) {
         if (!validateFields()) return
 
-        _state.update { it.copy(loading = true) }
-
         val currentState = state.value
         val thumbnail = currentState.thumbnail
         val collectAction: (ResourceState<String>) -> Unit = { resourceState ->
@@ -139,7 +138,9 @@ class CreateProjectViewModel @Inject constructor(
                 startDate = currentState.startDate,
                 endDate = currentState.endDate,
                 memberIds = currentState.memberIds,
-            ).collectLatest(collectAction)
+            )
+                .onStart { _state.update { it.copy(loading = true) } }
+                .collectLatest(collectAction)
         }
     }
 
