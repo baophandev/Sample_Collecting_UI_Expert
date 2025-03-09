@@ -128,6 +128,7 @@ class PostRepository(
             postId = postId,
             body = body
         )
+        if (result) cachedPosts.remove(postId)
         emit(ResourceState.Success(result))
     }.catch {
         Log.e(TAG, it.message, it)
@@ -140,6 +141,7 @@ class PostRepository(
     }
 
     suspend fun createComment(
+        postId: String,
         fileId: String,
         content: String,
         attachments: List<Uri>? = null
@@ -165,6 +167,7 @@ class PostRepository(
             fileId = fileId,
             body = body
         )
+        if (result) cachedPosts.remove(postId)
         emit(ResourceState.Success(result))
     }.catch {
         Log.e(TAG, it.message, it)

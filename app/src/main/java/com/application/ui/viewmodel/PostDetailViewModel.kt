@@ -163,6 +163,7 @@ class PostDetailViewModel @Inject constructor(
             val comments = currentState.newComments.map { (fileId, comment) ->
                 async {
                     val rsState = postRepository.createComment(
+                        postId = post.id,
                         fileId = fileId,
                         content = comment.content,
                         attachments = comment.attachments?.map { Uri.parse(it.url) }
